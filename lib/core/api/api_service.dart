@@ -25,11 +25,12 @@ class ApiService {
           final token = await _storage.read(key: 'token');
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
+            print('[AUTH] Bearer $token');
           }
           return handler.next(options);
         },
         onError: (DioException e, handler) {
-          // Optional: handle 401, etc.
+          print('[DIO ERROR] ${e.response?.statusCode} → ${e.response?.data}');
           return handler.next(e);
         },
       ),

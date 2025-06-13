@@ -1,15 +1,19 @@
 class MaterialsModel {
   final int id;
   final String name;
-  final String unit;
-  final int quantity;
+  final String type;
+  final String source;
+  final String quantity;
+  final String price;
   final DateTime addedAt;
 
   MaterialsModel({
     required this.id,
     required this.name,
-    required this.unit,
+    required this.type,
+    required this.source,
     required this.quantity,
+    required this.price,
     required this.addedAt,
   });
 
@@ -17,9 +21,11 @@ class MaterialsModel {
     return MaterialsModel(
       id: json['id'] as int,
       name: json['name'] as String,
-      unit: json['unit'] as String,
-      quantity: json['quantity'] as int,
-      addedAt: DateTime.parse(json['addedAt']),
+      type: json['type'] as String,
+      source: json['source'] as String,
+      quantity: json['quantity'] as String,
+      price: json['price'] as String,
+      addedAt: DateTime.parse(json['addedAt'] as String),
     );
   }
 
@@ -27,8 +33,10 @@ class MaterialsModel {
     return {
       'id': id,
       'name': name,
-      'unit': unit,
+      'type': type,
+      'source': source,
       'quantity': quantity,
+      'price': price,
       'addedAt': addedAt.toIso8601String(),
     };
   }

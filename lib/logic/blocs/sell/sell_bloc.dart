@@ -10,6 +10,7 @@ class SellBloc extends Bloc<SellEvent, SellState> {
     on<LoadSellProcesses>(_onLoadProcesses);
     on<LoadSellDetails>(_onLoadDetails);
     on<ConfirmSell>(_onConfirmSell);
+    on<AddSellMaterial>(_onAddSellMaterial);
   }
 
   Future<void> _onLoadProcesses(LoadSellProcesses event, Emitter<SellState> emit) async {
@@ -36,6 +37,31 @@ class SellBloc extends Bloc<SellEvent, SellState> {
     emit(SellLoading());
     try {
       await sellRepository.confirmSell(event.id);
+      emit(SellConfirmed());
+      add(LoadSellProcesses());
+    } catch (e) {
+      emit(SellError(e.toString()));
+    }
+  }
+
+  Future<void> _onAddSellMaterial(AddSellMaterial event, Emitter<SellState> emit) async {
+    emit(SellLoading());
+    try {
+      await sellRepository.addSellMaterial(
+        customerName: event.customerName,
+        customerPhone: event.customerPhone,
+        materialName: event.materialName,
+        fridgeName: event.fridgeName,
+        sellType: event.sellType,
+        quantity: event.quantity,
+        price: event.price,
+        commission: event.commission,
+        traderCommission: event.traderCommission,
+        officeCommission: event.officeCommission,
+        brokerage: event.brokerage,
+        pieceRate: event.pieceRate,
+        weight: event.weight,
+      );
       emit(SellConfirmed());
       add(LoadSellProcesses());
     } catch (e) {

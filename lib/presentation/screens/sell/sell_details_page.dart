@@ -6,355 +6,410 @@ import '../../../logic/blocs/materials/materials_state.dart';
 import '../../../logic/blocs/sell/sell_bloc.dart';
 import '../../../logic/blocs/sell/sell_event.dart';
 import '../../../logic/blocs/sell/sell_state.dart';
+import '../../../data/models/sell_model.dart';
+import 'confirm_sell_page.dart';
 
 class SellDetailsPage extends StatefulWidget {
-  final String name;
-  final String phone;
-
-  const SellDetailsPage({
-    super.key,
-    required this.name,
-    required this.phone,
-  });
+  const SellDetailsPage({super.key});
 
   @override
   State<SellDetailsPage> createState() => _SellDetailsPageState();
 }
 
 class _SellDetailsPageState extends State<SellDetailsPage> {
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-  final List<Map<String, dynamic>> _selectedItems = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text;
-      });
-    });
-    context.read<MaterialsBloc>().add(LoadMaterials());
-  }
+  final TextEditingController _customerNameController = TextEditingController();
+  final TextEditingController _customerPhoneController = TextEditingController();
+  final TextEditingController _materialNameController = TextEditingController();
+  final TextEditingController _fridgeNameController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _commissionController = TextEditingController();
+  final TextEditingController _traderCommissionController = TextEditingController();
+  final TextEditingController _officeCommissionController = TextEditingController();
+  final TextEditingController _brokerageController = TextEditingController();
+  final TextEditingController _pieceRateController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
+  String _sellType = 'قطاعي';
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _customerNameController.dispose();
+    _customerPhoneController.dispose();
+    _materialNameController.dispose();
+    _fridgeNameController.dispose();
+    _quantityController.dispose();
+    _priceController.dispose();
+    _commissionController.dispose();
+    _traderCommissionController.dispose();
+    _officeCommissionController.dispose();
+    _brokerageController.dispose();
+    _pieceRateController.dispose();
+    _weightController.dispose();
     super.dispose();
   }
 
-  void _addItem(Map<String, dynamic> material) {
-    setState(() {
-      final existingItem = _selectedItems.firstWhere(
-        (item) => item['id'] == material['id'],
-        orElse: () => {'id': material['id'], 'quantity': 0},
-      );
-
-      if (existingItem['quantity'] == 0) {
-        _selectedItems.add({
-          'id': material['id'],
-          'name': material['name'],
-          'price': material['price'],
-          'quantity': 1,
-          'unit': material['unit'],
-        });
-      } else {
-        existingItem['quantity']++;
-      }
-    });
-  }
-
-  void _removeItem(Map<String, dynamic> material) {
-    setState(() {
-      final existingItem = _selectedItems.firstWhere(
-        (item) => item['id'] == material['id'],
-        orElse: () => {'quantity': 0},
-      );
-
-      if (existingItem['quantity'] > 1) {
-        existingItem['quantity']--;
-      } else {
-        _selectedItems.removeWhere((item) => item['id'] == material['id']);
-      }
-    });
-  }
-
-  double get _totalPrice {
-    return _selectedItems.fold(
-      0,
-      (sum, item) => sum + (item['price'] * item['quantity']),
-    );
-  }
-
-  void _completeSale() {
-    if (_selectedItems.isEmpty) {
+  void _proceedToConfirmation() {
+    if (_customerNameController.text.isEmpty || _customerPhoneController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرجاء إضافة مواد للبيع'),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text('الرجاء إدخال بيانات العميل')),
       );
       return;
     }
 
-    // TODO: Implement sale completion using SellBloc
-    context.read<SellBloc>().add(
-          AddSellItem(
-            customerName: widget.name,
-            customerPhone: widget.phone,
-            items: _selectedItems,
-            totalPrice: _totalPrice,
-          ),
-        );
+    if (_materialNameController.text.isEmpty || _fridgeNameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('الرجاء إدخال بيانات المادة')),
+      );
+      return;
+    }
 
-    Navigator.pop(context);
+    if (_quantityController.text.isEmpty || _priceController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('الرجاء إدخال الكمية والسعر')),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ConfirmSellPage(
+          customerName: _customerNameController.text,
+          customerPhone: _customerPhoneController.text,
+          materialName: _materialNameController.text,
+          fridgeName: _fridgeNameController.text,
+          sellType: _sellType,
+          quantity: double.parse(_quantityController.text),
+          price: double.parse(_priceController.text),
+          commission: _commissionController.text.isNotEmpty ? double.parse(_commissionController.text) : null,
+          traderCommission: _traderCommissionController.text.isNotEmpty ? double.parse(_traderCommissionController.text) : null,
+          officeCommission: _officeCommissionController.text.isNotEmpty ? double.parse(_officeCommissionController.text) : null,
+          brokerage: _brokerageController.text.isNotEmpty ? double.parse(_brokerageController.text) : null,
+          pieceRate: _pieceRateController.text.isNotEmpty ? double.parse(_pieceRateController.text) : null,
+          weight: _weightController.text.isNotEmpty ? double.parse(_weightController.text) : null,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
-      body: Column(
-        children: [
-          // Header
-          Container(
-            height: 120,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Color(0xFFDAF3D7),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(24),
-                bottomRight: Radius.circular(24),
+    return BlocConsumer<SellBloc, SellState>(
+      listener: (context, state) {
+        if (state is SellError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        if (state is SellLoading) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(
+                color: Color.fromARGB(255, 28, 98, 32),
               ),
             ),
-            padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
-            child: Row(
+          );
+        }
+
+        if (state is SellDetailsLoaded) {
+          final sell = state.sell;
+          return Scaffold(
+            backgroundColor: const Color(0xFFF9F9F9),
+            body: Column(
               children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(
-                    Icons.arrow_back_ios_new,
-                    color: Color.fromARGB(255, 28, 98, 32),
+                // Header
+                Container(
+                  height: 120,
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFDAF3D7),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(24),
+                      bottomRight: Radius.circular(24),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        widget.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          color: Color.fromARGB(255, 28, 98, 32),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.phone,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'بحث عن مادة...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-            ),
-          ),
-
-          // Selected Items
-          if (_selectedItems.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'المواد المختارة',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 28, 98, 32),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _selectedItems.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final item = _selectedItems[index];
-                        return ListTile(
-                          title: Text(
-                            item['name'],
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 28, 98, 32),
-                            ),
-                          ),
-                          subtitle: Text(
-                            '${item['price']} دينار / ${item['unit']}',
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove_circle_outline),
-                                color: Colors.red,
-                                onPressed: () => _removeItem(item),
-                              ),
-                              Text(
-                                '${item['quantity']}',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add_circle_outline),
-                                color: const Color.fromARGB(255, 28, 98, 32),
-                                onPressed: () => _addItem(item),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Row(
                         children: [
-                          const Text(
-                            'المجموع',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: const Icon(
+                              Icons.arrow_back_ios_new,
                               color: Color.fromARGB(255, 28, 98, 32),
                             ),
                           ),
-                          Text(
-                            '${_totalPrice.toStringAsFixed(2)} دينار',
-                            style: const TextStyle(
-                              fontSize: 18,
+                          const SizedBox(width: 8),
+                          const Text(
+                            'تفاصيل البيع',
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
+                              fontSize: 20,
                               color: Color.fromARGB(255, 28, 98, 32),
                             ),
                           ),
                         ],
                       ),
+                      if (sell.status == 'pending')
+                        ElevatedButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('تأكيد البيع'),
+                                content: const Text('هل أنت متأكد من تأكيد عملية البيع؟'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('إلغاء'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      context.read<SellBloc>().add(ConfirmSell(sell.id));
+                                      Navigator.pop(context);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color.fromARGB(255, 28, 98, 32),
+                                    ),
+                                    child: const Text('تأكيد'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 28, 98, 32),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('تأكيد البيع'),
+                        ),
+                    ],
+                  ),
+                ),
+
+                // Content
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Customer Information
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'بيانات العميل',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color.fromARGB(255, 28, 98, 32),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                _buildInfoRow('اسم العميل', sell.customerName),
+                                const SizedBox(height: 8),
+                                _buildInfoRow('رقم الهاتف', sell.customerPhone),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Material Information
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'بيانات المادة',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color.fromARGB(255, 28, 98, 32),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                _buildInfoRow('اسم المادة', sell.materialName),
+                                const SizedBox(height: 8),
+                                _buildInfoRow('الثلاجة', sell.fridgeName),
+                                const SizedBox(height: 8),
+                                _buildInfoRow('نوع البيع', sell.sellType),
+                                const SizedBox(height: 8),
+                                _buildInfoRow('الكمية', sell.quantity.toString()),
+                                const SizedBox(height: 8),
+                                _buildInfoRow('السعر', '${sell.price} ريال'),
+                                if (sell.commission != null) ...[
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow('العمولة', '${sell.commission} ريال'),
+                                ],
+                                if (sell.traderCommission != null) ...[
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow('عمولة التاجر', '${sell.traderCommission} ريال'),
+                                ],
+                                if (sell.officeCommission != null) ...[
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow('عمولة المكتب', '${sell.officeCommission} ريال'),
+                                ],
+                                if (sell.brokerage != null) ...[
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow('الوساطة', '${sell.brokerage} ريال'),
+                                ],
+                                if (sell.pieceRate != null) ...[
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow('سعر القطعة', '${sell.pieceRate} ريال'),
+                                ],
+                                if (sell.weight != null) ...[
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow('الوزن', '${sell.weight} كجم'),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Total and Status
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'المجموع والحالة',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color.fromARGB(255, 28, 98, 32),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                _buildInfoRow('المجموع الكلي', '${sell.totalPrice} ريال'),
+                                const SizedBox(height: 8),
+                                _buildInfoRow('التاريخ', sell.date.toString().split(' ')[0]),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'الحالة: ',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: sell.status == 'pending'
+                                            ? Colors.orange.withOpacity(0.1)
+                                            : Colors.green.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: sell.status == 'pending'
+                                              ? Colors.orange
+                                              : Colors.green,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        sell.status == 'pending' ? 'في انتظار التأكيد' : 'تم التأكيد',
+                                        style: TextStyle(
+                                          color: sell.status == 'pending'
+                                              ? Colors.orange
+                                              : Colors.green,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          );
+        }
 
-          // Materials List
-          Expanded(
-            child: BlocBuilder<MaterialsBloc, MaterialsState>(
-              builder: (context, state) {
-                if (state is MaterialsLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (state is MaterialsLoaded) {
-                  final filteredMaterials = state.materials.where((material) {
-                    return material.name
-                        .toLowerCase()
-                        .contains(_searchQuery.toLowerCase());
-                  }).toList();
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: filteredMaterials.length,
-                    itemBuilder: (context, index) {
-                      final material = filteredMaterials[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: Colors.green.shade100,
-                            child: const Icon(
-                              Icons.inventory_2,
-                              color: Color.fromARGB(255, 28, 98, 32),
-                            ),
-                          ),
-                          title: Text(
-                            material.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 28, 98, 32),
-                            ),
-                          ),
-                          subtitle: Text(
-                            '${material.price} دينار / ${material.unit}',
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.add_circle_outline),
-                            color: const Color.fromARGB(255, 28, 98, 32),
-                            onPressed: () => _addItem(material.toJson()),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                } else if (state is MaterialsError) {
-                  return Center(
-                    child: Text(
-                      'حدث خطأ: ${state.message}',
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  );
-                }
-                return const Center(child: Text('لا توجد مواد متاحة'));
-              },
-            ),
+        return const Scaffold(
+          body: Center(
+            child: Text('حدث خطأ في تحميل البيانات'),
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _completeSale,
-        backgroundColor: const Color.fromARGB(255, 28, 98, 32),
-        icon: const Icon(Icons.check),
-        label: const Text('إتمام البيع'),
-      ),
+        );
+      },
     );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.grey,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  IconData _getMaterialIcon(String materialName) {
+    switch (materialName.toLowerCase()) {
+      case 'طماطم':
+        return Icons.grass;
+      case 'تفاح':
+        return Icons.apple;
+      case 'خيار':
+        return Icons.eco;
+      case 'موز':
+        return Icons.forest;
+      case 'فريز':
+        return Icons.icecream;
+      case 'باذنجان':
+        return Icons.eco;
+      default:
+        return Icons.shopping_basket;
+    }
   }
 }

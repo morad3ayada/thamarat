@@ -3,9 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../logic/blocs/fridge/fridge_bloc.dart';
 import '../../../logic/blocs/fridge/fridge_event.dart';
 import '../../../logic/blocs/fridge/fridge_state.dart';
+import '../../../data/models/fridge_model.dart';
 
 class FridgeDetailScreen extends StatefulWidget {
-  final String fridgeId;
+  final int fridgeId;
   final String fridgeName;
   final int count;
 
@@ -77,7 +78,7 @@ class _FridgeDetailScreenState extends State<FridgeDetailScreen> {
                         ),
                       ),
                       Text(
-                        'عدد المواد: ${widget.count}',
+                        'الكمية: ${widget.count}',
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.grey,
@@ -111,79 +112,111 @@ class _FridgeDetailScreenState extends State<FridgeDetailScreen> {
                 if (state is FridgeLoading) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is FridgeDetailsLoaded) {
-                  final materials = state.fridge['materials'] as List;
-                  final filteredMaterials = materials.where((material) {
-                    return material['name']
-                        .toString()
-                        .toLowerCase()
-                        .contains(_searchQuery.toLowerCase());
-                  }).toList();
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: filteredMaterials.length,
-                    itemBuilder: (context, index) {
-                      final material = filteredMaterials[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                  final fridge = state.fridge;
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // معلومات الثلاجة
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.shade100,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(
+                                        Icons.kitchen,
+                                        color: Color.fromARGB(255, 28, 98, 32),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            fridge.name,
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color.fromARGB(255, 28, 98, 32),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'تم الإضافة في ${_formatDate(fridge.addedAt)}',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                const Divider(),
+                                const SizedBox(height: 16),
+                                _buildInfoRow(
+                                  'الكمية',
+                                  '${fridge.quantity} ${fridge.unit}',
+                                  Icons.inventory_2,
+                                ),
+                                const SizedBox(height: 12),
+                                _buildInfoRow(
+                                  'الحالة',
+                                  fridge.quantity > 0 ? 'متوفر' : 'غير متوفر',
+                                  Icons.circle,
+                                  color: fridge.quantity > 0 ? Colors.green : Colors.red,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: Colors.green.shade100,
-                            child: Icon(
-                              _getMaterialIcon(material['name']),
-                              color: const Color.fromARGB(255, 28, 98, 32),
-                            ),
-                          ),
-                          title: Text(
-                            material['name'],
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 28, 98, 32),
-                            ),
-                          ),
-                          subtitle: Text(
-                            '${material['quantity']} - ${material['price']}',
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                          trailing: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _getTypeColor(material['type'])
-                                  .withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: _getTypeColor(material['type'])
-                                    .withOpacity(0.3),
-                              ),
-                            ),
-                            child: Text(
-                              material['type'],
-                              style: TextStyle(
-                                color: _getTypeColor(material['type']),
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                      ],
+                    ),
                   );
                 } else if (state is FridgeError) {
                   return Center(
-                    child: Text(
-                      'حدث خطأ: ${state.message}',
-                      style: const TextStyle(color: Colors.red),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          state.message,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<FridgeBloc>().add(LoadFridgeDetails(widget.fridgeId));
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 28, 98, 32),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('إعادة المحاولة'),
+                        ),
+                      ],
                     ),
                   );
                 }
-                return const Center(child: Text('لا توجد مواد'));
+                return const Center(child: Text('لا توجد بيانات'));
               },
             ),
           ),
@@ -192,31 +225,36 @@ class _FridgeDetailScreenState extends State<FridgeDetailScreen> {
     );
   }
 
-  IconData _getMaterialIcon(String materialName) {
-    switch (materialName.toLowerCase()) {
-      case 'طماطم':
-        return Icons.grass;
-      case 'تفاح':
-        return Icons.apple;
-      case 'خيار':
-        return Icons.eco;
-      case 'موز':
-        return Icons.forest;
-      case 'فريز':
-        return Icons.icecream;
-      case 'باذنجان':
-        return Icons.eco;
-      default:
-        return Icons.shopping_basket;
-    }
+  Widget _buildInfoRow(String label, String value, IconData icon, {Color? color}) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: color ?? Colors.grey.shade600,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color ?? const Color.fromARGB(255, 28, 98, 32),
+          ),
+        ),
+      ],
+    );
   }
 
-  Color _getTypeColor(String type) {
-    if (type.contains('صافي')) {
-      return const Color.fromARGB(255, 28, 98, 32);
-    } else if (type.contains('خابط')) {
-      return Colors.orange;
-    }
-    return Colors.grey;
+  String _formatDate(DateTime date) {
+    return '${date.year}/${date.month}/${date.day}';
   }
 }

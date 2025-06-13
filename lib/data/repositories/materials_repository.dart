@@ -8,7 +8,7 @@ class MaterialsRepository {
   MaterialsRepository(this._apiService);
 
   Future<List<MaterialsModel>> fetchMaterials() async {
-    final response = await _apiService.get(ApiConstants.materials);
+    final response = await _apiService.get(ApiConstants.addMaterial);
     final data = response.data;
 
     if (data['success'] == true) {
@@ -20,20 +20,22 @@ class MaterialsRepository {
     }
   }
 
-  Future<void> addMaterial(MaterialsModel material) async {
+  Future<MaterialsModel> addMaterial(MaterialsModel material) async {
     final response = await _apiService.post(
       ApiConstants.addMaterial,
       data: material.toJson(),
     );
 
     final data = response.data;
-    if (data['success'] != true) {
+    if (data['success'] == true) {
+      return MaterialsModel.fromJson(data['data']);
+    } else {
       throw Exception(data['message'] ?? 'Failed to add material');
     }
   }
 
   Future<void> deleteMaterial(int id) async {
-    final response = await _apiService.delete('${ApiConstants.materials}/$id');
+    final response = await _apiService.delete('${ApiConstants.addMaterial}/$id');
     final data = response.data;
     if (data['success'] != true) {
       throw Exception(data['message'] ?? 'Failed to delete material');

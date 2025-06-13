@@ -9,6 +9,14 @@ abstract class MaterialsEvent extends Equatable {
 
 class LoadMaterials extends MaterialsEvent {}
 
+class SearchMaterials extends MaterialsEvent {
+  final String query;
+  const SearchMaterials(this.query);
+
+  @override
+  List<Object?> get props => [query];
+}
+
 class AddMaterial extends MaterialsEvent {
   final MaterialsModel material;
   const AddMaterial(this.material);

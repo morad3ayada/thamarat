@@ -1,4 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../logic/blocs/sell/sell_bloc.dart';
+import '../../../logic/blocs/sell/sell_event.dart';
+import '../../../logic/blocs/sell/sell_state.dart';
+import '../../../logic/blocs/vendor/vendor_bloc.dart';
+import '../../../logic/blocs/vendor/vendor_event.dart';
+import '../../../logic/blocs/vendor/vendor_state.dart';
+import '../../../logic/blocs/materials/materials_bloc.dart';
+import '../../../logic/blocs/materials/materials_event.dart';
+import '../../../logic/blocs/materials/materials_state.dart';
+import '../../../data/models/materials_model.dart';
 
 class AddMaterialPage extends StatefulWidget {
   const AddMaterialPage({super.key});
@@ -8,590 +19,442 @@ class AddMaterialPage extends StatefulWidget {
 }
 
 class _AddMaterialPageState extends State<AddMaterialPage> {
-  String sellType = 'عادي';
-  TextEditingController commissionController = TextEditingController();
-  TextEditingController traderCommissionController = TextEditingController();
-  TextEditingController officeCommissionController = TextEditingController();
-  TextEditingController brokerageController = TextEditingController();
-  TextEditingController pieceRateController = TextEditingController();
-  TextEditingController weightController = TextEditingController();
-  TextEditingController quantityController = TextEditingController();
-  TextEditingController priceController = TextEditingController();
-  double traderPieceRate = 30.0;
-  double officePieceRate = 40.0;
-  double workerPieceRate = 30.0;
-  String selectedFridge = 'المنطقة الشمالية';
-  int selectedFridgeIndex = 0;
-  String? selectedMaterial;
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _customerNameController = TextEditingController();
+  final TextEditingController _customerPhoneController = TextEditingController();
+  final TextEditingController _materialNameController = TextEditingController();
+  final TextEditingController _fridgeNameController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _commissionController = TextEditingController();
+  final TextEditingController _traderCommissionController = TextEditingController();
+  final TextEditingController _officeCommissionController = TextEditingController();
+  final TextEditingController _brokerageController = TextEditingController();
+  final TextEditingController _pieceRateController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
+  String _sellType = 'قطاعي';
+  int expandedIndex = -1;
 
-  final List<String> fridges = [
-    'المنطقة الشمالية',
-    'المنطقة الشرقية',
-    'المنطقة الغربية',
-    'المنطقة الجنوبية',
-    'المنطقة المركزية'
-  ];
+  @override
+  void initState() {
+    super.initState();
+    context.read<VendorBloc>().add(LoadVendors());
+    context.read<MaterialsBloc>().add(LoadMaterials());
+    _searchController.addListener(_filterMaterials);
+  }
 
-  final Map<String, List<String>> fridgeItems = {
-    'المنطقة الشمالية': ['تفاح', 'كرز', 'خوخ'],
-    'المنطقة الشرقية': ['تمر', 'مانجو', 'موز'],
-    'المنطقة الغربية': ['عنب', 'فراولة', 'ليمون'],
-    'المنطقة الجنوبية': ['رمان', 'تين', 'بطيخ'],
-    'المنطقة المركزية': ['برتقال', 'يوسفي', 'جوافة'],
-  };
+  @override
+  void dispose() {
+    _customerNameController.dispose();
+    _customerPhoneController.dispose();
+    _materialNameController.dispose();
+    _fridgeNameController.dispose();
+    _quantityController.dispose();
+    _priceController.dispose();
+    _commissionController.dispose();
+    _traderCommissionController.dispose();
+    _officeCommissionController.dispose();
+    _brokerageController.dispose();
+    _pieceRateController.dispose();
+    _weightController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _submitForm() {
+    if (_formKey.currentState!.validate()) {
+      context.read<SellBloc>().add(
+        AddSellMaterial(
+          customerName: _customerNameController.text,
+          customerPhone: _customerPhoneController.text,
+          materialName: _materialNameController.text,
+          fridgeName: _fridgeNameController.text,
+          sellType: _sellType,
+          quantity: double.parse(_quantityController.text),
+          price: double.parse(_priceController.text),
+          commission: _commissionController.text.isNotEmpty ? double.parse(_commissionController.text) : null,
+          traderCommission: _traderCommissionController.text.isNotEmpty ? double.parse(_traderCommissionController.text) : null,
+          officeCommission: _officeCommissionController.text.isNotEmpty ? double.parse(_officeCommissionController.text) : null,
+          brokerage: _brokerageController.text.isNotEmpty ? double.parse(_brokerageController.text) : null,
+          pieceRate: _pieceRateController.text.isNotEmpty ? double.parse(_pieceRateController.text) : null,
+          weight: _weightController.text.isNotEmpty ? double.parse(_weightController.text) : null,
+        ),
+      );
+    }
+  }
+
+  void _filterVendors(String query) {
+    context.read<VendorBloc>().add(SearchVendors(query));
+    setState(() {
+      expandedIndex = -1;
+    });
+  }
+
+  void _filterMaterials() {
+    final query = _searchController.text;
+    context.read<MaterialsBloc>().add(SearchMaterials(query));
+    setState(() {
+      expandedIndex = -1;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF9F9F9),
-        body: Column(
-          children: [
-            // Header
-            Container(
-              height: 120,
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: Color(0xFFCFE8D7),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
-              ),
-              padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: const Icon(
-                          Icons.arrow_back_ios_new,
-                          color: Color.fromARGB(255, 28, 98, 32),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'إضافة مادة',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          color: Color.fromARGB(255, 28, 98, 32),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Text(
-                    '0 مواد',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: Color.fromARGB(255, 28, 98, 32),
-                    ),
-                  ),
-                ],
-              ),
+    return BlocConsumer<SellBloc, SellState>(
+      listener: (context, state) {
+        if (state is SellError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
             ),
-
-            // Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Search Box
-                    TextField(
-                      decoration: InputDecoration(
-                        hintText: 'ابحث عن اسم البراد',
-                        prefixIcon: const Icon(Icons.search, color: Color.fromARGB(255, 28, 98, 32)),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                        ),
-                      ),
+          );
+        } else if (state is SellConfirmed) {
+          Navigator.pop(context);
+        }
+      },
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF9F9F9),
+          body: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                // Header
+                Container(
+                  height: 120,
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFDAF3D7),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(24),
+                      bottomRight: Radius.circular(24),
                     ),
-                    const SizedBox(height: 16),
-                    
-                    // Fridge Chips
-                    SizedBox(
-                      height: 50,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: fridges.length,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedFridge = fridges[index];
-                                  selectedFridgeIndex = index;
-                                  selectedMaterial = null;
-                                });
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: selectedFridgeIndex == index 
-                                      ? Color.fromARGB(255, 28, 98, 32) 
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: selectedFridgeIndex == index 
-                                        ? Color.fromARGB(255, 28, 98, 32) 
-                                        : const Color(0xFFE0E0E0),
-                                  ),
-                                ),
-                                child: Text(
-                                  fridges[index],
-                                  style: TextStyle(
-                                    color: selectedFridgeIndex == index 
-                                        ? Colors.white 
-                                        : Color.fromARGB(255, 28, 98, 32),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
+                  ),
+                  padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: const Icon(
+                              Icons.arrow_back_ios_new,
+                              color: Color.fromARGB(255, 28, 98, 32),
                             ),
-                          );
-                        },
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'إضافة عملية بيع',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              color: Color.fromARGB(255, 28, 98, 32),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Materials List
-                    ...fridgeItems[selectedFridge]!.map((fruit) => 
-                      _buildMaterialItemWithSelection(fruit, selectedFridge)
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    const Divider(height: 1, color: Color(0xFFE0E0E0)),
-                    const SizedBox(height: 16),
-                    
-                    // Sell Type Section
-                    const Text(
-                      "نظام البيع",
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildSellTypeSelector(),
-                    const SizedBox(height: 16),
-                    
-                    // Wholesale Options (if selected)
-                    if (sellType == "بالكوترة") ...[
-                      _buildWholesaleOptions(),
-                      const SizedBox(height: 16),
                     ],
-                    
-                    // Input Fields
-                    _buildInputFieldsSection(),
-                    const SizedBox(height: 24),
-                    
-                    // Buttons
-                    Row(
+                  ),
+                ),
+
+                // Content
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              side: const BorderSide(color: Color.fromARGB(255, 28, 98, 32)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: const Text(
-                              "رجوع",
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 28, 98, 32),
-                                fontWeight: FontWeight.bold,
-                              ),
+                        // Customer Information
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'بيانات العميل',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color.fromARGB(255, 28, 98, 32),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _customerNameController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'اسم العميل',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'الرجاء إدخال اسم العميل';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _customerPhoneController,
+                                  keyboardType: TextInputType.phone,
+                                  decoration: const InputDecoration(
+                                    labelText: 'رقم الهاتف',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'الرجاء إدخال رقم الهاتف';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color.fromARGB(255, 28, 98, 32),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
+                        const SizedBox(height: 24),
+
+                        // Material Information
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'بيانات المادة',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color.fromARGB(255, 28, 98, 32),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _fridgeNameController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'الثلاجة',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'الرجاء إدخال اسم الثلاجة';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _materialNameController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'المادة',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'الرجاء إدخال اسم المادة';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                DropdownButtonFormField<String>(
+                                  value: _sellType,
+                                  decoration: const InputDecoration(
+                                    labelText: 'نوع البيع',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: 'قطاعي',
+                                      child: Text('قطاعي'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'جملة',
+                                      child: Text('جملة'),
+                                    ),
+                                  ],
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      setState(() {
+                                        _sellType = value;
+                                      });
+                                    }
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _quantityController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'الكمية',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'الرجاء إدخال الكمية';
+                                    }
+                                    if (double.tryParse(value) == null) {
+                                      return 'الرجاء إدخال رقم صحيح';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _priceController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'السعر',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'الرجاء إدخال السعر';
+                                    }
+                                    if (double.tryParse(value) == null) {
+                                      return 'الرجاء إدخال رقم صحيح';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ],
                             ),
-                            child: const Text(
-                              "إضافة المادة",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Additional Information
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'معلومات إضافية',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color.fromARGB(255, 28, 98, 32),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _commissionController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'العمولة',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _traderCommissionController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'عمولة التاجر',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _officeCommissionController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'عمولة المكتب',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _brokerageController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'الوساطة',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _pieceRateController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'سعر القطعة',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _weightController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'الوزن (كجم)',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMaterialItemWithSelection(String fruitName, String fridgeName) {
-    bool isSelected = selectedMaterial == fruitName;
-    
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedMaterial = isSelected ? null : fruitName;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFDEF2E0) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 5,
-              offset: Offset(0, 3))
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSelected ? Color.fromARGB(255, 28, 98, 32) : Colors.grey,
-                      width: 2,
-                    ),
                   ),
-                  child: isSelected
-                      ? const Icon(
-                          Icons.check,
-                          size: 18,
-                          color: Color.fromARGB(255, 28, 98, 32),
-                        )
-                      : null,
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  fruitName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Color.fromARGB(255, 28, 98, 32),
+
+                // Submit Button
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 28, 98, 32),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: state is SellLoading ? null : _submitForm,
+                      child: state is SellLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'إضافة',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
                   ),
                 ),
               ],
             ),
-            Text(
-              fridgeName,
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSellTypeSelector() {
-    return Column(
-      children: [
-        _buildCustomRadioTile(
-          value: "عادي",
-          groupValue: sellType,
-          onChanged: (val) => setState(() => sellType = val!),
-          title: "البيع العادي",
-        ),
-        _buildCustomRadioTile(
-          value: "بالكوترة",
-          groupValue: sellType,
-          onChanged: (val) => setState(() => sellType = val!),
-          title: "البيع بالكوترة",
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCustomRadioTile({
-    required String value,
-    required String groupValue,
-    required ValueChanged<String?> onChanged,
-    required String title,
-  }) {
-    final isSelected = value == groupValue;
-    
-    return InkWell(
-      onTap: () => onChanged(value),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 5,
-              offset: Offset(0, 3))
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected ? Color.fromARGB(255, 28, 98, 32) : Colors.grey,
-                  width: 2,
-                ),
-              ),
-              child: isSelected
-                  ? const Icon(
-                      Icons.check,
-                      size: 18,
-                      color: Color.fromARGB(255, 28, 98, 32),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              title,
-              style: TextStyle(
-                color: isSelected ? Color.fromARGB(255, 28, 98, 32) : Colors.black,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInputFieldsSection() {
-    return Column(
-      children: [
-        if (sellType == "بالكوترة")
-          _buildBorderlessInputField("العدد", "العدد", quantityController),
-        _buildBorderlessInputField("الوزن", "كيلو", weightController),
-        const SizedBox(height: 16),
-        _buildBorderlessInputField("السعر", "دينار", priceController),
-      ],
-    );
-  }
-
-  Widget _buildBorderlessInputField(String label, String hint, TextEditingController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 14,
           ),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 5,
-                offset: Offset(0, 3))
-            ],
-          ),
-          child: TextField(
-            controller: controller,
-            decoration: InputDecoration(
-              hintText: hint,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-              border: InputBorder.none,
-              filled: true,
-              fillColor: Colors.white,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-      ],
-    );
-  }
-  Widget _buildWholesaleOptions() {
-    return Column(
-      children: [
-        _buildCommissionCard(
-          title: "نسبة التاجر من العمولة",
-          controller: traderCommissionController,
-        ),
-        const SizedBox(height: 8),
-        _buildCommissionCard(
-          title: "نسبة المكتب من العمولة",
-          controller: officeCommissionController,
-        ),
-        const SizedBox(height: 8),
-        _buildCommissionCard(
-          title: "نسبة الدلالية",
-          controller: brokerageController,
-        ),
-        const SizedBox(height: 8),
-        _buildCommissionCard(
-          title: "أجور القطعة",
-          controller: pieceRateController,
-        ),
-        const SizedBox(height: 8),
-        _buildRateCardWithSlider(
-          title: "نسبة التاجر من أجور القطعة",
-          value: traderPieceRate,
-          onChanged: (val) => setState(() => traderPieceRate = val),
-        ),
-        const SizedBox(height: 8),
-        _buildRateCardWithSlider(
-          title: "نسبة العامل من أجور القطعة",
-          value: workerPieceRate,
-          onChanged: (val) => setState(() => workerPieceRate = val),
-        ),
-        const SizedBox(height: 8),
-        _buildRateCardWithSlider(
-          title: "نسبة المكتب من أجور القطعة",
-          value: officePieceRate,
-          onChanged: (val) => setState(() => officePieceRate = val),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCommissionCard({
-    required String title,
-    required TextEditingController controller,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 5,
-            offset: Offset(0, 3))
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: Color.fromARGB(255, 28, 98, 32),
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: TextField(
-              controller: controller,
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRateCardWithSlider({
-    required String title,
-    required double value,
-    required Function(double) onChanged,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 5,
-            offset: Offset(0, 3))
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: Color.fromARGB(255, 28, 98, 32),
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "${value.toInt()}%",
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Color.fromARGB(255, 28, 98, 32),
-            ),
-          ),
-          Slider(
-            value: value,
-            onChanged: onChanged,
-            min: 0,
-            max: 100,
-            divisions: 100,
-            activeColor: Color.fromARGB(255, 28, 98, 32),
-            inactiveColor: const Color(0xFFCFE8D7),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

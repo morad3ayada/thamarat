@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:thamarat/core/api/api_service.dart';
 import 'package:thamarat/core/constants/api_constants.dart';
@@ -10,18 +11,24 @@ class AuthRepository {
 
   AuthRepository(this._apiService);
 
-  Future<UserModel> login(String phone, String password) async {
-    Response response = await _apiService.post(
+  Future<UserModel> login(String email, String password) async {
+    final response = await _apiService.post(
       ApiConstants.login,
-      data: {"phone": phone, "password": password},
+      data: {
+        "email": email,
+        "password": password,
+      },
     );
 
-    final data = response.data; // ✅ لازم تفك .data
+    final data = response.data;
 
     if (data['success'] == true) {
       final user = UserModel.fromJson(data['data']);
+      
+      // ✅ تخزين آمن بصيغة JSON
       await _storage.write(key: 'token', value: user.token);
-      await _storage.write(key: 'user', value: user.toJson().toString());
+      await _storage.write(key: 'user', value: jsonEncode(user.toJson()));
+      
       return user;
     } else {
       throw Exception(data['message'] ?? 'Login failed');
@@ -34,5 +41,14 @@ class AuthRepository {
 
   Future<String?> getToken() async {
     return await _storage.read(key: 'token');
+  }
+
+  Future<UserModel?> getSavedUser() async {
+    final userData = await _storage.read(key: 'user');
+    if (userData != null) {
+      final json = jsonDecode(userData);
+      return UserModel.fromJson(json);
+    }
+    return null;
   }
 }

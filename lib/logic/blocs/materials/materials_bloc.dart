@@ -8,6 +8,7 @@ class MaterialsBloc extends Bloc<MaterialsEvent, MaterialsState> {
 
   MaterialsBloc({required this.materialsRepository}) : super(MaterialsInitial()) {
     on<LoadMaterials>(_onLoadMaterials);
+    on<SearchMaterials>(_onSearchMaterials);
     on<AddMaterial>(_onAddMaterial);
     on<DeleteMaterial>(_onDeleteMaterial);
   }
@@ -17,6 +18,18 @@ class MaterialsBloc extends Bloc<MaterialsEvent, MaterialsState> {
     try {
       final items = await materialsRepository.fetchMaterials();
       emit(MaterialsLoaded(items));
+    } catch (e) {
+      emit(MaterialsError(e.toString()));
+    }
+  }
+
+  Future<void> _onSearchMaterials(SearchMaterials event, Emitter<MaterialsState> emit) async {
+    emit(MaterialsLoading());
+    try {
+      final items = await materialsRepository.fetchMaterials();
+      final filteredItems = items.where((material) =>
+          material.name.toLowerCase().contains(event.query.toLowerCase())).toList();
+      emit(MaterialsLoaded(filteredItems));
     } catch (e) {
       emit(MaterialsError(e.toString()));
     }

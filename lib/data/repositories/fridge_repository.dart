@@ -20,7 +20,7 @@ class FridgeRepository {
   }
 
   Future<FridgeModel> getFridgeDetails(int id) async {
-    final response = await _apiService.get("${ApiConstants.fridgeDetails}/$id");
+    final response = await _apiService.get("${ApiConstants.fridges}/$id");
     final data = response.data;
     if (data['success'] == true) {
       return FridgeModel.fromJson(data['data']);
