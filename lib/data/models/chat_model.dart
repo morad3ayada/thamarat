@@ -15,10 +15,10 @@ class ChatMessage {
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
-      id: json['id'] as int,
-      message: json['message'] as String,
-      isFromUser: json['isFromUser'] as bool,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      id: json['id'] as int? ?? 0,
+      message: json['message'] as String? ?? '',
+      isFromUser: json['isFromUser'] as bool? ?? false,
+      createdAt: DateTime.parse(json['createdAt'] as String? ?? DateTime.now().toIso8601String()),
       updatedAt: json['updatedAt'] != null 
           ? DateTime.parse(json['updatedAt'] as String)
           : null,

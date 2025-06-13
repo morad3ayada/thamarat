@@ -39,23 +39,23 @@ class SellModel {
 
   factory SellModel.fromJson(Map<String, dynamic> json) {
     return SellModel(
-      id: json['id'] as int,
-      customerName: json['customerName'] as String,
-      customerPhone: json['customerPhone'] as String,
-      materialName: json['materialName'] as String,
-      fridgeName: json['fridgeName'] as String,
-      sellType: json['sellType'] as String,
-      quantity: (json['quantity'] as num).toDouble(),
-      price: (json['price'] as num).toDouble(),
+      id: json['id'] as int? ?? 0,
+      customerName: json['customerName'] as String? ?? '',
+      customerPhone: json['customerPhone'] as String? ?? '',
+      materialName: json['materialName'] as String? ?? '',
+      fridgeName: json['fridgeName'] as String? ?? '',
+      sellType: json['sellType'] as String? ?? '',
+      quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
       commission: json['commission'] != null ? (json['commission'] as num).toDouble() : null,
       traderCommission: json['traderCommission'] != null ? (json['traderCommission'] as num).toDouble() : null,
       officeCommission: json['officeCommission'] != null ? (json['officeCommission'] as num).toDouble() : null,
       brokerage: json['brokerage'] != null ? (json['brokerage'] as num).toDouble() : null,
       pieceRate: json['pieceRate'] != null ? (json['pieceRate'] as num).toDouble() : null,
       weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null,
-      status: json['status'] as String,
-      date: DateTime.parse(json['date'] as String),
-      totalPrice: (json['totalPrice'] as num).toDouble(),
+      status: json['status'] as String? ?? '',
+      date: DateTime.parse(json['date'] as String? ?? DateTime.now().toIso8601String()),
+      totalPrice: (json['totalPrice'] as num?)?.toDouble() ?? 0.0,
     );
   }
 

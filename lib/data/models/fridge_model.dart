@@ -15,11 +15,11 @@ class FridgeModel {
 
   factory FridgeModel.fromJson(Map<String, dynamic> json) {
     return FridgeModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      quantity: json['quantity'] as int,
-      unit: json['unit'] as String,
-      addedAt: DateTime.parse(json['addedAt']),
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
+      quantity: json['quantity'] as int? ?? 0,
+      unit: json['unit'] as String? ?? '',
+      addedAt: DateTime.parse(json['addedAt'] as String? ?? DateTime.now().toIso8601String()),
     );
   }
 

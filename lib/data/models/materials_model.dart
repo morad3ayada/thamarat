@@ -19,13 +19,13 @@ class MaterialsModel {
 
   factory MaterialsModel.fromJson(Map<String, dynamic> json) {
     return MaterialsModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      type: json['type'] as String,
-      source: json['source'] as String,
-      quantity: json['quantity'] as String,
-      price: json['price'] as String,
-      addedAt: DateTime.parse(json['addedAt'] as String),
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
+      type: json['type'] as String? ?? '',
+      source: json['source'] as String? ?? '',
+      quantity: json['quantity'] as String? ?? '',
+      price: json['price'] as String? ?? '',
+      addedAt: DateTime.parse(json['addedAt'] as String? ?? DateTime.now().toIso8601String()),
     );
   }
 
