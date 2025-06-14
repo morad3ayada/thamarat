@@ -10,8 +10,8 @@ class ApiService {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
+        connectTimeout: const Duration(seconds: 60),
+        receiveTimeout: const Duration(seconds: 60),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -41,6 +41,7 @@ class ApiService {
     try {
       return await _dio.get(path, queryParameters: queryParameters);
     } catch (e) {
+      print('[GET ERROR] $e');
       rethrow;
     }
   }
@@ -49,6 +50,7 @@ class ApiService {
     try {
       return await _dio.post(path, data: data);
     } catch (e) {
+      print('[POST ERROR] $e');
       rethrow;
     }
   }
@@ -57,6 +59,7 @@ class ApiService {
     try {
       return await _dio.put(path, data: data);
     } catch (e) {
+      print('[PUT ERROR] $e');
       rethrow;
     }
   }
@@ -65,6 +68,7 @@ class ApiService {
     try {
       return await _dio.delete(path);
     } catch (e) {
+      print('[DELETE ERROR] $e');
       rethrow;
     }
   }

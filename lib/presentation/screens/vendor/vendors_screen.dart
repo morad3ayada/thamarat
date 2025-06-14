@@ -221,7 +221,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                             mainAxisAlignment: MainAxisAlignment.end,
                                             children: [
                                               const Text(
-                                                'الموقع:',
+                                                'رقم الهاتف:',
                                                 style: TextStyle(
                                                   color: Color.fromARGB(255, 28, 98, 32),
                                                   fontSize: 14,
@@ -229,7 +229,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                               ),
                                               const SizedBox(width: 8),
                                               Text(
-                                                vendor.location,
+                                                vendor.phoneNumber,
                                                 style: const TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 15,
@@ -243,7 +243,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                             mainAxisAlignment: MainAxisAlignment.end,
                                             children: [
                                               const Text(
-                                                'الهاتف:',
+                                                'الفواتير النشطة:',
                                                 style: TextStyle(
                                                   color: Color.fromARGB(255, 28, 98, 32),
                                                   fontSize: 14,
@@ -251,7 +251,29 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                               ),
                                               const SizedBox(width: 8),
                                               Text(
-                                                vendor.phone,
+                                                '${vendor.activeInvoicesCount} فاتورة',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 15,
+                                                  color: Color.fromARGB(255, 28, 98, 32),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 12),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: [
+                                              const Text(
+                                                'إجمالي المبلغ:',
+                                                style: TextStyle(
+                                                  color: Color.fromARGB(255, 28, 98, 32),
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                '${vendor.totalActiveAmount.toStringAsFixed(0)} دينار',
                                                 style: const TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 15,
@@ -274,7 +296,10 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                                 Navigator.push(
                                                   context,
                                                   MaterialPageRoute(
-                                                    builder: (context) => VendorDetailsPage(vendorName: vendor.name),
+                                                    builder: (context) => VendorDetailsPage(
+                                                      vendorName: vendor.name,
+                                                      vendor: vendor,
+                                                    ),
                                                   ),
                                                 );
                                               },

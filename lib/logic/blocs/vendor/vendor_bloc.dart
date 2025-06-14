@@ -18,7 +18,11 @@ class VendorBloc extends Bloc<VendorEvent, VendorState> {
   Future<void> _onLoadVendors(LoadVendors event, Emitter<VendorState> emit) async {
     try {
       emit(VendorLoading());
-      final vendors = await _vendorRepository.getVendors();
+      
+      // Test data fetching first
+      await _vendorRepository.testDataFetching();
+      
+      final vendors = await _vendorRepository.getCustomersWithActiveInvoices();
       emit(VendorsLoaded(vendors));
     } catch (e) {
       emit(VendorError(e.toString()));

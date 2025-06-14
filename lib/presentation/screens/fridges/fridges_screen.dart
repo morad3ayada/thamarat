@@ -140,7 +140,10 @@ class _FridgesScreenState extends State<FridgesScreen> {
                                   count: fridge.quantity,
                                 ),
                               ),
-                            );
+                            ).then((_) {
+                              // Reload fridge items when returning from detail screen
+                              context.read<FridgeBloc>().add(LoadFridgeItems());
+                            });
                           },
                           borderRadius: BorderRadius.circular(16),
                           child: Padding(
@@ -173,7 +176,7 @@ class _FridgesScreenState extends State<FridgesScreen> {
                                               ),
                                             ),
                                             Text(
-                                              'تم الإضافة في ${_formatDate(fridge.addedAt)}',
+                                              'عدد المواد: ${fridge.materials.length}',
                                               style: const TextStyle(
                                                 color: Colors.grey,
                                               ),
@@ -188,15 +191,15 @@ class _FridgesScreenState extends State<FridgesScreen> {
                                         vertical: 6,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: fridge.quantity > 0
+                                        color: fridge.isOpen
                                             ? Colors.green.shade100
                                             : Colors.red.shade100,
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
-                                        fridge.quantity > 0 ? 'متوفر' : 'غير متوفر',
+                                        fridge.isOpen ? 'مفتوح' : 'مغلق',
                                         style: TextStyle(
-                                          color: fridge.quantity > 0
+                                          color: fridge.isOpen
                                               ? Colors.green.shade800
                                               : Colors.red.shade800,
                                           fontWeight: FontWeight.bold,
@@ -210,14 +213,15 @@ class _FridgesScreenState extends State<FridgesScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     _buildInfoColumn(
-                                      'الكمية',
-                                      '${fridge.quantity} ${fridge.unit}',
+                                      'المواد',
+                                      '${fridge.materials.length} مادة',
                                       Icons.inventory_2,
                                     ),
                                     _buildInfoColumn(
-                                      'تاريخ الإضافة',
-                                      _formatDate(fridge.addedAt),
-                                      Icons.calendar_today,
+                                      'الحالة',
+                                      fridge.isOpen ? 'مفتوح' : 'مغلق',
+                                      Icons.circle,
+                                      color: fridge.isOpen ? Colors.green : Colors.red,
                                     ),
                                   ],
                                 ),
@@ -270,7 +274,7 @@ class _FridgesScreenState extends State<FridgesScreen> {
     );
   }
 
-  Widget _buildInfoColumn(String label, String value, IconData icon) {
+  Widget _buildInfoColumn(String label, String value, IconData icon, {Color? color}) {
     return Column(
       children: [
         Row(
@@ -278,7 +282,7 @@ class _FridgesScreenState extends State<FridgesScreen> {
             Icon(
               icon,
               size: 16,
-              color: Colors.grey.shade600,
+              color: color ?? Colors.grey.shade600,
             ),
             const SizedBox(width: 4),
             Text(
@@ -293,17 +297,13 @@ class _FridgesScreenState extends State<FridgesScreen> {
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 28, 98, 32),
+            color: color ?? const Color.fromARGB(255, 28, 98, 32),
           ),
         ),
       ],
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year}/${date.month}/${date.day}';
   }
 }

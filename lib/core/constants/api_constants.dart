@@ -1,5 +1,5 @@
 class ApiConstants {
-  static const String baseUrl = 'http://localhost:5239/api/mobile/';
+  static const String baseUrl = 'http://10.0.2.2:5239/api/mobile/';
 
   // Auth
   static const String login = 'auth/login';
@@ -22,6 +22,10 @@ class ApiConstants {
   // Trucks
   static const String trucks = 'trucks';
   static const String truckById = 'trucks/'; // + {id}
+
+  // Fridges
+  static const String fridges = 'trucks'; // Using trucks endpoint for fridges
+  static const String fridgeById = 'trucks/'; // + {id}
 
   // Profile
   static const String profile = 'profile';
