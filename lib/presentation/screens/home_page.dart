@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:thamarat/logic/blocs/profile/profile_event.dart';
+import '../../../logic/blocs/profile/profile_bloc.dart';
+import '../../../logic/blocs/profile/profile_state.dart';
 import 'sell/sell_page.dart';
 import 'chat/chat_screen.dart';
 import 'profile/profile_screen.dart';
@@ -106,8 +110,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class HomeContent extends StatelessWidget {
+class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
+
+  @override
+  State<HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<HomeContent> {
+  @override
+  void initState() {
+    super.initState();
+    // Load user profile when home page is opened
+    context.read<ProfileBloc>().add(LoadProfile());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -283,23 +299,37 @@ class HeaderSection extends StatelessWidget {
       child: Column(
         children: [
           Center(child: Image.asset('assets/logo.png', height: logoHeight)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text(
-                'مرحباً محمد',
-                style: TextStyle(
-                  fontSize: greetingFontSize, 
-                  fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(255, 28, 98, 32),
-                ),
-              ),
-              SizedBox(width: isTablet ? 16 : 12),
-              CircleAvatar(
-                radius: avatarRadius,
-                backgroundImage: const AssetImage('assets/user.jpg'),
-              ),
-            ],
+          BlocBuilder<ProfileBloc, ProfileState>(
+            builder: (context, state) {
+              String userName = 'مرحباً';
+              
+              if (state is ProfileLoaded) {
+                userName = 'مرحباً ${state.user.name}';
+              } else if (state is ProfileLoading) {
+                userName = 'مرحباً...';
+              } else if (state is ProfileError) {
+                userName = 'مرحباً';
+              }
+              
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    userName,
+                    style: TextStyle(
+                      fontSize: greetingFontSize, 
+                      fontWeight: FontWeight.bold,
+                      color: const Color.fromARGB(255, 28, 98, 32),
+                    ),
+                  ),
+                  SizedBox(width: isTablet ? 16 : 12),
+                  CircleAvatar(
+                    radius: avatarRadius,
+                    backgroundImage: const AssetImage('assets/user.jpg'),
+                  ),
+                ],
+              );
+            },
           ),
           SizedBox(height: isTablet ? 20 : 16),
           Container(
