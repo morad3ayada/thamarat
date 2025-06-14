@@ -29,6 +29,27 @@ class SellRepository {
     }
   }
 
+  Future<Map<String, dynamic>> createNewSaleProcess({
+    required int customerId,
+    required String customerName,
+    required String customerPhone,
+  }) async {
+    final response = await _apiService.post(
+      ApiConstants.addSaleProcess,
+      data: {
+        'customerId': customerId,
+        'customerName': customerName,
+        'customerPhone': customerPhone,
+      },
+    );
+    final data = response.data;
+    if (data['success'] == true) {
+      return data['data'];
+    } else {
+      throw Exception(data['message'] ?? 'Failed to create new sale process');
+    }
+  }
+
   Future<void> confirmSell(int id) async {
     final response = await _apiService.post(
       ApiConstants.sendToOffice,

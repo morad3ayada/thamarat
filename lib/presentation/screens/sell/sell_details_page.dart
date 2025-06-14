@@ -4,15 +4,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../logic/blocs/sell/sell_bloc.dart';
 import '../../../logic/blocs/sell/sell_event.dart';
 import '../../../logic/blocs/sell/sell_state.dart';
-import '../../../data/models/sell_model.dart';
+import '../../../data/models/sell_model.dart' as sell_models;
+import '../../../data/models/vendor_model.dart' as vendor_models;
 import 'confirm_sell_page.dart';
 import 'add_material_page.dart';
 
 class SellDetailsPage extends StatefulWidget {
   final String name;
   final String phone;
+  final int? pendingInvoiceId; // معرف الفاتورة المعلقة
+  final int? customerId; // معرف العميل لإنشاء فاتورة جديدة
 
-  const SellDetailsPage({super.key, required this.name, required this.phone});
+  const SellDetailsPage({
+    super.key, 
+    required this.name, 
+    required this.phone,
+    this.pendingInvoiceId,
+    this.customerId,
+  });
 
   @override
   State<SellDetailsPage> createState() => _SellDetailsPageState();
@@ -124,7 +133,15 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                               const Icon(Icons.phone_outlined, 
                                   color: Color.fromARGB(255, 28, 98, 32) , size: 20),
                               const SizedBox(width: 8),
-                              Text(widget.phone, style: TextStyle( color: Color.fromARGB(255, 28, 98, 32)) ) ,
+                              Text(
+                                widget.phone.isNotEmpty 
+                                    ? widget.phone 
+                                    : 'رقم الهاتف غير متوفر',
+                                style: const TextStyle(
+                                  color: Color.fromARGB(255, 28, 98, 32),
+                                  fontSize: 16,
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -143,6 +160,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                               builder: (context) => AddMaterialPage(
                                 customerName: widget.name,
                                 customerPhone: widget.phone,
+                                saleProcessId: widget.pendingInvoiceId,
                               ),
                             ),
                           );
@@ -166,6 +184,86 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                     ),
                     const SizedBox(height: 16),
 
+                    // Create New Invoice Button (for existing customers without pending invoices)
+                    if (widget.customerId != null && widget.pendingInvoiceId == null)
+                      BlocListener<SellBloc, SellState>(
+                        listener: (context, state) {
+                          if (state is SaleProcessCreated) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('تم إنشاء فاتورة جديدة بنجاح'),
+                                backgroundColor: const Color.fromARGB(255, 28, 98, 32),
+                              ),
+                            );
+                            // Navigate to the same page with the new invoice ID
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SellDetailsPage(
+                                  name: widget.name,
+                                  phone: widget.phone,
+                                  customerId: widget.customerId,
+                                  pendingInvoiceId: state.saleProcessId,
+                                ),
+                              ),
+                            );
+                          } else if (state is SellError) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(state.message),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                        child: BlocBuilder<SellBloc, SellState>(
+                          builder: (context, state) {
+                            return SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: state is SellLoading
+                                    ? null
+                                    : () {
+                                        context.read<SellBloc>().add(
+                                              CreateNewSaleProcess(
+                                                customerId: widget.customerId!,
+                                                customerName: widget.name,
+                                                customerPhone: widget.phone,
+                                              ),
+                                            );
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color.fromARGB(255, 28, 98, 32),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                icon: state is SellLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.receipt_long, color: Colors.white),
+                                label: Text(
+                                  state is SellLoading ? 'جاري الإنشاء...' : 'إنشاء فاتورة جديدة',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    if (widget.customerId != null && widget.pendingInvoiceId == null)
+                      const SizedBox(height: 16),
+
                     // Items List from API
                     Expanded(
                       child: BlocBuilder<SellBloc, SellState>(
@@ -173,20 +271,41 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                           if (state is SellLoading) {
                             return const Center(child: CircularProgressIndicator());
                           } else if (state is SellLoaded) {
-                            // فلترة المواد حسب اسم أو رقم هاتف الزبون
-                            final customerItems = state.items.where((item) =>
-                              item.customerName == widget.name &&
-                              item.customerPhone == widget.phone
-                            ).toList();
+                            List<sell_models.SellModel> customerItems;
+                            
+                            if (widget.pendingInvoiceId != null) {
+                              // إذا كان لدينا معرف فاتورة معلقة، احسب فقط هذه الفاتورة
+                              customerItems = state.items.where((item) =>
+                                item.id == widget.pendingInvoiceId
+                              ).toList();
+                            } else {
+                              // فلترة المواد حسب اسم أو رقم هاتف الزبون
+                              customerItems = state.items.where((item) =>
+                                item.customerName == widget.name &&
+                                item.customerPhone == widget.phone
+                              ).toList();
+                            }
+                            
                             if (customerItems.isEmpty) {
+                              return const Center(child: Text('لا توجد فواتير لهذا الزبون'));
+                            }
+
+                            // جمع جميع المواد من جميع الفواتير
+                            List<dynamic> allMaterials = [];
+                            for (var item in customerItems) {
+                              allMaterials.addAll(item.getAllMaterials());
+                            }
+
+                            if (allMaterials.isEmpty) {
                               return const Center(child: Text('لا توجد مواد لهذا الزبون'));
                             }
+
                             return ListView.separated(
-                              itemCount: customerItems.length,
+                              itemCount: allMaterials.length,
                               separatorBuilder: (context, index) => const SizedBox(height: 12),
                               itemBuilder: (context, index) {
-                                final item = customerItems[index];
-                                return _buildItemFromSellModel(item);
+                                final material = allMaterials[index];
+                                return _buildMaterialItem(material);
                               },
                             );
                           } else if (state is SellError) {
@@ -202,11 +321,25 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                       builder: (context, state) {
                         double total = 0;
                         if (state is SellLoaded) {
-                          final customerItems = state.items.where((item) =>
-                            item.customerName == widget.name &&
-                            item.customerPhone == widget.phone
-                          ).toList();
-                          total = customerItems.fold(0, (sum, item) => sum + item.price);
+                          List<sell_models.SellModel> customerItems;
+                          
+                          if (widget.pendingInvoiceId != null) {
+                            // إذا كان لدينا معرف فاتورة معلقة، احسب فقط هذه الفاتورة
+                            customerItems = state.items.where((item) =>
+                              item.id == widget.pendingInvoiceId
+                            ).toList();
+                          } else {
+                            // فلترة المواد حسب اسم أو رقم هاتف الزبون
+                            customerItems = state.items.where((item) =>
+                              item.customerName == widget.name &&
+                              item.customerPhone == widget.phone
+                            ).toList();
+                          }
+                          
+                          // حساب المجموع من جميع الفواتير
+                          for (var item in customerItems) {
+                            total += item.totalPrice;
+                          }
                         }
                         return Container(
                           padding: const EdgeInsets.all(16),
@@ -257,42 +390,86 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                     const SizedBox(height: 16),
 
                     // Next Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // يمكنك هنا تمرير أول مادة أو جميع المواد للصفحة التالية حسب الحاجة
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ConfirmSellPage(
-                                customerName: widget.name,
-                                customerPhone: widget.phone,
-                                materialName: '',
-                                fridgeName: '',
-                                sellType: 'قطاعي',
-                                quantity: 0,
-                                price: 0,
+                    BlocBuilder<SellBloc, SellState>(
+                      builder: (context, state) {
+                        if (state is SellLoaded) {
+                          List<sell_models.SellModel> customerItems;
+                          
+                          if (widget.pendingInvoiceId != null) {
+                            customerItems = state.items.where((item) =>
+                              item.id == widget.pendingInvoiceId
+                            ).toList();
+                          } else {
+                            customerItems = state.items.where((item) =>
+                              item.customerName == widget.name &&
+                              item.customerPhone == widget.phone
+                            ).toList();
+                          }
+                          
+                          if (customerItems.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+
+                          // جمع جميع المواد من جميع الفواتير
+                          List<dynamic> allMaterials = [];
+                          for (var item in customerItems) {
+                            allMaterials.addAll(item.getAllMaterials());
+                          }
+
+                          if (allMaterials.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+
+                          // حساب المجموع
+                          double total = 0;
+                          for (var item in customerItems) {
+                            total += item.totalPrice;
+                          }
+
+                          return SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ConfirmSellPage(
+                                      customer: vendor_models.VendorModel(
+                                        id: 0,
+                                        name: widget.name,
+                                        phoneNumber: widget.phone,
+                                        deleted: false,
+                                        invoices: [],
+                                      ),
+                                      materials: allMaterials,
+                                      fridgeName: '',
+                                      sellType: 'قطاعي',
+                                      totalPrice: total,
+                                      saleDate: DateTime.now(),
+                                    ),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 28, 98, 32),
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                'التالي',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                               ),
                             ),
                           );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:Color.fromARGB(255, 28, 98, 32),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'التالي',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
+                        }
+                        return const SizedBox.shrink();
+                      },
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -301,76 +478,6 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildItemFromSellModel(SellModel item) {
-    String formattedDate = DateFormat('d-M-yyyy hh:mm a').format(item.date);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-            color:Color.fromARGB(255, 28, 98, 32),
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                item.materialName,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color:Color.fromARGB(255, 28, 98, 32),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row( 
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [ 
-              Column( 
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildDetailRow('الوزن', item.weight?.toString() ?? ''),
-                  _buildDetailRow('العدد', item.quantity.toString()),
-                  _buildDetailRow('البائع', item.fridgeName),
-                  _buildDetailRow('التاريخ', formattedDate),
-                 ] ,
-             ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color:Color.fromARGB(255, 28, 98, 32),
-                  ),
-                ),
-                child: Text(
-                  NumberFormat.decimalPattern().format(item.price),
-                  style: const TextStyle(
-                    color:Color.fromARGB(255, 28, 98, 32),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -397,7 +504,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: isActive ?Color.fromARGB(255, 28, 98, 32): Colors.grey[300],
+            color: isActive ? Color.fromARGB(255, 28, 98, 32): Colors.grey[300],
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -414,7 +521,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
         Text(
           label,
           style: TextStyle(
-            color: isActive ?Color.fromARGB(255, 28, 98, 32) : Colors.grey,
+            color: isActive ? Color.fromARGB(255, 28, 98, 32) : Colors.grey,
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -430,5 +537,141 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
         color: Colors.grey[300],
       ),
     );
+  }
+
+  Widget _buildMaterialItem(dynamic material) {
+    String materialName = '';
+    String truckName = '';
+    double? quantity;
+    double? weight;
+    double? price;
+    String materialType = '';
+    DateTime? date;
+
+    // تحديد نوع المادة واستخراج البيانات
+    if (material is sell_models.MaterialModel) {
+      materialName = material.name;
+      truckName = material.truckName;
+      quantity = material.quantity;
+      weight = material.weight;
+      price = material.price;
+      materialType = material.materialType;
+      date = DateTime.now(); // المواد العادية لا تحتوي على تاريخ منفصل
+    } else if (material is sell_models.SpoiledMaterialModel) {
+      materialName = material.name;
+      truckName = material.truckName;
+      quantity = material.quantity;
+      weight = material.weight;
+      price = material.price;
+      materialType = material.materialType;
+      date = DateTime.now(); // المواد التالفة لا تحتوي على تاريخ منفصل
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromARGB(255, 28, 98, 32),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  materialName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Color.fromARGB(255, 28, 98, 32),
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: materialType.contains('spoiled') 
+                      ? const Color(0xFFFFEBEE) 
+                      : const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  materialType.contains('spoiled') ? 'تالف' : 'عادي',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: materialType.contains('spoiled') 
+                        ? Colors.red 
+                        : const Color.fromARGB(255, 28, 98, 32),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row( 
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [ 
+              Expanded(
+                child: Column( 
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (weight != null && weight > 0)
+                      _buildDetailRow('الوزن', '${weight.toStringAsFixed(2)} كيلو'),
+                    if (quantity != null && quantity > 0)
+                      _buildDetailRow('العدد', '${quantity.toStringAsFixed(0)} قطعة'),
+                    _buildDetailRow('البراد', truckName),
+                    _buildDetailRow('نوع المادة', _getMaterialTypeDisplay(materialType)),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color.fromARGB(255, 28, 98, 32),
+                  ),
+                ),
+                child: Text(
+                  NumberFormat.decimalPattern().format(price ?? 0),
+                  style: const TextStyle(
+                    color: Color.fromARGB(255, 28, 98, 32),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getMaterialTypeDisplay(String materialType) {
+    switch (materialType) {
+      case 'consignment':
+        return 'صافي';
+      case 'markup':
+        return 'ربح';
+      case 'spoiledConsignment':
+        return 'صافي تالف';
+      case 'spoiledMarkup':
+        return 'ربح تالف';
+      default:
+        return materialType;
+    }
   }
 } 

@@ -16,6 +16,21 @@ class LoadSellDetails extends SellEvent {
   List<Object?> get props => [id];
 }
 
+class CreateNewSaleProcess extends SellEvent {
+  final int customerId;
+  final String customerName;
+  final String customerPhone;
+
+  const CreateNewSaleProcess({
+    required this.customerId,
+    required this.customerName,
+    required this.customerPhone,
+  });
+
+  @override
+  List<Object?> get props => [customerId, customerName, customerPhone];
+}
+
 class ConfirmSell extends SellEvent {
   final int id;
   const ConfirmSell(this.id);

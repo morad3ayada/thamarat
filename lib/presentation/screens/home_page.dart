@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:thamarat/logic/blocs/profile/profile_event.dart';
 import '../../../logic/blocs/profile/profile_bloc.dart';
 import '../../../logic/blocs/profile/profile_state.dart';
-import 'sell/sell_page.dart';
+import 'sell/sell_page.dart' as sell;
 import 'chat/chat_screen.dart';
 import 'profile/profile_screen.dart';
 import 'materials/materials_screen.dart';
@@ -391,7 +391,7 @@ class SellButton extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const SellPage()),
+            MaterialPageRoute(builder: (context) => const sell.SellPage()),
           );
         },
         style: ElevatedButton.styleFrom(

@@ -27,6 +27,21 @@ class SellDetailsLoaded extends SellState {
   List<Object?> get props => [sell];
 }
 
+class SaleProcessCreated extends SellState {
+  final int saleProcessId;
+  final String customerName;
+  final String customerPhone;
+
+  const SaleProcessCreated({
+    required this.saleProcessId,
+    required this.customerName,
+    required this.customerPhone,
+  });
+
+  @override
+  List<Object?> get props => [saleProcessId, customerName, customerPhone];
+}
+
 class SellConfirmed extends SellState {}
 
 class SellError extends SellState {

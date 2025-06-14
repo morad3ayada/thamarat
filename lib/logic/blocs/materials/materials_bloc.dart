@@ -12,6 +12,7 @@ class MaterialsBloc extends Bloc<MaterialsEvent, MaterialsState> {
     on<LoadMaterials>(_onLoadMaterials);
     on<SearchMaterials>(_onSearchMaterials);
     on<AddMaterial>(_onAddMaterial);
+    on<AddMaterialToSaleProcess>(_onAddMaterialToSaleProcess);
     on<DeleteMaterial>(_onDeleteMaterial);
   }
 
@@ -46,6 +47,31 @@ class MaterialsBloc extends Bloc<MaterialsEvent, MaterialsState> {
     try {
       await materialsRepository.addMaterial(event.material);
       add(LoadMaterials()); // Refresh list
+    } catch (e) {
+      emit(MaterialsError(e.toString()));
+    }
+  }
+
+  Future<void> _onAddMaterialToSaleProcess(AddMaterialToSaleProcess event, Emitter<MaterialsState> emit) async {
+    try {
+      final result = await materialsRepository.addMaterialToSaleProcess(
+        saleProcessId: event.saleProcessId,
+        materialId: event.materialId,
+        materialType: event.materialType,
+        quantity: event.quantity,
+        weight: event.weight,
+        price: event.price,
+        order: event.order,
+        commissionPercentage: event.commissionPercentage,
+        traderCommissionPercentage: event.traderCommissionPercentage,
+        officeCommissionPercentage: event.officeCommissionPercentage,
+        brokerCommissionPercentage: event.brokerCommissionPercentage,
+        pieceFees: event.pieceFees,
+        traderPiecePercentage: event.traderPiecePercentage,
+        workerPiecePercentage: event.workerPiecePercentage,
+        officePiecePercentage: event.officePiecePercentage,
+      );
+      emit(MaterialAdded(result));
     } catch (e) {
       emit(MaterialsError(e.toString()));
     }

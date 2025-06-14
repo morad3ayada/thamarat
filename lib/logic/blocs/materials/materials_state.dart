@@ -27,3 +27,12 @@ class MaterialsError extends MaterialsState {
   @override
   List<Object?> get props => [message];
 }
+
+class MaterialAdded extends MaterialsState {
+  final Map<String, dynamic> addedMaterial;
+
+  const MaterialAdded(this.addedMaterial);
+
+  @override
+  List<Object?> get props => [addedMaterial];
+}

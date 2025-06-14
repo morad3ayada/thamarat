@@ -9,6 +9,7 @@ class SellBloc extends Bloc<SellEvent, SellState> {
   SellBloc({required this.sellRepository}) : super(SellInitial()) {
     on<LoadSellProcesses>(_onLoadProcesses);
     on<LoadSellDetails>(_onLoadDetails);
+    on<CreateNewSaleProcess>(_onCreateNewSaleProcess);
     on<ConfirmSell>(_onConfirmSell);
     on<AddSellMaterial>(_onAddSellMaterial);
   }
@@ -28,6 +29,28 @@ class SellBloc extends Bloc<SellEvent, SellState> {
     try {
       final details = await sellRepository.getSellDetails(event.id);
       emit(SellDetailsLoaded(details));
+    } catch (e) {
+      emit(SellError(e.toString()));
+    }
+  }
+
+  Future<void> _onCreateNewSaleProcess(CreateNewSaleProcess event, Emitter<SellState> emit) async {
+    emit(SellLoading());
+    try {
+      final result = await sellRepository.createNewSaleProcess(
+        customerId: event.customerId,
+        customerName: event.customerName,
+        customerPhone: event.customerPhone,
+      );
+      
+      emit(SaleProcessCreated(
+        saleProcessId: result['id'],
+        customerName: event.customerName,
+        customerPhone: event.customerPhone,
+      ));
+      
+      // Reload the processes to show the new one
+      add(LoadSellProcesses());
     } catch (e) {
       emit(SellError(e.toString()));
     }
