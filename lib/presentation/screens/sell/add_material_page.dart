@@ -12,7 +12,14 @@ import '../../../logic/blocs/materials/materials_state.dart';
 import '../../../data/models/materials_model.dart';
 
 class AddMaterialPage extends StatefulWidget {
-  const AddMaterialPage({super.key});
+  final String? customerName;
+  final String? customerPhone;
+  
+  const AddMaterialPage({
+    super.key,
+    this.customerName,
+    this.customerPhone,
+  });
 
   @override
   State<AddMaterialPage> createState() => _AddMaterialPageState();
@@ -42,6 +49,14 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
     context.read<VendorBloc>().add(LoadVendors());
     context.read<MaterialsBloc>().add(LoadMaterials());
     _searchController.addListener(_filterMaterials);
+    
+    // Pre-fill customer data if provided
+    if (widget.customerName != null) {
+      _customerNameController.text = widget.customerName!;
+    }
+    if (widget.customerPhone != null) {
+      _customerPhoneController.text = widget.customerPhone!;
+    }
   }
 
   @override

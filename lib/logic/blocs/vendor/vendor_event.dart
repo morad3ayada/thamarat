@@ -20,16 +20,14 @@ class SearchVendors extends VendorEvent {
 class AddVendor extends VendorEvent {
   final String name;
   final String phone;
-  final String address;
 
   const AddVendor({
     required this.name,
     required this.phone,
-    required this.address,
   });
 
   @override
-  List<Object?> get props => [name, phone, address];
+  List<Object?> get props => [name, phone];
 }
 
 class UpdateVendor extends VendorEvent {

@@ -45,7 +45,7 @@ class VendorBloc extends Bloc<VendorEvent, VendorState> {
       await _vendorRepository.addVendor(
         name: event.name,
         phone: event.phone,
-        address: event.address,
+        address: '', // Empty string since API doesn't use it
       );
       final vendors = await _vendorRepository.getVendors();
       emit(VendorsLoaded(vendors));
