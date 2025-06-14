@@ -49,12 +49,17 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    final headerHeight = isTablet ? 140.0 : 120.0;
+    final horizontalPadding = isTablet ? 32.0 : 16.0;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       body: Column(
         children: [
           Container(
-            height: 120,
+            height: headerHeight,
             width: double.infinity,
             decoration: const BoxDecoration(
               color: Color(0xFFDAF3D7),
@@ -63,12 +68,16 @@ class _ChatScreenState extends State<ChatScreen> {
                 bottomRight: Radius.circular(24),
               ),
             ),
-            padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
+            padding: EdgeInsets.only(
+              top: isTablet ? 55 : 45, 
+              right: horizontalPadding, 
+              left: horizontalPadding,
+            ),
             child: Row(
               children: [
                 Container(
-                  width: 50,
-                  height: 50,
+                  width: isTablet ? 60 : 50,
+                  height: isTablet ? 60 : 50,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
@@ -80,43 +89,43 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ],
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.person,
-                    size: 30,
-                    color: Color.fromARGB(255, 28, 98, 32),
+                    size: isTablet ? 36 : 30,
+                    color: const Color.fromARGB(255, 28, 98, 32),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: isTablet ? 16 : 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
+                      Text(
                         'مدير البرنامج',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Color.fromARGB(255, 28, 98, 32),
+                          fontSize: isTablet ? 22 : 18,
+                          color: const Color.fromARGB(255, 28, 98, 32),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: isTablet ? 6 : 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Container(
-                            width: 8,
-                            height: 8,
+                            width: isTablet ? 10 : 8,
+                            height: isTablet ? 10 : 8,
                             decoration: const BoxDecoration(
                               color: Colors.green,
                               shape: BoxShape.circle,
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          const Text(
+                          SizedBox(width: isTablet ? 8 : 6),
+                          Text(
                             'متصل الآن',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: isTablet ? 16 : 14,
                               color: Colors.green,
                               fontWeight: FontWeight.w500,
                             ),
@@ -130,9 +139,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   onPressed: () {
                     // يمكن إضافة معلومات إضافية هنا
                   },
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.info_outline,
-                    color: Color.fromARGB(255, 28, 98, 32),
+                    color: const Color.fromARGB(255, 28, 98, 32),
+                    size: isTablet ? 28 : 24,
                   ),
                 ),
               ],
@@ -155,7 +165,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     },
                     child: ListView.builder(
                       controller: _scrollController,
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.all(isTablet ? 24 : 16),
                       itemCount: state.messages.length,
                       itemBuilder: (context, index) {
                         final message = state.messages[index];
@@ -164,11 +174,11 @@ class _ChatScreenState extends State<ChatScreen> {
                         return Align(
                           alignment: isMe ? Alignment.centerLeft : Alignment.centerRight,
                           child: Container(
-                            margin: const EdgeInsets.only(bottom: 16),
-                            padding: const EdgeInsets.all(12),
+                            margin: EdgeInsets.only(bottom: isTablet ? 20 : 16),
+                            padding: EdgeInsets.all(isTablet ? 16 : 12),
                             decoration: BoxDecoration(
                               color: isMe ? Colors.white : const Color(0xFFDAF3D7),
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.05),
@@ -178,7 +188,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               ],
                             ),
                             constraints: BoxConstraints(
-                              maxWidth: MediaQuery.of(context).size.width * 0.75,
+                              maxWidth: MediaQuery.of(context).size.width * (isTablet ? 0.6 : 0.75),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,15 +197,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                   message.message,
                                   style: TextStyle(
                                     color: isMe ? Colors.black87 : const Color.fromARGB(255, 28, 98, 32),
-                                    fontSize: 16,
+                                    fontSize: isTablet ? 18 : 16,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                SizedBox(height: isTablet ? 6 : 4),
                                 Text(
                                   message.createdAt.toString(),
                                   style: TextStyle(
                                     color: Colors.grey.shade600,
-                                    fontSize: 12,
+                                    fontSize: isTablet ? 14 : 12,
                                   ),
                                 ),
                               ],

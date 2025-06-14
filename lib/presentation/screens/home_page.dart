@@ -323,9 +323,25 @@ class HeaderSection extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: isTablet ? 16 : 12),
-                  CircleAvatar(
-                    radius: avatarRadius,
-                    backgroundImage: const AssetImage('assets/user.jpg'),
+                  Container(
+                    width: avatarRadius * 2,
+                    height: avatarRadius * 2,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.store,
+                      size: avatarRadius,
+                      color: const Color.fromARGB(255, 28, 98, 32),
+                    ),
                   ),
                 ],
               );

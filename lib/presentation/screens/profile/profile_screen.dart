@@ -214,6 +214,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+
     return BlocListener<ProfileBloc, ProfileState>(
       listener: (context, state) {
         if (state is ProfileLoaded && _wasUpdated) {
@@ -236,7 +239,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 // الخلفية الخضراء
                 Container(
-                  height: 200,
+                  height: isTablet ? 280 : 200,
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     color: Color(0xFFDAF3D7),
@@ -247,24 +250,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: Stack(
                     children: [
-                      const Positioned(
-                        top: 70,
-                        right: 20,
+                      Positioned(
+                        top: isTablet ? 80 : 70,
+                        right: isTablet ? 32 : 20,
                         child: Text(
                           'الملف الشخصي',
                           style: TextStyle(
-                            fontSize: 20,
+                            fontSize: isTablet ? 24 : 20,
                             fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 28, 98, 32),
+                            color: const Color.fromARGB(255, 28, 98, 32),
                           ),
                         ),
                       ),
                       Positioned(
-                        top: 50,
-                        left: 20,
+                        top: isTablet ? 50 : 50,
+                        left: isTablet ? 32 : 20,
                         child: Image.asset(
                           'assets/logo.png',
-                          width: 100,
+                          width: isTablet ? 120 : 100,
                         ),
                       ),
                     ],
@@ -275,7 +278,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SingleChildScrollView(
                   child: Column(
                     children: [
-                      const SizedBox(height: 140),
+                      SizedBox(height: isTablet ? 140 : 140),
 
                       if (state is ProfileLoading)
                         const Center(child: CircularProgressIndicator())
@@ -283,93 +286,106 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // صورة العميل داخل إطار أبيض أكبر
                         Center(
                           child: Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: EdgeInsets.all(isTablet ? 12 : 8),
                             decoration: const BoxDecoration(
                               color: Colors.white,
                               shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
                             ),
-                            child: const CircleAvatar(
-                              radius: 48,
-                              backgroundImage: AssetImage('assets/user.jpg'),
+                            child: Icon(
+                              Icons.store,
+                              size: isTablet ? 80 : 60,
+                              color: const Color.fromARGB(255, 28, 98, 32),
                             ),
                           ),
                         ),
 
-                        const SizedBox(height: 12),
+                        SizedBox(height: isTablet ? 16 : 12),
 
                         Text(
                           state.user.name,
-                          style: const TextStyle(
-                            fontSize: 18,
+                          style: TextStyle(
+                            fontSize: isTablet ? 22 : 18,
                             fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 28, 98, 32),
+                            color: const Color.fromARGB(255, 28, 98, 32),
                           ),
                         ),
 
-                        const SizedBox(height: 24),
+                        SizedBox(height: isTablet ? 32 : 24),
 
                         ProfileField(
                           label: 'اسم المستخدم',
                           value: state.user.name,
+                          isTablet: isTablet,
                         ),
                         ProfileField(
                           label: 'رقم الهاتف',
                           value: state.user.phone,
+                          isTablet: isTablet,
                         ),
                         ProfileField(
                           label: 'البريد الإلكتروني',
                           value: state.user.email ?? 'غير محدد',
+                          isTablet: isTablet,
                         ),
 
-                        const SizedBox(height: 16),
+                        SizedBox(height: isTablet ? 24 : 16),
 
                         // صلاحيات المستخدم
                         Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 24),
-                          padding: const EdgeInsets.all(16),
+                          margin: EdgeInsets.symmetric(horizontal: isTablet ? 32 : 24),
+                          padding: EdgeInsets.all(isTablet ? 24 : 16),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              const Text(
+                              Text(
                                 'الصلاحيات',
                                 style: TextStyle(
                                   color: Colors.green,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 15,
+                                  fontSize: isTablet ? 18 : 15,
                                 ),
                               ),
-                              const SizedBox(height: 12),
+                              SizedBox(height: isTablet ? 16 : 12),
                               Row(
                                 children: [
                                   Icon(
                                     state.user.sellerPermission ? Icons.check_circle : Icons.cancel,
                                     color: state.user.sellerPermission ? Colors.green : Colors.red,
+                                    size: isTablet ? 24 : 20,
                                   ),
-                                  const SizedBox(width: 8),
-                                  const Expanded(
+                                  SizedBox(width: isTablet ? 12 : 8),
+                                  Expanded(
                                     child: Text(
                                       'صلاحية البيع',
-                                      style: TextStyle(fontSize: 14),
+                                      style: TextStyle(fontSize: isTablet ? 16 : 14),
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: isTablet ? 12 : 8),
                               Row(
                                 children: [
                                   Icon(
                                     state.user.salePermissionForSpoiledMaterials ? Icons.check_circle : Icons.cancel,
                                     color: state.user.salePermissionForSpoiledMaterials ? Colors.green : Colors.red,
+                                    size: isTablet ? 24 : 20,
                                   ),
-                                  const SizedBox(width: 8),
-                                  const Expanded(
+                                  SizedBox(width: isTablet ? 12 : 8),
+                                  Expanded(
                                     child: Text(
                                       'صلاحية بيع المواد التالفة',
-                                      style: TextStyle(fontSize: 14),
+                                      style: TextStyle(fontSize: isTablet ? 16 : 14),
                                     ),
                                   ),
                                 ],
@@ -378,28 +394,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 24),
+                        SizedBox(height: isTablet ? 32 : 24),
 
                         // زر التعديل - مؤقتاً معطل
                         // Padding(
-                        //   padding: const EdgeInsets.symmetric(horizontal: 24),
+                        //   padding: EdgeInsets.symmetric(horizontal: isTablet ? 32 : 24),
                         //   child: SizedBox(
                         //     width: double.infinity,
                         //     child: ElevatedButton.icon(
                         //       onPressed: () => _showEditDialog(state.user),
                         //       style: ElevatedButton.styleFrom(
                         //         backgroundColor: const Color.fromARGB(255, 28, 98, 32),
-                        //         padding: const EdgeInsets.symmetric(vertical: 12),
+                        //         padding: EdgeInsets.symmetric(vertical: isTablet ? 16 : 12),
                         //         shape: RoundedRectangleBorder(
-                        //           borderRadius: BorderRadius.circular(12),
+                        //           borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
                         //         ),
                         //       ),
-                        //       icon: const Icon(Icons.edit, color: Colors.white),
-                        //       label: const Text(
+                        //       icon: Icon(Icons.edit, color: Colors.white, size: isTablet ? 24 : 20),
+                        //       label: Text(
                         //         'تعديل الملف الشخصي',
                         //         style: TextStyle(
                         //           color: Colors.white,
-                        //           fontSize: 16,
+                        //           fontSize: isTablet ? 18 : 16,
                         //           fontWeight: FontWeight.bold,
                         //         ),
                         //       ),
@@ -407,7 +423,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         //   ),
                         // ),
 
-                        const SizedBox(height: 30),
+                        SizedBox(height: isTablet ? 40 : 30),
                       ] else if (state is ProfileError)
                         Center(
                           child: Column(
@@ -448,43 +464,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
 class ProfileField extends StatelessWidget {
   final String label;
   final String value;
+  final bool isTablet;
 
   const ProfileField({
     super.key,
     required this.label,
     required this.value,
+    this.isTablet = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: isTablet ? 32 : 24, 
+        vertical: isTablet ? 12 : 8,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.green,
               fontWeight: FontWeight.bold,
-              fontSize: 15,
+              fontSize: isTablet ? 17 : 15,
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: isTablet ? 8 : 6),
           TextField(
             enabled: false,
             textAlign: TextAlign.right,
             decoration: InputDecoration(
               hintText: value,
-              hintStyle: const TextStyle(color: Colors.black87),
+              hintStyle: TextStyle(
+                color: Colors.black87,
+                fontSize: isTablet ? 16 : 14,
+              ),
               filled: true,
               fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 20 : 16,
+                vertical: isTablet ? 16 : 14,
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
                 borderSide: BorderSide.none,
               ),
             ),
@@ -494,3 +518,4 @@ class ProfileField extends StatelessWidget {
     );
   }
 }
+

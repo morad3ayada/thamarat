@@ -85,17 +85,25 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
   }
 
   Widget _buildStatisticsCard(List<MaterialsModel> materials) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    final horizontalMargin = isTablet ? 32.0 : 16.0;
+    final padding = isTablet ? 24.0 : 16.0;
+    final titleFontSize = isTablet ? 20.0 : 16.0;
+    final statFontSize = isTablet ? 22.0 : 18.0;
+    final labelFontSize = isTablet ? 14.0 : 12.0;
+
     final consignmentCount = materials.where((m) => m.materialType == 'consignment').length;
     final markupCount = materials.where((m) => m.materialType == 'markup').length;
     final spoiledCount = materials.where((m) => m.materialType.contains('spoiled')).length;
     final uniqueTrucks = materials.map((m) => m.truckName).where((name) => name != null).toSet().length;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.symmetric(horizontal: horizontalMargin, vertical: isTablet ? 12 : 8),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
         boxShadow: const [
           BoxShadow(
             color: Colors.black12,
@@ -107,28 +115,28 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'إحصائيات المواد',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Color.fromARGB(255, 28, 98, 32),
+              fontSize: titleFontSize,
+              color: const Color.fromARGB(255, 28, 98, 32),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: isTablet ? 16 : 12),
           Row(
             children: [
               Expanded(
-                child: _buildStatItem('صافي', consignmentCount, const Color.fromARGB(255, 28, 98, 32)),
+                child: _buildStatItem('صافي', consignmentCount, const Color.fromARGB(255, 28, 98, 32), isTablet, statFontSize, labelFontSize),
               ),
               Expanded(
-                child: _buildStatItem('ربح', markupCount, Colors.orange),
+                child: _buildStatItem('ربح', markupCount, Colors.orange, isTablet, statFontSize, labelFontSize),
               ),
               Expanded(
-                child: _buildStatItem('تالف', spoiledCount, Colors.red),
+                child: _buildStatItem('تالف', spoiledCount, Colors.red, isTablet, statFontSize, labelFontSize),
               ),
               Expanded(
-                child: _buildStatItem('شاحنات', uniqueTrucks, Colors.blue),
+                child: _buildStatItem('شاحنات', uniqueTrucks, Colors.blue, isTablet, statFontSize, labelFontSize),
               ),
             ],
           ),
@@ -137,29 +145,29 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
     );
   }
 
-  Widget _buildStatItem(String label, int count, Color color) {
+  Widget _buildStatItem(String label, int count, Color color, bool isTablet, double statFontSize, double labelFontSize) {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(isTablet ? 12 : 8),
           decoration: BoxDecoration(
             color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
           ),
           child: Text(
             count.toString(),
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 18,
+              fontSize: statFontSize,
               color: color,
             ),
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: isTablet ? 6 : 4),
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 12,
+          style: TextStyle(
+            fontSize: labelFontSize,
             color: Colors.grey,
           ),
         ),
@@ -169,6 +177,11 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    final headerHeight = isTablet ? 140.0 : 120.0;
+    final horizontalPadding = isTablet ? 32.0 : 16.0;
+
     return BlocConsumer<MaterialsBloc, MaterialsState>(
       listener: (context, state) {
         if (state is MaterialsError) {
@@ -194,7 +207,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
               children: [
                 // Header
                 Container(
-                  height: 120,
+                  height: headerHeight,
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: primaryColor,
@@ -203,68 +216,60 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                       bottomRight: Radius.circular(24),
                     ),
                   ),
-                  padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
+                  padding: EdgeInsets.only(
+                    top: isTablet ? 55 : 45, 
+                    right: horizontalPadding, 
+                    left: horizontalPadding,
+                  ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: const Icon(
-                              Icons.arrow_back_ios_new,
-                              color: Color.fromARGB(255, 28, 98, 32),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'المواد المتوفرة',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                              color: Color.fromARGB(255, 28, 98, 32),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (state is MaterialsLoaded)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            '${state.materials.length} مادة',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Color.fromARGB(255, 28, 98, 32),
-                            ),
-                          ),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Icon(
+                          Icons.arrow_back_ios_new,
+                          color: const Color.fromARGB(255, 28, 98, 32),
+                          size: isTablet ? 28 : 24,
                         ),
+                      ),
+                      SizedBox(width: isTablet ? 12 : 8),
+                      Text(
+                        'المواد',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: isTablet ? 24 : 20,
+                          color: const Color.fromARGB(255, 28, 98, 32),
+                        ),
+                      ),
                     ],
                   ),
                 ),
 
                 // Search Box
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(isTablet ? 24 : 16),
                   child: TextField(
                     controller: _searchController,
                     textDirection: TextDirection.rtl,
                     decoration: InputDecoration(
                       hintText: 'ابحث عن المادة أو المصدر...',
-                      prefixIcon: const Icon(Icons.search, color: Color.fromARGB(255, 28, 98, 32)),
+                      hintStyle: TextStyle(fontSize: isTablet ? 16 : 14),
+                      prefixIcon: Icon(
+                        Icons.search, 
+                        color: const Color.fromARGB(255, 28, 98, 32),
+                        size: isTablet ? 24 : 20,
+                      ),
                       filled: true,
                       fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: isTablet ? 16 : 12, 
+                        horizontal: isTablet ? 20 : 16,
+                      ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
                         borderSide: BorderSide.none,
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
                         borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
                       ),
                     ),
@@ -360,7 +365,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                             ),
                           )
                         : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                             itemCount: state.materials.length,
                             itemBuilder: (context, index) {
                               final material = state.materials[index];
@@ -378,14 +383,15 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                     child: AnimatedContainer(
                                       duration: const Duration(milliseconds: 250),
                                       curve: Curves.easeInOut,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 14),
-                                      margin: const EdgeInsets.symmetric(vertical: 6),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: isTablet ? 24 : 16, 
+                                          vertical: isTablet ? 18 : 14),
+                                      margin: EdgeInsets.symmetric(vertical: isTablet ? 8 : 6),
                                       decoration: BoxDecoration(
                                         color: isExpanded
                                             ? Color.fromRGBO(218, 243, 215, 0.5)
                                             : Colors.white,
-                                        borderRadius: BorderRadius.circular(16),
+                                        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
                                         boxShadow: const [
                                           BoxShadow(
                                             color: Colors.black12,
@@ -400,36 +406,36 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                             child: Row(
                                               children: [
                                                 Container(
-                                                  padding: const EdgeInsets.all(8),
+                                                  padding: EdgeInsets.all(isTablet ? 12 : 8),
                                                   decoration: BoxDecoration(
                                                     color: typeColor.withOpacity(0.1),
-                                                    borderRadius: BorderRadius.circular(8),
+                                                    borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
                                                   ),
                                                   child: Icon(
                                                     _getMaterialIcon(material.name),
                                                     color: typeColor,
-                                                    size: 20,
+                                                    size: isTablet ? 24 : 20,
                                                   ),
                                                 ),
-                                                const SizedBox(width: 12),
+                                                SizedBox(width: isTablet ? 16 : 12),
                                                 Expanded(
                                                   child: Column(
                                                     crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
                                                       Text(
                                                         material.name,
-                                                        style: const TextStyle(
+                                                        style: TextStyle(
                                                           fontWeight: FontWeight.bold,
-                                                          fontSize: 16,
-                                                          color: Color.fromARGB(255, 28, 98, 32),
+                                                          fontSize: isTablet ? 18 : 16,
+                                                          color: const Color.fromARGB(255, 28, 98, 32),
                                                         ),
                                                         overflow: TextOverflow.ellipsis,
                                                       ),
-                                                      const SizedBox(height: 4),
+                                                      SizedBox(height: isTablet ? 6 : 4),
                                                       Text(
                                                         material.source,
-                                                        style: const TextStyle(
-                                                          fontSize: 12,
+                                                        style: TextStyle(
+                                                          fontSize: isTablet ? 14 : 12,
                                                           color: Colors.grey,
                                                         ),
                                                         overflow: TextOverflow.ellipsis,
@@ -443,11 +449,12 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                           Row(
                                             children: [
                                               Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 4),
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: isTablet ? 12 : 8, 
+                                                    vertical: isTablet ? 6 : 4),
                                                 decoration: BoxDecoration(
                                                   color: typeColor.withOpacity(0.1),
-                                                  borderRadius: BorderRadius.circular(8),
+                                                  borderRadius: BorderRadius.circular(isTablet ? 12 : 8),
                                                   border: Border.all(
                                                     color: typeColor.withOpacity(0.3),
                                                   ),
@@ -456,17 +463,17 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                                   material.displayType,
                                                   style: TextStyle(
                                                     color: typeColor,
-                                                    fontSize: 12,
+                                                    fontSize: isTablet ? 14 : 12,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
                                               ),
-                                              const SizedBox(width: 8),
+                                              SizedBox(width: isTablet ? 12 : 8),
                                               Icon(
                                                 isExpanded
                                                     ? Icons.keyboard_arrow_up_rounded
                                                     : Icons.keyboard_arrow_down_rounded,
-                                                size: 28,
+                                                size: isTablet ? 32 : 28,
                                                 color: const Color.fromARGB(255, 28, 98, 32),
                                               ),
                                             ],
@@ -478,11 +485,11 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                   if (isExpanded)
                                     AnimatedContainer(
                                       duration: const Duration(milliseconds: 300),
-                                      margin: const EdgeInsets.only(bottom: 8),
-                                      padding: const EdgeInsets.all(16),
+                                      margin: EdgeInsets.only(bottom: isTablet ? 12 : 8),
+                                      padding: EdgeInsets.all(isTablet ? 24 : 16),
                                       decoration: BoxDecoration(
                                         color: Color.fromRGBO(218, 243, 215, 0.3),
-                                        borderRadius: BorderRadius.circular(16),
+                                        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
                                         boxShadow: const [
                                           BoxShadow(
                                             color: Color(0xFFDAF3D7),
@@ -495,19 +502,19 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.end,
                                         children: [
                                           // Type Row
-                                          _buildInfoRow('النوع:', material.displayType, typeColor),
-                                          const SizedBox(height: 12),
+                                          _buildInfoRow('النوع:', material.displayType, typeColor, isTablet),
+                                          SizedBox(height: isTablet ? 16 : 12),
                                           // Source Row
-                                          _buildInfoRow('المصدر:', material.source, typeColor),
-                                          const SizedBox(height: 12),
+                                          _buildInfoRow('المصدر:', material.source, typeColor, isTablet),
+                                          SizedBox(height: isTablet ? 16 : 12),
                                           // Measurement Type Row
-                                          _buildInfoRow('نوع القياس:', material.isQuantity ? 'كمية' : 'وزن', typeColor),
-                                          const SizedBox(height: 12),
+                                          _buildInfoRow('نوع القياس:', material.isQuantity ? 'كمية' : 'وزن', typeColor, isTablet),
+                                          SizedBox(height: isTablet ? 16 : 12),
                                           // Order Row
-                                          _buildInfoRow('الترتيب:', material.order.toString(), typeColor),
-                                          const SizedBox(height: 12),
+                                          _buildInfoRow('الترتيب:', material.order.toString(), typeColor, isTablet),
+                                          SizedBox(height: isTablet ? 16 : 12),
                                           // Material Type Row
-                                          _buildInfoRow('نوع المادة:', material.materialType, typeColor),
+                                          _buildInfoRow('نوع المادة:', material.materialType, typeColor, isTablet),
                                         ],
                                       ),
                                     ),
@@ -536,30 +543,33 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, Color color) {
+  Widget _buildInfoRow(String label, String value, Color color, bool isTablet) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: Color.fromARGB(255, 28, 98, 32),
-            fontSize: 14,
+          style: TextStyle(
+            color: const Color.fromARGB(255, 28, 98, 32),
+            fontSize: isTablet ? 16 : 14,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: isTablet ? 12 : 8),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: EdgeInsets.symmetric(
+            horizontal: isTablet ? 12 : 8, 
+            vertical: isTablet ? 6 : 4,
+          ),
           decoration: BoxDecoration(
             color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(isTablet ? 8 : 6),
             border: Border.all(color: color.withOpacity(0.3)),
           ),
           child: Text(
             value,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 14,
+              fontSize: isTablet ? 16 : 14,
               color: color,
             ),
           ),

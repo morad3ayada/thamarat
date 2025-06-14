@@ -37,6 +37,11 @@ class _VendorsScreenState extends State<VendorsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    final headerHeight = isTablet ? 140.0 : 120.0;
+    final horizontalPadding = isTablet ? 32.0 : 16.0;
+
     return BlocConsumer<VendorBloc, VendorState>(
       listener: (context, state) {
         if (state is VendorError) {
@@ -57,7 +62,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
               children: [
                 // Header
                 Container(
-                  height: 120,
+                  height: headerHeight,
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     color: Color(0xFFDAF3D7),
@@ -66,23 +71,28 @@ class _VendorsScreenState extends State<VendorsScreen> {
                       bottomRight: Radius.circular(24),
                     ),
                   ),
-                  padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
+                  padding: EdgeInsets.only(
+                    top: isTablet ? 55 : 45, 
+                    right: horizontalPadding, 
+                    left: horizontalPadding,
+                  ),
                   child: Row(
                     children: [
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: const Icon(
+                        child: Icon(
                           Icons.arrow_back_ios_new,
-                          color: Color.fromARGB(255, 28, 98, 32),
+                          color: const Color.fromARGB(255, 28, 98, 32),
+                          size: isTablet ? 28 : 24,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Text(
+                      SizedBox(width: isTablet ? 12 : 8),
+                      Text(
                         'المتسوقين',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          color: Color.fromARGB(255, 28, 98, 32),
+                          fontSize: isTablet ? 24 : 20,
+                          color: const Color.fromARGB(255, 28, 98, 32),
                         ),
                       ),
                     ],
@@ -91,22 +101,30 @@ class _VendorsScreenState extends State<VendorsScreen> {
                 
                 // Search Box
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(isTablet ? 24 : 16),
                   child: TextField(
                     controller: _searchController,
                     textDirection: TextDirection.rtl,
                     decoration: InputDecoration(
                       hintText: 'ابحث عن اسم المتسوق',
-                      prefixIcon: const Icon(Icons.search, color: Color.fromARGB(255, 28, 98, 32)),
+                      hintStyle: TextStyle(fontSize: isTablet ? 16 : 14),
+                      prefixIcon: Icon(
+                        Icons.search, 
+                        color: const Color.fromARGB(255, 28, 98, 32),
+                        size: isTablet ? 24 : 20,
+                      ),
                       filled: true,
                       fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: isTablet ? 16 : 12, 
+                        horizontal: isTablet ? 20 : 16,
+                      ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
                         borderSide: BorderSide.none,
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
                         borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
                       ),
                     ),
@@ -136,7 +154,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                             ),
                           )
                         : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                             itemCount: state.vendors.length,
                             itemBuilder: (context, index) {
                               final isExpanded = expandedIndex == index;
@@ -153,14 +171,15 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                     child: AnimatedContainer(
                                       duration: const Duration(milliseconds: 250),
                                       curve: Curves.easeInOut,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 14),
-                                      margin: const EdgeInsets.symmetric(vertical: 6),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: isTablet ? 24 : 16, 
+                                          vertical: isTablet ? 18 : 14),
+                                      margin: EdgeInsets.symmetric(vertical: isTablet ? 8 : 6),
                                       decoration: BoxDecoration(
                                         color: isExpanded
                                             ? const Color(0xFFDEF2E0)
                                             : Colors.white,
-                                        borderRadius: BorderRadius.circular(16),
+                                        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
                                         boxShadow: const [
                                           BoxShadow(
                                             color: Colors.black12,
@@ -173,15 +192,18 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                         children: [
                                           Row(
                                             children: [
-                                              const Icon(Icons.person_outline, 
-                                                  color: Color.fromARGB(255, 28, 98, 32), size: 24),
-                                              const SizedBox(width: 8),
+                                              Icon(
+                                                Icons.person_outline, 
+                                                color: const Color.fromARGB(255, 28, 98, 32), 
+                                                size: isTablet ? 28 : 24,
+                                              ),
+                                              SizedBox(width: isTablet ? 12 : 8),
                                               Text(
                                                 vendor.name,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                  color: Color.fromARGB(255, 28, 98, 32),
+                                                  fontSize: isTablet ? 18 : 16,
+                                                  color: const Color.fromARGB(255, 28, 98, 32),
                                                 ),
                                               ),
                                             ],
@@ -190,8 +212,8 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                             isExpanded
                                                 ? Icons.keyboard_arrow_up_rounded
                                                 : Icons.keyboard_arrow_down_rounded,
-                                            size: 28,
-                                            color: Color.fromARGB(255, 28, 98, 32),
+                                            size: isTablet ? 32 : 28,
+                                            color: const Color.fromARGB(255, 28, 98, 32),
                                           ),
                                         ],
                                       ),
@@ -200,11 +222,11 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                   if (isExpanded)
                                     AnimatedContainer(
                                       duration: const Duration(milliseconds: 300),
-                                      margin: const EdgeInsets.only(bottom: 8),
-                                      padding: const EdgeInsets.all(16),
+                                      margin: EdgeInsets.only(bottom: isTablet ? 12 : 8),
+                                      padding: EdgeInsets.all(isTablet ? 24 : 16),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFF2FDF4),
-                                        borderRadius: BorderRadius.circular(16),
+                                        borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
                                         boxShadow: const [
                                           BoxShadow(
                                             color: Colors.black12,
@@ -220,76 +242,79 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                           Row(
                                             mainAxisAlignment: MainAxisAlignment.end,
                                             children: [
-                                              const Text(
+                                              Text(
                                                 'رقم الهاتف:',
                                                 style: TextStyle(
-                                                  color: Color.fromARGB(255, 28, 98, 32),
-                                                  fontSize: 14,
+                                                  color: const Color.fromARGB(255, 28, 98, 32),
+                                                  fontSize: isTablet ? 16 : 14,
                                                 ),
                                               ),
-                                              const SizedBox(width: 8),
+                                              SizedBox(width: isTablet ? 12 : 8),
                                               Text(
                                                 vendor.phoneNumber,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontWeight: FontWeight.bold,
-                                                  fontSize: 15,
-                                                  color: Color.fromARGB(255, 28, 98, 32),
+                                                  fontSize: isTablet ? 17 : 15,
+                                                  color: const Color.fromARGB(255, 28, 98, 32),
                                                 ),
                                               ),
                                             ],
                                           ),
-                                          const SizedBox(height: 12),
+                                          SizedBox(height: isTablet ? 16 : 12),
                                           Row(
                                             mainAxisAlignment: MainAxisAlignment.end,
                                             children: [
-                                              const Text(
+                                              Text(
                                                 'الفواتير النشطة:',
                                                 style: TextStyle(
-                                                  color: Color.fromARGB(255, 28, 98, 32),
-                                                  fontSize: 14,
+                                                  color: const Color.fromARGB(255, 28, 98, 32),
+                                                  fontSize: isTablet ? 16 : 14,
                                                 ),
                                               ),
-                                              const SizedBox(width: 8),
+                                              SizedBox(width: isTablet ? 12 : 8),
                                               Text(
                                                 '${vendor.activeInvoicesCount} فاتورة',
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontWeight: FontWeight.bold,
-                                                  fontSize: 15,
-                                                  color: Color.fromARGB(255, 28, 98, 32),
+                                                  fontSize: isTablet ? 17 : 15,
+                                                  color: const Color.fromARGB(255, 28, 98, 32),
                                                 ),
                                               ),
                                             ],
                                           ),
-                                          const SizedBox(height: 12),
+                                          SizedBox(height: isTablet ? 16 : 12),
                                           Row(
                                             mainAxisAlignment: MainAxisAlignment.end,
                                             children: [
-                                              const Text(
+                                              Text(
                                                 'إجمالي المبلغ:',
                                                 style: TextStyle(
-                                                  color: Color.fromARGB(255, 28, 98, 32),
-                                                  fontSize: 14,
+                                                  color: const Color.fromARGB(255, 28, 98, 32),
+                                                  fontSize: isTablet ? 16 : 14,
                                                 ),
                                               ),
-                                              const SizedBox(width: 8),
+                                              SizedBox(width: isTablet ? 12 : 8),
                                               Text(
                                                 '${vendor.totalActiveAmount.toStringAsFixed(0)} دينار',
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontWeight: FontWeight.bold,
-                                                  fontSize: 15,
-                                                  color: Color.fromARGB(255, 28, 98, 32),
+                                                  fontSize: isTablet ? 17 : 15,
+                                                  color: const Color.fromARGB(255, 28, 98, 32),
                                                 ),
                                               ),
                                             ],
                                           ),
-                                          const SizedBox(height: 16),
+                                          SizedBox(height: isTablet ? 20 : 16),
                                           SizedBox(
                                             width: double.infinity,
                                             child: ElevatedButton(
                                               style: ElevatedButton.styleFrom(
                                                 backgroundColor: const Color.fromARGB(255, 28, 98, 32),
                                                 shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(12),
+                                                  borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+                                                ),
+                                                padding: EdgeInsets.symmetric(
+                                                  vertical: isTablet ? 16 : 12,
                                                 ),
                                               ),
                                               onPressed: () {
@@ -303,10 +328,10 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                                   ),
                                                 );
                                               },
-                                              child: const Text(
+                                              child: Text(
                                                 'عرض التفاصيل',
                                                 style: TextStyle(
-                                                  fontSize: 16,
+                                                  fontSize: isTablet ? 18 : 16,
                                                   color: Colors.white,
                                                 ),
                                               ),
