@@ -8,7 +8,7 @@ class SellRepository {
   SellRepository(this._apiService);
 
   Future<List<SellModel>> fetchSellProcesses() async {
-    final response = await _apiService.get(ApiConstants.sell);
+    final response = await _apiService.get(ApiConstants.saleProcesses);
     final data = response.data;
     if (data['success'] == true) {
       return (data['data'] as List)
@@ -20,7 +20,7 @@ class SellRepository {
   }
 
   Future<SellModel> getSellDetails(int id) async {
-    final response = await _apiService.get('${ApiConstants.sell}/$id');
+    final response = await _apiService.get('${ApiConstants.getSaleProcess}/$id');
     final data = response.data;
     if (data['success'] == true) {
       return SellModel.fromJson(data['data']);
@@ -31,7 +31,7 @@ class SellRepository {
 
   Future<void> confirmSell(int id) async {
     final response = await _apiService.post(
-      ApiConstants.sell,
+      ApiConstants.sendToOffice,
       data: {'id': id},
     );
     final data = response.data;
@@ -56,7 +56,7 @@ class SellRepository {
     double? weight,
   }) async {
     final response = await _apiService.post(
-      ApiConstants.sell,
+      ApiConstants.addSaleProcess,
       data: {
         'customerName': customerName,
         'customerPhone': customerPhone,

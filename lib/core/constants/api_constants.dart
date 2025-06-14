@@ -1,30 +1,33 @@
 class ApiConstants {
-  static const String baseUrl = 'http://localhost:5239'; // ✅ غيّره لو في production
+  static const String baseUrl = 'http://localhost:5239/api/mobile/';
 
   // Auth
-  static const String login = '/api/mobile/login'; // (POST) Login
-  //static const String register = '/api/auth/register'; // Discard
-  static const String logout = '/api/mobile/logout'; // (POST) Logout (Not done yet)
+  static const String login = 'auth/login';
+  static const String logout = 'auth/logout';
 
-  // Profile
-  static const String profile = '/api/mobile/permissions'; // (GET) Get seller data and permissions
-  static const String updateProfile = '/api/mobile/profile'; // (POST) Update seller data (Not done yet)
+  // Customers
+  static const String customers = 'customers';
+  static const String addCustomer = 'customers/add';
+
+  // Sale Processes
+  static const String saleProcesses = 'sale-processes';
+  static const String getSaleProcess = 'sale-processes/'; // + {id}
+  static const String addSaleProcess = 'sale-processes/add';
+  static const String sendToOffice = 'sale-processes/'; // + {id}/send-to-office
 
   // Materials
-  //static const String materials = '/api/mobile/materials'; // Discard
-  static const String addMaterial = '/api/mobile/sale-processes/materials'; // (POST) Add a material to sale process
-  //static const String updateMaterial = '/api/mobile/materials/update'; // Discard
+  static const String addMaterial = 'sale-processes/materials/add';
+  static const String deleteMaterial = 'sale-processes/materials/delete';
 
-  // Fridge
-  static const String fridges = '/api/mobile/trucks'; // (GET) Show trucks with thier materials
-  //static const String fridgeDetails = '/api/mobile/fridges/details'; // Discard
+  // Trucks
+  static const String trucks = 'trucks';
+  static const String truckById = 'trucks/'; // + {id}
+
+  // Profile
+  static const String profile = 'profile';
+  static const String editProfile = 'profile/edit';
 
   // Chat
-  static const String messages = '/api/mobile/chat/messages'; // (GET) Show all seller messages (Not done yet)
-  static const String sendMessage = '/api/mobile/chat/send'; // (POST) Send a message to the office (Not done yet)
-
-  // Sell
-  static const String sell = '/api/mobile/sale-processes'; // (GET) Show sale processes with their details
-  //static const String sellDetails = '/api/mobile/sell/details'; // Discard
-  //static const String confirmSell = '/api/mobile/sell/confirm'; // Discard
+  static const String chatMessages = 'chat/messages';
+  static const String sendChatMessage = 'chat/send';
 }

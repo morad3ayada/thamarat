@@ -20,7 +20,7 @@ class ProfileRepository {
 
   Future<void> updateProfile(UserModel user) async {
     final response = await _apiService.put(
-      ApiConstants.updateProfile,
+      ApiConstants.editProfile,
       data: user.toJson(),
     );
     final data = response.data;

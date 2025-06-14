@@ -8,7 +8,7 @@ class FridgeRepository {
   FridgeRepository(this._apiService);
 
   Future<List<FridgeModel>> fetchFridgeItems() async {
-    final response = await _apiService.get(ApiConstants.fridges);
+    final response = await _apiService.get(ApiConstants.trucks);
     final data = response.data;
     if (data['success'] == true) {
       return (data['data'] as List)
@@ -20,7 +20,7 @@ class FridgeRepository {
   }
 
   Future<FridgeModel> getFridgeDetails(int id) async {
-    final response = await _apiService.get("${ApiConstants.fridges}/$id");
+    final response = await _apiService.get("${ApiConstants.truckById}/$id");
     final data = response.data;
     if (data['success'] == true) {
       return FridgeModel.fromJson(data['data']);
