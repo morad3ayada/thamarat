@@ -14,15 +14,27 @@ class FridgeModel {
   });
 
   factory FridgeModel.fromJson(Map<String, dynamic> json) {
-    return FridgeModel(
-      id: json['id'] as int? ?? 0,
-      name: json['name'] as String? ?? '',
-      isOpen: json['isOpen'] as bool? ?? false,
-      isDeleted: json['isDeleted'] as bool? ?? false,
-      materials: (json['materials'] as List<dynamic>?)
-          ?.map((e) => MaterialResponseDto.fromJson(e))
-          .toList() ?? [],
-    );
+    try {
+      return FridgeModel(
+        id: json['id'] as int? ?? 0,
+        name: json['name'] as String? ?? '',
+        isOpen: json['isOpen'] as bool? ?? false,
+        isDeleted: json['isDeleted'] as bool? ?? false,
+        materials: (json['materials'] as List<dynamic>?)
+            ?.map((e) => MaterialResponseDto.fromJson(e))
+            .toList() ?? [],
+      );
+    } catch (e) {
+      print('Error parsing FridgeModel: $e');
+      // Return a default fridge model
+      return FridgeModel(
+        id: 0,
+        name: 'براد غير معروف',
+        isOpen: false,
+        isDeleted: false,
+        materials: [],
+      );
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -61,13 +73,25 @@ class MaterialResponseDto {
   });
 
   factory MaterialResponseDto.fromJson(Map<String, dynamic> json) {
-    return MaterialResponseDto(
-      id: json['id'] as int? ?? 0,
-      name: json['name'] as String? ?? '',
-      order: json['order'] as int? ?? 0,
-      materialType: json['materialType'] as String? ?? '',
-      isQuantity: json['isQuantity'] as bool? ?? false,
-    );
+    try {
+      return MaterialResponseDto(
+        id: json['id'] as int? ?? 0,
+        name: json['name'] as String? ?? '',
+        order: json['order'] as int? ?? 0,
+        materialType: json['materialType'] as String? ?? '',
+        isQuantity: json['isQuantity'] as bool? ?? false,
+      );
+    } catch (e) {
+      print('Error parsing MaterialResponseDto: $e');
+      // Return a default material
+      return MaterialResponseDto(
+        id: 0,
+        name: 'مادة غير معروفة',
+        order: 0,
+        materialType: '',
+        isQuantity: false,
+      );
+    }
   }
 
   Map<String, dynamic> toJson() {

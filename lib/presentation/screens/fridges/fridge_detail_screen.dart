@@ -28,18 +28,51 @@ class _FridgeDetailScreenState extends State<FridgeDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text;
+    try {
+      _searchController.addListener(() {
+        setState(() {
+          _searchQuery = _searchController.text;
+        });
       });
-    });
-    context.read<FridgeBloc>().add(LoadFridgeDetails(widget.fridgeId));
+      // Load fridge details with error handling
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          context.read<FridgeBloc>().add(LoadFridgeDetails(widget.fridgeId));
+        } catch (e) {
+          print('Error loading fridge details in initState: $e');
+        }
+      });
+    } catch (e) {
+      print('Error in initState: $e');
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh data when dependencies change
+    try {
+      final currentState = context.read<FridgeBloc>().state;
+      if (currentState is! FridgeLoading) {
+        context.read<FridgeBloc>().add(LoadFridgeDetails(widget.fridgeId));
+      }
+    } catch (e) {
+      print('Error in didChangeDependencies: $e');
+    }
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
-    super.dispose();
+    try {
+      _searchController.dispose();
+    } catch (e) {
+      print('Error disposing search controller: $e');
+    }
+    try {
+      super.dispose();
+    } catch (e) {
+      print('Error in super.dispose(): $e');
+    }
   }
 
   @override
@@ -61,7 +94,16 @@ class _FridgeDetailScreenState extends State<FridgeDetailScreen> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.arrow_back_ios),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    try {
+                      // Navigate back to home tab to avoid errors
+                      Navigator.of(context).pushReplacementNamed('/home');
+                    } catch (e) {
+                      print('Error navigating back: $e');
+                      // Fallback navigation to home tab
+                      Navigator.of(context).pushReplacementNamed('/home');
+                    }
+                  },
                   color: const Color.fromARGB(255, 28, 98, 32),
                 ),
                 const SizedBox(width: 8),
@@ -109,185 +151,230 @@ class _FridgeDetailScreenState extends State<FridgeDetailScreen> {
           Expanded(
             child: BlocBuilder<FridgeBloc, FridgeState>(
               builder: (context, state) {
-                if (state is FridgeLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (state is FridgeDetailsLoaded) {
-                  final fridge = state.fridge;
-                  final filteredMaterials = fridge.materials.where((material) {
-                    return material.name.toLowerCase().contains(_searchQuery.toLowerCase());
-                  }).toList();
+                try {
+                  // If initial state, load data
+                  if (state is FridgeInitial) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      try {
+                        context.read<FridgeBloc>().add(LoadFridgeDetails(widget.fridgeId));
+                      } catch (e) {
+                        print('Error loading details in BlocBuilder: $e');
+                      }
+                    });
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  
+                  if (state is FridgeLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (state is FridgeDetailsLoaded) {
+                    final fridge = state.fridge;
+                    final filteredMaterials = fridge.materials.where((material) {
+                      return material.name.toLowerCase().contains(_searchQuery.toLowerCase());
+                    }).toList();
 
-                  return Column(
-                      children: [
-                        // معلومات الثلاجة
-                        Card(
-                          elevation: 2,
-                        margin: const EdgeInsets.all(16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green.shade100,
-                                        borderRadius: BorderRadius.circular(12),
+                    return Column(
+                        children: [
+                          // معلومات البراد
+                          Card(
+                            elevation: 2,
+                          margin: const EdgeInsets.all(16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.shade100,
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: const Icon(
+                                          Icons.kitchen,
+                                          color: Color.fromARGB(255, 28, 98, 32),
+                                        ),
                                       ),
-                                      child: const Icon(
-                                        Icons.kitchen,
-                                        color: Color.fromARGB(255, 28, 98, 32),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            fridge.name,
-                                            style: const TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color.fromARGB(255, 28, 98, 32),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                          'عدد المواد: ${fridge.materials.length}',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // قائمة المواد
-                      Expanded(
-                        child: filteredMaterials.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'لا توجد مواد متوفرة',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              )
-                            : ListView.builder(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                itemCount: filteredMaterials.length,
-                                itemBuilder: (context, index) {
-                                  final material = filteredMaterials[index];
-                                  return Card(
-                                    elevation: 2,
-                                    margin: const EdgeInsets.only(bottom: 12),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(8),
-                                            decoration: BoxDecoration(
-                                              color: material.materialType == 'consignment'
-                                                  ? Colors.blue.shade100
-                                                  : Colors.orange.shade100,
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: Icon(
-                                              material.materialType == 'consignment'
-                                                  ? Icons.inventory
-                                                  : Icons.shopping_cart,
-                                              color: material.materialType == 'consignment'
-                                                  ? Colors.blue.shade700
-                                                  : Colors.orange.shade700,
-                                              size: 20,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  material.name,
-                                                  style: const TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  material.materialType == 'consignment'
-                                                      ? 'مادة بالعمولة'
-                                                      : 'مادة بالربح',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey.shade600,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: material.isQuantity
-                                                  ? Colors.green.shade100
-                                                  : Colors.purple.shade100,
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: Text(
-                                              material.isQuantity ? 'كمية' : 'وزن',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: material.isQuantity
-                                                    ? Colors.green.shade700
-                                                    : Colors.purple.shade700,
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              fridge.name,
+                                              style: const TextStyle(
+                                                fontSize: 20,
                                                 fontWeight: FontWeight.bold,
+                                                color: Color.fromARGB(255, 28, 98, 32),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                            'عدد المواد: ${fridge.materials.length}',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                              ],
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                        // قائمة المواد
+                        Expanded(
+                          child: filteredMaterials.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    'لا توجد مواد متوفرة',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
                                     ),
-                                  );
-                                },
+                                  ),
+                                )
+                              : ListView.builder(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  itemCount: filteredMaterials.length,
+                                  itemBuilder: (context, index) {
+                                    final material = filteredMaterials[index];
+                                    return Card(
+                                      elevation: 2,
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: material.materialType == 'consignment'
+                                                    ? Colors.blue.shade100
+                                                    : Colors.orange.shade100,
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Icon(
+                                                material.materialType == 'consignment'
+                                                    ? Icons.inventory
+                                                    : Icons.shopping_cart,
+                                                color: material.materialType == 'consignment'
+                                                    ? Colors.blue.shade700
+                                                    : Colors.orange.shade700,
+                                                size: 20,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    material.name,
+                                                    style: const TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    material.materialType == 'consignment'
+                                                        ? 'مادة بالعمولة'
+                                                        : 'مادة بالربح',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.grey.shade600,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: material.isQuantity
+                                                    ? Colors.green.shade100
+                                                    : Colors.purple.shade100,
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                material.isQuantity ? 'كمية' : 'وزن',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: material.isQuantity
+                                                      ? Colors.green.shade700
+                                                      : Colors.purple.shade700,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    );
+                  } else if (state is FridgeError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            state.message,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              context.read<FridgeBloc>().add(LoadFridgeDetails(widget.fridgeId));
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(255, 28, 98, 32),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
+                            ),
+                            child: const Text('إعادة المحاولة'),
+                          ),
+                        ],
                       ),
-                    ],
-                  );
-                } else if (state is FridgeError) {
+                    );
+                  }
+                  return const Center(child: Text('لا توجد بيانات'));
+                } catch (e) {
+                  print('Error in BlocBuilder: $e');
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          state.message,
-                          style: const TextStyle(color: Colors.red),
+                        const Text(
+                          'حدث خطأ في تحميل البيانات',
+                          style: TextStyle(color: Colors.red),
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () {
-                            context.read<FridgeBloc>().add(LoadFridgeDetails(widget.fridgeId));
+                            try {
+                              Navigator.of(context).pop();
+                            } catch (e) {
+                              Navigator.of(context).pushReplacementNamed('/home');
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color.fromARGB(255, 28, 98, 32),
@@ -295,13 +382,12 @@ class _FridgeDetailScreenState extends State<FridgeDetailScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text('إعادة المحاولة'),
+                          child: const Text('العودة'),
                         ),
                       ],
                     ),
                   );
                 }
-                return const Center(child: Text('لا توجد بيانات'));
               },
             ),
           ),

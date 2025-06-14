@@ -244,12 +244,12 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                                 TextFormField(
                                   controller: _fridgeNameController,
                                   decoration: const InputDecoration(
-                                    labelText: 'الثلاجة',
+                                    labelText: 'البراد',
                                     border: OutlineInputBorder(),
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return 'الرجاء إدخال اسم الثلاجة';
+                                      return 'الرجاء إدخال اسم البراد';
                                     }
                                     return null;
                                   },

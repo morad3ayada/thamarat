@@ -172,7 +172,7 @@ class ConfirmSellPage extends StatelessWidget {
                         children: [
                           _buildInfoRow('اسم المادة', materialName),
                           const SizedBox(height: 8),
-                          _buildInfoRow('الثلاجة', fridgeName),
+                          _buildInfoRow('البراد', fridgeName),
                           const SizedBox(height: 8),
                           _buildInfoRow('نوع البيع', sellType),
                           const SizedBox(height: 8),

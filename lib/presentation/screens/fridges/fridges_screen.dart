@@ -20,17 +20,41 @@ class _FridgesScreenState extends State<FridgesScreen> {
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text;
+    try {
+      _searchController.addListener(() {
+        setState(() {
+          _searchQuery = _searchController.text;
+        });
       });
-    });
-    context.read<FridgeBloc>().add(LoadFridgeItems());
+      // Load fridge items immediately
+      context.read<FridgeBloc>().add(LoadFridgeItems());
+    } catch (e) {
+      print('Error in initState: $e');
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh data when dependencies change (e.g., when returning to screen)
+    try {
+      // Only reload if not already loading
+      final currentState = context.read<FridgeBloc>().state;
+      if (currentState is! FridgeLoading) {
+        context.read<FridgeBloc>().add(LoadFridgeItems());
+      }
+    } catch (e) {
+      print('Error in didChangeDependencies: $e');
+    }
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
+    try {
+      _searchController.dispose();
+    } catch (e) {
+      print('Error disposing search controller: $e');
+    }
     super.dispose();
   }
 
@@ -53,16 +77,9 @@ class _FridgesScreenState extends State<FridgesScreen> {
             padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
             child: Row(
               children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(
-                    Icons.arrow_back_ios_new,
-                    color: Color.fromARGB(255, 28, 98, 32),
-                  ),
-                ),
                 const SizedBox(width: 8),
                 const Text(
-                  'الثلاجات',
+                  'البرادات',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
@@ -79,7 +96,7 @@ class _FridgesScreenState extends State<FridgesScreen> {
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.white,
-                hintText: 'بحث في الثلاجات...',
+                hintText: 'بحث في البرادات...',
                 prefixIcon: const Icon(Icons.search, color: Color.fromARGB(255, 28, 98, 32)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -99,152 +116,209 @@ class _FridgesScreenState extends State<FridgesScreen> {
           Expanded(
             child: BlocBuilder<FridgeBloc, FridgeState>(
               builder: (context, state) {
-                if (state is FridgeLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (state is FridgeLoaded) {
-                  final filteredFridges = state.items.where((fridge) {
-                    return fridge.name.toLowerCase().contains(_searchQuery.toLowerCase());
-                  }).toList();
-
-                  if (filteredFridges.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'لا توجد ثلاجات متوفرة',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    );
+                try {
+                  // If initial state, load data
+                  if (state is FridgeInitial) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      context.read<FridgeBloc>().add(LoadFridgeItems());
+                    });
+                    return const Center(child: CircularProgressIndicator());
                   }
+                  
+                  if (state is FridgeLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (state is FridgeLoaded) {
+                    final filteredFridges = state.items.where((fridge) {
+                      return fridge.name.toLowerCase().contains(_searchQuery.toLowerCase());
+                    }).toList();
 
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: filteredFridges.length,
-                    itemBuilder: (context, index) {
-                      final fridge = filteredFridges[index];
-                      return Card(
-                        elevation: 2,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => FridgeDetailScreen(
-                                  fridgeId: fridge.id,
-                                  fridgeName: fridge.name,
-                                  count: fridge.quantity,
-                                ),
-                              ),
-                            ).then((_) {
-                              // Reload fridge items when returning from detail screen
-                              context.read<FridgeBloc>().add(LoadFridgeItems());
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(16),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        CircleAvatar(
-                                          backgroundColor: Colors.green.shade100,
-                                          child: const Icon(
-                                            Icons.kitchen,
-                                            color: Color.fromARGB(255, 28, 98, 32),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              fridge.name,
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: Color.fromARGB(255, 28, 98, 32),
-                                              ),
-                                            ),
-                                            Text(
-                                              'عدد المواد: ${fridge.materials.length}',
-                                              style: const TextStyle(
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: fridge.isOpen
-                                            ? Colors.green.shade100
-                                            : Colors.red.shade100,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        fridge.isOpen ? 'مفتوح' : 'مغلق',
-                                        style: TextStyle(
-                                          color: fridge.isOpen
-                                              ? Colors.green.shade800
-                                              : Colors.red.shade800,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    _buildInfoColumn(
-                                      'المواد',
-                                      '${fridge.materials.length} مادة',
-                                      Icons.inventory_2,
-                                    ),
-                                    _buildInfoColumn(
-                                      'الحالة',
-                                      fridge.isOpen ? 'مفتوح' : 'مغلق',
-                                      Icons.circle,
-                                      color: fridge.isOpen ? Colors.green : Colors.red,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                    if (filteredFridges.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'لا توجد برادات متوفرة',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
                           ),
                         ),
                       );
-                    },
-                  );
-                } else if (state is FridgeError) {
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: filteredFridges.length,
+                      itemBuilder: (context, index) {
+                        final fridge = filteredFridges[index];
+                        return Card(
+                          elevation: 2,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: InkWell(
+                            onTap: () {
+                              try {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => FridgeDetailScreen(
+                                      fridgeId: fridge.id,
+                                      fridgeName: fridge.name,
+                                      count: fridge.quantity,
+                                    ),
+                                  ),
+                                ).catchError((error) {
+                                  print('Navigation error: $error');
+                                  // Show error message to user
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('حدث خطأ في فتح تفاصيل البراد'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                });
+                              } catch (e) {
+                                print('Error navigating to fridge details: $e');
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('حدث خطأ في فتح تفاصيل البراد'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor: Colors.green.shade100,
+                                            child: const Icon(
+                                              Icons.kitchen,
+                                              color: Color.fromARGB(255, 28, 98, 32),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                fridge.name,
+                                                style: const TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color.fromARGB(255, 28, 98, 32),
+                                                ),
+                                              ),
+                                              Text(
+                                                'عدد المواد: ${fridge.materials.length}',
+                                                style: const TextStyle(
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: fridge.isOpen
+                                              ? Colors.green.shade100
+                                              : Colors.red.shade100,
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          fridge.isOpen ? 'مفتوح' : 'مغلق',
+                                          style: TextStyle(
+                                            color: fridge.isOpen
+                                                ? Colors.green.shade800
+                                                : Colors.red.shade800,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      _buildInfoColumn(
+                                        'المواد',
+                                        '${fridge.materials.length} مادة',
+                                        Icons.inventory_2,
+                                      ),
+                                      _buildInfoColumn(
+                                        'الحالة',
+                                        fridge.isOpen ? 'مفتوح' : 'مغلق',
+                                        Icons.circle,
+                                        color: fridge.isOpen ? Colors.green : Colors.red,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  } else if (state is FridgeError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            state.message,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              context.read<FridgeBloc>().add(LoadFridgeItems());
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(255, 28, 98, 32),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('إعادة المحاولة'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return const Center(child: Text('لا توجد برادات متوفرة'));
+                } catch (e) {
+                  print('Error in BlocBuilder: $e');
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          state.message,
-                          style: const TextStyle(color: Colors.red),
+                        const Text(
+                          'حدث خطأ في تحميل البيانات',
+                          style: TextStyle(color: Colors.red),
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () {
-                            context.read<FridgeBloc>().add(LoadFridgeItems());
+                            try {
+                              context.read<FridgeBloc>().add(LoadFridgeItems());
+                            } catch (e) {
+                              print('Error reloading: $e');
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color.fromARGB(255, 28, 98, 32),
@@ -258,7 +332,6 @@ class _FridgesScreenState extends State<FridgesScreen> {
                     ),
                   );
                 }
-                return const Center(child: Text('لا توجد ثلاجات متوفرة'));
               },
             ),
           ),

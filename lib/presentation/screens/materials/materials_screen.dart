@@ -32,6 +32,10 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
     });
   }
 
+  void _retryLoad() {
+    context.read<MaterialsBloc>().add(LoadMaterials());
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -52,9 +56,115 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
         return Icons.eco_outlined;
       case 'فريز':
         return Icons.local_florist_outlined;
+      case 'بطاطس':
+        return Icons.grass;
+      case 'جزر':
+        return Icons.eco_outlined;
+      case 'بصل':
+        return Icons.eco_outlined;
+      case 'ثوم':
+        return Icons.eco_outlined;
       default:
         return Icons.shopping_basket_outlined;
     }
+  }
+
+  Color _getMaterialTypeColor(String materialType) {
+    switch (materialType) {
+      case 'consignment':
+        return const Color.fromARGB(255, 28, 98, 32); // أخضر للصافي
+      case 'markup':
+        return Colors.orange; // برتقالي للربح
+      case 'spoiledConsignment':
+        return Colors.red; // أحمر للصافي التالف
+      case 'spoiledMarkup':
+        return Colors.deepOrange; // برتقالي داكن للربح التالف
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Widget _buildStatisticsCard(List<MaterialsModel> materials) {
+    final consignmentCount = materials.where((m) => m.materialType == 'consignment').length;
+    final markupCount = materials.where((m) => m.materialType == 'markup').length;
+    final spoiledCount = materials.where((m) => m.materialType.contains('spoiled')).length;
+    final uniqueTrucks = materials.map((m) => m.truckName).where((name) => name != null).toSet().length;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 5,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'إحصائيات المواد',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Color.fromARGB(255, 28, 98, 32),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem('صافي', consignmentCount, const Color.fromARGB(255, 28, 98, 32)),
+              ),
+              Expanded(
+                child: _buildStatItem('ربح', markupCount, Colors.orange),
+              ),
+              Expanded(
+                child: _buildStatItem('تالف', spoiledCount, Colors.red),
+              ),
+              Expanded(
+                child: _buildStatItem('شاحنات', uniqueTrucks, Colors.blue),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, int count, Color color) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            count.toString(),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: color,
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -66,6 +176,11 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
             SnackBar(
               content: Text(state.message),
               backgroundColor: Colors.red,
+              action: SnackBarAction(
+                label: 'إعادة المحاولة',
+                textColor: Colors.white,
+                onPressed: _retryLoad,
+              ),
             ),
           );
         }
@@ -103,7 +218,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                           ),
                           const SizedBox(width: 8),
                           const Text(
-                            'المواد',
+                            'المواد المتوفرة',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 20,
@@ -113,12 +228,19 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                         ],
                       ),
                       if (state is MaterialsLoaded)
-                        Text(
-                          '${state.materials.length} مواد',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: Color.fromARGB(255, 28, 98, 32),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${state.materials.length} مادة',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Color.fromARGB(255, 28, 98, 32),
+                            ),
                           ),
                         ),
                     ],
@@ -132,7 +254,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                     controller: _searchController,
                     textDirection: TextDirection.rtl,
                     decoration: InputDecoration(
-                      hintText: 'ابحث عن المادة',
+                      hintText: 'ابحث عن المادة أو المصدر...',
                       prefixIcon: const Icon(Icons.search, color: Color.fromARGB(255, 28, 98, 32)),
                       filled: true,
                       fillColor: Colors.white,
@@ -149,12 +271,68 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                   ),
                 ),
 
+                // Statistics Card (only show when materials are loaded and not searching)
+                if (state is MaterialsLoaded && _searchController.text.isEmpty)
+                  _buildStatisticsCard(state.materials),
+
                 // Materials List
                 if (state is MaterialsLoading)
                   const Expanded(
                     child: Center(
-                      child: CircularProgressIndicator(
-                        color: Color.fromARGB(255, 28, 98, 32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            color: Color.fromARGB(255, 28, 98, 32),
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'جاري تحميل المواد...',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else if (state is MaterialsError)
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            state.message,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: _retryLoad,
+                            icon: const Icon(Icons.refresh, color: Colors.white),
+                            label: const Text(
+                              'إعادة المحاولة',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(255, 28, 98, 32),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   )
@@ -162,12 +340,23 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                   Expanded(
                     child: state.materials.isEmpty
                         ? const Center(
-                            child: Text(
-                              'لا توجد مواد',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
-                              ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.inventory_2_outlined,
+                                  size: 64,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  'لا توجد مواد متوفرة',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
                             ),
                           )
                         : ListView.builder(
@@ -176,9 +365,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                             itemBuilder: (context, index) {
                               final material = state.materials[index];
                               final isExpanded = expandedIndex == index;
-                              final typeColor = material.type.contains('صافي')
-                                  ? const Color.fromARGB(255, 28, 98, 32)
-                                  : Colors.orange;
+                              final typeColor = _getMaterialTypeColor(material.materialType);
 
                               return Column(
                                 children: [
@@ -209,23 +396,49 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                _getMaterialIcon(material.name),
-                                                color: const Color.fromARGB(255, 28, 98, 32),
-                                                size: 24,
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                material.name,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                  color: Color.fromARGB(255, 28, 98, 32),
+                                          Expanded(
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                    color: typeColor.withOpacity(0.1),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: Icon(
+                                                    _getMaterialIcon(material.name),
+                                                    color: typeColor,
+                                                    size: 20,
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        material.name,
+                                                        style: const TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16,
+                                                          color: Color.fromARGB(255, 28, 98, 32),
+                                                        ),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Text(
+                                                        material.source,
+                                                        style: const TextStyle(
+                                                          fontSize: 12,
+                                                          color: Colors.grey,
+                                                        ),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                           Row(
                                             children: [
@@ -233,24 +446,14 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                                 padding: const EdgeInsets.symmetric(
                                                     horizontal: 8, vertical: 4),
                                                 decoration: BoxDecoration(
-                                                  color: Color.fromRGBO(
-                                                    typeColor.red,
-                                                    typeColor.green,
-                                                    typeColor.blue,
-                                                    0.1,
-                                                  ),
+                                                  color: typeColor.withOpacity(0.1),
                                                   borderRadius: BorderRadius.circular(8),
                                                   border: Border.all(
-                                                    color: Color.fromRGBO(
-                                                      typeColor.red,
-                                                      typeColor.green,
-                                                      typeColor.blue,
-                                                      0.3,
-                                                    ),
+                                                    color: typeColor.withOpacity(0.3),
                                                   ),
                                                 ),
                                                 child: Text(
-                                                  material.type,
+                                                  material.displayType,
                                                   style: TextStyle(
                                                     color: typeColor,
                                                     fontSize: 12,
@@ -292,96 +495,19 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.end,
                                         children: [
                                           // Type Row
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.end,
-                                            children: [
-                                              const Text(
-                                                'النوع:',
-                                                style: TextStyle(
-                                                  color: Color.fromARGB(255, 28, 98, 32),
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                material.type,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 15,
-                                                  color: Color.fromARGB(255, 28, 98, 32),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                          _buildInfoRow('النوع:', material.displayType, typeColor),
                                           const SizedBox(height: 12),
                                           // Source Row
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.end,
-                                            children: [
-                                              const Text(
-                                                'المصدر:',
-                                                style: TextStyle(
-                                                  color: Color.fromARGB(255, 28, 98, 32),
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                material.source,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 15,
-                                                  color: Color.fromARGB(255, 28, 98, 32),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                          _buildInfoRow('المصدر:', material.source, typeColor),
                                           const SizedBox(height: 12),
-                                          // Quantity Row
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.end,
-                                            children: [
-                                              const Text(
-                                                'الكمية:',
-                                                style: TextStyle(
-                                                  color: Color.fromARGB(255, 28, 98, 32),
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                material.quantity,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 15,
-                                                  color: Color.fromARGB(255, 28, 98, 32),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                          // Measurement Type Row
+                                          _buildInfoRow('نوع القياس:', material.isQuantity ? 'كمية' : 'وزن', typeColor),
                                           const SizedBox(height: 12),
-                                          // Price Row
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.end,
-                                            children: [
-                                              const Text(
-                                                'السعر:',
-                                                style: TextStyle(
-                                                  color: Color.fromARGB(255, 28, 98, 32),
-                                                  fontSize: 14,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                material.price,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 15,
-                                                  color: Color.fromARGB(255, 28, 98, 32),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                          // Order Row
+                                          _buildInfoRow('الترتيب:', material.order.toString(), typeColor),
+                                          const SizedBox(height: 12),
+                                          // Material Type Row
+                                          _buildInfoRow('نوع المادة:', material.materialType, typeColor),
                                         ],
                                       ),
                                     ),
@@ -394,10 +520,10 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                   const Expanded(
                     child: Center(
                       child: Text(
-                        'حدث خطأ في تحميل البيانات',
+                        'حدث خطأ في تحميل المواد',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.red,
+                          color: Colors.grey,
                         ),
                       ),
                     ),
@@ -407,6 +533,38 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value, Color color) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color.fromARGB(255, 28, 98, 32),
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: color.withOpacity(0.3)),
+          ),
+          child: Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: color,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

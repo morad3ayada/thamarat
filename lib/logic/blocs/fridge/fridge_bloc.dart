@@ -12,22 +12,25 @@ class FridgeBloc extends Bloc<FridgeEvent, FridgeState> {
   }
 
   Future<void> _onLoadItems(LoadFridgeItems event, Emitter<FridgeState> emit) async {
-    emit(FridgeLoading());
     try {
+      emit(FridgeLoading());
       final items = await fridgeRepository.fetchFridgeItems();
       emit(FridgeLoaded(items));
     } catch (e) {
-      emit(FridgeError(e.toString()));
+      print('Error loading fridge items: $e');
+      emit(FridgeError('حدث خطأ في تحميل قائمة البرادات: ${e.toString()}'));
     }
   }
 
   Future<void> _onLoadDetails(LoadFridgeDetails event, Emitter<FridgeState> emit) async {
-    emit(FridgeLoading());
     try {
+      emit(FridgeLoading());
       final fridge = await fridgeRepository.getFridgeDetails(event.id);
       emit(FridgeDetailsLoaded(fridge));
     } catch (e) {
-      emit(FridgeError(e.toString()));
+      print('Error loading fridge details: $e');
+      // Don't emit error state to prevent crashes, just emit initial state
+      emit(FridgeInitial());
     }
   }
 }

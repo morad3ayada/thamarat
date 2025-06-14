@@ -254,7 +254,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                 const SizedBox(height: 16),
                                 _buildInfoRow('اسم المادة', sell.materialName),
                                 const SizedBox(height: 8),
-                                _buildInfoRow('الثلاجة', sell.fridgeName),
+                                _buildInfoRow('البراد', sell.fridgeName),
                                 const SizedBox(height: 8),
                                 _buildInfoRow('نوع البيع', sell.sellType),
                                 const SizedBox(height: 8),
