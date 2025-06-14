@@ -36,25 +36,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600; // تعريف التابلت
+
     return Scaffold(
       body: _pages[_selectedIndex],
       bottomNavigationBar: Container(
         color: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: EdgeInsets.symmetric(
+          horizontal: isTablet ? 32 : 8, 
+          vertical: 4,
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            buildIcon(0, Icons.home, 'الرئيسية'),
-            buildIcon(1, Icons.local_shipping, 'البرادات'),
-            buildIcon(2, Icons.chat, 'الدردشة'),
-            buildIcon(3, Icons.person, 'الملف الشخصي'),
+            buildIcon(0, Icons.home, 'الرئيسية', isTablet),
+            buildIcon(1, Icons.local_shipping, 'البرادات', isTablet),
+            buildIcon(2, Icons.chat, 'الدردشة', isTablet),
+            buildIcon(3, Icons.person, 'الملف الشخصي', isTablet),
           ],
         ),
       ),
     );
   }
 
-  Widget buildIcon(int index, IconData icon, String label) {
+  Widget buildIcon(int index, IconData icon, String label, bool isTablet) {
     bool isSelected = _selectedIndex == index;
 
     return GestureDetector(
@@ -62,27 +68,34 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFF1FDF0) : Colors.transparent,
-          border:
-              isSelected
-                  ? const Border(
-                    top: BorderSide(color: Color(0xFFDAF3D7), width: 2),
-                    bottom: BorderSide(color: Color(0xFFDAF3D7), width: 2),
-                  )
-                  : null,
+          border: isSelected
+              ? const Border(
+                  top: BorderSide(color: Color(0xFFDAF3D7), width: 2),
+                  bottom: BorderSide(color: Color(0xFFDAF3D7), width: 2),
+                )
+              : null,
           borderRadius: BorderRadius.circular(12),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: EdgeInsets.symmetric(
+          horizontal: isTablet ? 16 : 10, 
+          vertical: isTablet ? 12 : 6,
+        ),
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? const Color.fromARGB(255, 28, 98, 32) : Colors.grey),
+            Icon(
+              icon, 
+              color: isSelected ? const Color.fromARGB(255, 28, 98, 32) : Colors.grey,
+              size: isTablet ? 28 : 24,
+            ),
             if (isSelected)
               Padding(
-                padding: const EdgeInsets.only(right: 6),
+                padding: EdgeInsets.only(right: isTablet ? 12 : 6),
                 child: Text(
                   label,
                   style: TextStyle(
-                    color: Color.fromARGB(255, 28, 98, 32),
+                    color: const Color.fromARGB(255, 28, 98, 32),
                     fontWeight: FontWeight.bold,
+                    fontSize: isTablet ? 16 : 14,
                   ),
                 ),
               ),
@@ -98,17 +111,21 @@ class HomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isTablet = screenWidth > 600;
+
     return SingleChildScrollView(
       child: Column(
-        children: const [
-          HeaderSection(),
-          SizedBox(height: 20),
-          SellButton(),
-          SizedBox(height: 20),
-          MainOptions(),
-          SizedBox(height: 20),
-          TodayVendorsSection(), // هنا التعديل بيتم من خلال VendorsScreen
-          SizedBox(height: 30),
+        children: [
+          HeaderSection(isTablet: isTablet),
+          SizedBox(height: isTablet ? 32 : 20),
+          SellButton(isTablet: isTablet),
+          SizedBox(height: isTablet ? 32 : 20),
+          MainOptions(isTablet: isTablet),
+          SizedBox(height: isTablet ? 32 : 20),
+          TodayVendorsSection(isTablet: isTablet),
+          SizedBox(height: isTablet ? 40 : 30),
         ],
       ),
     );
@@ -116,14 +133,22 @@ class HomeContent extends StatelessWidget {
 }
 
 class MainOptions extends StatelessWidget {
-  const MainOptions({super.key});
+  final bool isTablet;
+
+  const MainOptions({super.key, required this.isTablet});
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalPadding = isTablet ? 48.0 : 24.0;
+    final cardWidth = isTablet ? 200.0 : 150.0;
+    final cardHeight = isTablet ? 240.0 : 180.0;
+    final imageHeight = isTablet ? 170.0 : 130.0;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           GestureDetector(
             onTap: () {
@@ -132,11 +157,13 @@ class MainOptions extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const MaterialsScreen()),
               );
             },
-            child: const OptionCard(
-              title: 'المواد' ,
+            child: OptionCard(
+              title: 'المواد',
               imagePath: 'assets/vegetables.png',
-              imageHeight: 130,
-               // زيادة الارتفاع
+              imageHeight: imageHeight,
+              cardWidth: cardWidth,
+              cardHeight: cardHeight,
+              isTablet: isTablet,
             ),
           ),
           GestureDetector(
@@ -145,10 +172,13 @@ class MainOptions extends StatelessWidget {
                   .findAncestorStateOfType<_HomeScreenState>()
                   ?.navigateToTab(1);
             },
-            child: const OptionCard(
+            child: OptionCard(
               title: 'البرادات',
               imagePath: 'assets/truck.png',
-              imageHeight: 130, // زيادة الارتفاع
+              imageHeight: imageHeight,
+              cardWidth: cardWidth,
+              cardHeight: cardHeight,
+              isTablet: isTablet,
             ),
           ),
         ],
@@ -160,38 +190,51 @@ class MainOptions extends StatelessWidget {
 class OptionCard extends StatelessWidget {
   final String title;
   final String imagePath;
-  final double imageHeight; // إضافة بارامتر للارتفاع
+  final double imageHeight;
+  final double cardWidth;
+  final double cardHeight;
+  final bool isTablet;
 
   const OptionCard({
     super.key,
     required this.title,
     required this.imagePath,
-    this.imageHeight = 90, // قيمة افتراضية جديدة
+    required this.imageHeight,
+    required this.cardWidth,
+    required this.cardHeight,
+    required this.isTablet,
   });
 
   @override 
   Widget build(BuildContext context) {
     return Container(
-      width: 150, // زيادة العرض
-      height: 180, // زيادة الارتفاع
+      width: cardWidth,
+      height: cardHeight,
       decoration: BoxDecoration(
         color: const Color(0xFFF1FDF0),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Image.asset(
             imagePath,
-            height: imageHeight, // استخدام الارتفاع المحدد
-            fit: BoxFit.contain, // للحفاظ على نسبة العرض إلى الارتفاع
+            height: imageHeight,
+            fit: BoxFit.contain,
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: isTablet ? 16 : 10),
           Text(
             title,
-            style: const TextStyle(
-              color: Color.fromARGB(255, 28, 98, 32),
-              fontSize: 18, // زيادة حجم الخط
+            style: TextStyle(
+              color: const Color.fromARGB(255, 28, 98, 32),
+              fontSize: isTablet ? 22 : 18,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -202,13 +245,26 @@ class OptionCard extends StatelessWidget {
 }
 
 class HeaderSection extends StatelessWidget {
-  const HeaderSection({super.key});
+  final bool isTablet;
+
+  const HeaderSection({super.key, required this.isTablet});
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalPadding = isTablet ? 32.0 : 16.0;
+    final logoHeight = isTablet ? 280.0 : 220.0;
+    final avatarRadius = isTablet ? 32.0 : 26.0;
+    final greetingFontSize = isTablet ? 28.0 : 24.0;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 50, 16, 24),
+      padding: EdgeInsets.fromLTRB(
+        horizontalPadding, 
+        isTablet ? 60 : 50, 
+        horizontalPadding, 
+        isTablet ? 32 : 24,
+      ),
       decoration: BoxDecoration(
         color: const Color(0xFFDAF3D7),
         borderRadius: const BorderRadius.only(
@@ -216,7 +272,7 @@ class HeaderSection extends StatelessWidget {
           bottomRight: Radius.circular(24),
         ),
         image: DecorationImage(
-          image: AssetImage('assets/leaves_bg.png'),
+          image: const AssetImage('assets/leaves_bg.png'),
           fit: BoxFit.cover,
           colorFilter: ColorFilter.mode(
             Colors.white.withOpacity(0.1),
@@ -226,35 +282,42 @@ class HeaderSection extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Center(child: Image.asset('assets/logo.png', height: 220)),
+          Center(child: Image.asset('assets/logo.png', height: logoHeight)),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: const [
+            children: [
               Text(
                 'مرحباً محمد',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold , color: Color.fromARGB(255, 28, 98, 32)), 
+                style: TextStyle(
+                  fontSize: greetingFontSize, 
+                  fontWeight: FontWeight.bold,
+                  color: const Color.fromARGB(255, 28, 98, 32),
+                ),
               ),
-              SizedBox(width: 12),
+              SizedBox(width: isTablet ? 16 : 12),
               CircleAvatar(
-                radius: 26,
-                backgroundImage: AssetImage('assets/user.jpg'),
+                radius: avatarRadius,
+                backgroundImage: const AssetImage('assets/user.jpg'),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isTablet ? 20 : 16),
           Container(
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: EdgeInsets.symmetric(horizontal: isTablet ? 16 : 8),
             child: TextField(
               textAlign: TextAlign.right,
               decoration: InputDecoration(
                 hintText: 'أرسل رسالة سريعة لمصدر البرادات؟',
-                hintStyle: const TextStyle(fontSize: 13),
+                hintStyle: TextStyle(fontSize: isTablet ? 16 : 13),
                 border: InputBorder.none,
-                prefixIcon: const Icon(Icons.send, color: Color.fromARGB(255, 28, 98, 32)),
+                prefixIcon: const Icon(
+                  Icons.send, 
+                  color: Color.fromARGB(255, 28, 98, 32),
+                ),
               ),
             ),
           ),
@@ -265,13 +328,19 @@ class HeaderSection extends StatelessWidget {
 }
 
 class SellButton extends StatelessWidget {
-  const SellButton({super.key});
+  final bool isTablet;
+
+  const SellButton({super.key, required this.isTablet});
 
   @override
   Widget build(BuildContext context) {
+    final horizontalMargin = isTablet ? 48.0 : 24.0;
+    final verticalPadding = isTablet ? 18.0 : 14.0;
+    final fontSize = isTablet ? 22.0 : 18.0;
+
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 24),
+      margin: EdgeInsets.symmetric(horizontal: horizontalMargin),
       child: ElevatedButton(
         onPressed: () {
           Navigator.push(
@@ -280,16 +349,16 @@ class SellButton extends StatelessWidget {
           );
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Color.fromARGB(255, 28, 98, 32),
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          backgroundColor: const Color.fromARGB(255, 28, 98, 32),
+          padding: EdgeInsets.symmetric(vertical: verticalPadding),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(isTablet ? 14 : 10),
           ),
         ),
-        child: const Text(
+        child: Text(
           'القيام بعملية بيع',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: fontSize,
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -300,33 +369,51 @@ class SellButton extends StatelessWidget {
 }
 
 class TodayVendorsSection extends StatelessWidget {
-  const TodayVendorsSection({super.key});
+  final bool isTablet;
+
+  const TodayVendorsSection({super.key, required this.isTablet});
 
   @override
   Widget build(BuildContext context) {
+    final horizontalMargin = isTablet ? 48.0 : 24.0;
+    final padding = isTablet ? 24.0 : 16.0;
+    final imageHeight = isTablet ? 200.0 : 150.0;
+    final fontSize = isTablet ? 22.0 : 18.0;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const VendorsScreen(), // تعديل هنا
+            builder: (_) => const VendorsScreen(),
           ),
         );
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 24),
-        padding: const EdgeInsets.all(16),
+        margin: EdgeInsets.symmetric(horizontal: horizontalMargin),
+        padding: EdgeInsets.all(padding),
         decoration: BoxDecoration(
           color: const Color(0xFFF1FDF0),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           children: [
-            Image.asset('assets/vendor.png', height: 150),
-            const SizedBox(height: 20),
-            const Text(
+            Image.asset('assets/vendor.png', height: imageHeight),
+            SizedBox(height: isTablet ? 24 : 20),
+            Text(
               'المتسوقين اليوم',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 28, 98, 32)),
+              style: TextStyle(
+                fontSize: fontSize, 
+                fontWeight: FontWeight.bold, 
+                color: const Color.fromARGB(255, 28, 98, 32),
+              ),
             ),
           ],
         ),

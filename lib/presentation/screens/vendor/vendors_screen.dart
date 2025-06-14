@@ -60,7 +60,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                   height: 120,
                   width: double.infinity,
                   decoration: const BoxDecoration(
-                    color: Color(0xFFCFE8D7),
+                    color: Color(0xFFDAF3D7),
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(24),
                       bottomRight: Radius.circular(24),

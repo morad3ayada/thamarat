@@ -77,7 +77,7 @@ class _FridgesScreenState extends State<FridgesScreen> {
             padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
             child: Row(
               children: [
-                const SizedBox(width: 8),
+                const Spacer(),
                 const Text(
                   'البرادات',
                   style: TextStyle(
@@ -191,7 +191,7 @@ class _FridgesScreenState extends State<FridgesScreen> {
                             child: Padding(
                               padding: const EdgeInsets.all(16),
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -207,7 +207,7 @@ class _FridgesScreenState extends State<FridgesScreen> {
                                           ),
                                           const SizedBox(width: 12),
                                           Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.end,
                                             children: [
                                               Text(
                                                 fridge.name,
@@ -349,21 +349,23 @@ class _FridgesScreenState extends State<FridgesScreen> {
 
   Widget _buildInfoColumn(String label, String value, IconData icon, {Color? color}) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Icon(
-              icon,
-              size: 16,
-              color: color ?? Colors.grey.shade600,
-            ),
-            const SizedBox(width: 4),
             Text(
               label,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey.shade600,
               ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              icon,
+              size: 16,
+              color: color ?? Colors.grey.shade600,
             ),
           ],
         ),

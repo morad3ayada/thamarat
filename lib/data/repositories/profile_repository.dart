@@ -18,14 +18,16 @@ class ProfileRepository {
     }
   }
 
-  Future<void> updateProfile(UserModel user) async {
-    final response = await _apiService.put(
+  Future<UserModel> updateProfile(UpdateProfileRequest request) async {
+    final response = await _apiService.post(
       ApiConstants.editProfile,
-      data: user.toJson(),
+      data: request.toJson(),
     );
     final data = response.data;
 
-    if (data['success'] != true) {
+    if (data['success'] == true) {
+      return UserModel.fromJson(data['data']);
+    } else {
       throw Exception(data['message'] ?? 'Failed to update profile');
     }
   }

@@ -9,12 +9,14 @@ import 'logic/blocs/materials/materials_bloc.dart';
 import 'logic/blocs/vendor/vendor_bloc.dart';
 import 'logic/blocs/sell/sell_bloc.dart';
 import 'logic/blocs/fridge/fridge_bloc.dart';
+import 'logic/blocs/chat/chat_bloc.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/profile_repository.dart';
 import 'data/repositories/materials_repository.dart';
 import 'data/repositories/vendor_repository.dart';
 import 'data/repositories/sell_repository.dart';
 import 'data/repositories/fridge_repository.dart';
+import 'data/repositories/chat_repository.dart';
 import 'presentation/screens/home_page.dart';
 import 'presentation/screens/auth/login_screen.dart';
 
@@ -60,6 +62,9 @@ class MyApp extends StatelessWidget {
           create: (context) => FridgeBloc(
             fridgeRepository: GetIt.I<FridgeRepository>(),
           ),
+        ),
+        BlocProvider<ChatBloc>(
+          create: (context) => GetIt.I<ChatBloc>(),
         ),
       ],
       child: MaterialApp(

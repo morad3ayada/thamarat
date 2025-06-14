@@ -24,9 +24,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   Future<void> _onUpdateProfile(UpdateProfile event, Emitter<ProfileState> emit) async {
     emit(ProfileLoading());
     try {
-      await profileRepository.updateProfile(event.user);
-      emit(ProfileUpdated());
-      add(LoadProfile());
+      final updatedUser = await profileRepository.updateProfile(event.request);
+      emit(ProfileLoaded(updatedUser));
     } catch (e) {
       emit(ProfileError(e.toString()));
     }

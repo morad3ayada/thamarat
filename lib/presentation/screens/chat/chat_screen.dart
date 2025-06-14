@@ -66,19 +66,72 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
             child: Row(
               children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
                   child: const Icon(
-                    Icons.arrow_back_ios_new,
+                    Icons.person,
+                    size: 30,
                     color: Color.fromARGB(255, 28, 98, 32),
                   ),
                 ),
-                const SizedBox(width: 8),
-                const Text(
-                  'المحادثة',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'مدير البرنامج',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Color.fromARGB(255, 28, 98, 32),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: Colors.green,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Text(
+                            'متصل الآن',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.green,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    // يمكن إضافة معلومات إضافية هنا
+                  },
+                  icon: const Icon(
+                    Icons.info_outline,
                     color: Color.fromARGB(255, 28, 98, 32),
                   ),
                 ),
@@ -232,7 +285,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Icon(Icons.send),
+                          : const Icon(
+                              Icons.send,
+                              color: Colors.white,
+                            ),
                     );
                   },
                 ),
