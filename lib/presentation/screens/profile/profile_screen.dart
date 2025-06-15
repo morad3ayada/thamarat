@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../logic/blocs/profile/profile_bloc.dart';
 import '../../../logic/blocs/profile/profile_event.dart';
 import '../../../logic/blocs/profile/profile_state.dart';
+import '../../../logic/blocs/auth/auth_bloc.dart';
+import '../../../logic/blocs/auth/auth_event.dart';
+import '../../../logic/blocs/auth/auth_state.dart';
 import '../../../data/models/user_model.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -212,23 +215,118 @@ class _ProfileScreenState extends State<ProfileScreen> {
     context.read<ProfileBloc>().add(UpdateProfile(request));
   }
 
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'تسجيل الخروج',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Color.fromARGB(255, 28, 98, 32),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: const Text(
+          'هل أنت متأكد من أنك تريد تسجيل الخروج؟',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'إلغاء',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              // Close dialog first
+              Navigator.pop(context);
+              
+              // Show loading indicator
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('جاري تسجيل الخروج...'),
+                    backgroundColor: Colors.blue,
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              }
+              
+              // Perform logout
+              context.read<AuthBloc>().add(const LogoutRequested(isUserInitiated: true));
+              
+              // Wait for logout to complete
+              await Future.delayed(const Duration(milliseconds: 800));
+              
+              // Navigate to login screen and clear all previous routes
+              if (mounted) {
+                try {
+                  // Use pushNamedAndRemoveUntil to clear all routes
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/login',
+                    (route) => false, // Remove all previous routes
+                  );
+                } catch (e) {
+                  print('Primary navigation failed: $e');
+                  // Fallback navigation
+                  try {
+                    if (mounted) {
+                      // Pop all routes and push login
+                      Navigator.popUntil(context, (route) => false);
+                      if (mounted) {
+                        Navigator.pushNamed(context, '/login');
+                      }
+                    }
+                  } catch (e2) {
+                    print('Fallback navigation also failed: $e2');
+                    // Last resort: just pop all routes
+                    if (mounted) {
+                      Navigator.popUntil(context, (route) => false);
+                    }
+                  }
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'تسجيل الخروج',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
 
-    return BlocListener<ProfileBloc, ProfileState>(
+    return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is ProfileLoaded && _wasUpdated) {
-          // Profile was just updated successfully
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('تم تحديث الملف الشخصي بنجاح'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
-          _wasUpdated = false;
+        // Handle logout state
+        if (state is AuthInitial && mounted) {
+          // User has been logged out, navigate to login
+          try {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/login',
+              (route) => false,
+            );
+          } catch (e) {
+            print('Navigation from BlocListener failed: $e');
+          }
         }
       },
       child: BlocBuilder<ProfileBloc, ProfileState>(
@@ -396,32 +494,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                         SizedBox(height: isTablet ? 32 : 24),
 
-                        // زر التعديل - مؤقتاً معطل
-                        // Padding(
-                        //   padding: EdgeInsets.symmetric(horizontal: isTablet ? 32 : 24),
-                        //   child: SizedBox(
-                        //     width: double.infinity,
-                        //     child: ElevatedButton.icon(
-                        //       onPressed: () => _showEditDialog(state.user),
-                        //       style: ElevatedButton.styleFrom(
-                        //         backgroundColor: const Color.fromARGB(255, 28, 98, 32),
-                        //         padding: EdgeInsets.symmetric(vertical: isTablet ? 16 : 12),
-                        //         shape: RoundedRectangleBorder(
-                        //           borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
-                        //         ),
-                        //       ),
-                        //       icon: Icon(Icons.edit, color: Colors.white, size: isTablet ? 24 : 20),
-                        //       label: Text(
-                        //         'تعديل الملف الشخصي',
-                        //         style: TextStyle(
-                        //           color: Colors.white,
-                        //           fontSize: isTablet ? 18 : 16,
-                        //           fontWeight: FontWeight.bold,
-                        //         ),
-                        //       ),
-                        //     ),
-                        //   ),
-                        // ),
+                        // زر تسجيل الخروج
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: isTablet ? 32 : 24),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: _showLogoutDialog,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                padding: EdgeInsets.symmetric(vertical: isTablet ? 16 : 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+                                ),
+                              ),
+                              icon: Icon(Icons.logout, color: Colors.white, size: isTablet ? 24 : 20),
+                              label: Text(
+                                'تسجيل الخروج',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isTablet ? 18 : 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
 
                         SizedBox(height: isTablet ? 40 : 30),
                       ] else if (state is ProfileError)

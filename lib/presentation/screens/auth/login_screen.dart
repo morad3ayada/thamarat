@@ -16,12 +16,16 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
   bool _isPasswordVisible = false;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -35,6 +39,8 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Colors.white,
         body: BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
+            if (!mounted) return;
+            
             if (state is AuthFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -81,6 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 24),
                         child: Form(
                           key: _formKey,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
                           child: Column(
                             children: [
                               Image.asset(
@@ -125,7 +132,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                     const SizedBox(height: 6),
                                     TextFormField(
                                       controller: _emailController,
+                                      focusNode: _emailFocusNode,
                                       keyboardType: TextInputType.emailAddress,
+                                      textInputAction: TextInputAction.next,
+                                      onFieldSubmitted: (value) {
+                                        // Focus on password field when email is submitted
+                                        if (mounted) {
+                                          _passwordFocusNode.requestFocus();
+                                        }
+                                      },
                                       decoration: const InputDecoration(
                                         filled: true,
                                         fillColor: Color(0xFFF1FDF0),
@@ -140,13 +155,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                           borderSide: BorderSide(color: Color(0xFF388E3C), width: 2),
                                           borderRadius: BorderRadius.all(Radius.circular(12)),
                                         ),
+                                        errorBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.red),
+                                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                                        ),
+                                        focusedErrorBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.red, width: 2),
+                                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                                        ),
                                         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                       ),
                                       validator: (value) {
-                                        if (value == null || value.isEmpty) {
+                                        if (value == null || value.trim().isEmpty) {
                                           return 'الرجاء إدخال البريد الإلكتروني';
                                         }
-                                        if (!value.contains('@')) {
+                                        final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                                        if (!emailRegex.hasMatch(value.trim())) {
                                           return 'الرجاء إدخال بريد إلكتروني صحيح';
                                         }
                                         return null;
@@ -157,7 +181,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                     const SizedBox(height: 6),
                                     TextFormField(
                                       controller: _passwordController,
+                                      focusNode: _passwordFocusNode,
                                       obscureText: !_isPasswordVisible,
+                                      textInputAction: TextInputAction.done,
+                                      onFieldSubmitted: (value) {
+                                        // Submit form when password is submitted
+                                        if (mounted && _formKey.currentState!.validate()) {
+                                          context.read<AuthBloc>().add(
+                                                LoginRequested(
+                                                  email: _emailController.text,
+                                                  password: _passwordController.text,
+                                                ),
+                                              );
+                                        }
+                                      },
                                       decoration: InputDecoration(
                                         filled: true,
                                         fillColor: const Color(0xFFF1FDF0),
@@ -183,13 +220,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                           borderSide: BorderSide(color: Color(0xFF388E3C), width: 2),
                                           borderRadius: BorderRadius.all(Radius.circular(12)),
                                         ),
+                                        errorBorder: const OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.red),
+                                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                                        ),
+                                        focusedErrorBorder: const OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.red, width: 2),
+                                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                                        ),
                                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                       ),
                                       validator: (value) {
-                                        if (value == null || value.isEmpty) {
+                                        if (value == null || value.trim().isEmpty) {
                                           return 'الرجاء إدخال كلمة المرور';
                                         }
-                                        if (value.length < 3) {
+                                        if (value.trim().length < 3) {
                                           return 'كلمة المرور يجب أن تكون 3 أحرف على الأقل';
                                         }
                                         return null;

@@ -337,13 +337,6 @@ class _FridgesScreenState extends State<FridgesScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Implement add fridge functionality
-        },
-        backgroundColor: const Color.fromARGB(255, 28, 98, 32),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
     );
   }
 

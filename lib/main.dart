@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'core/di/injection_container.dart' as di;
 import 'logic/blocs/auth/auth_bloc.dart';
+import 'logic/blocs/auth/auth_event.dart';
 import 'logic/blocs/auth/auth_state.dart';
 import 'logic/blocs/profile/profile_bloc.dart';
 import 'logic/blocs/materials/materials_bloc.dart';
@@ -26,9 +27,14 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -123,13 +129,65 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        home: BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) {
-            if (state is AuthSuccess) {
-              return const HomeScreen();
+        home: BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) {
+            // Check if the widget is still mounted before accessing context
+            if (!context.mounted) return;
+            
+            try {
+              if (state is AuthFailure) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              } else if (state is AuthInitial) {
+                // Check if user actually logged out
+                final authBloc = context.read<AuthBloc>();
+                if (authBloc.wasUserLogout) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('تم تسجيل الخروج بنجاح'),
+                      backgroundColor: Colors.green,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              }
+            } catch (e) {
+              print('Failed to show snackbar: $e');
             }
-            return const LoginScreen();
           },
+          child: BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              // Check auth status on app start
+              if (state is AuthInitial) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (context.mounted) {
+                    try {
+                      context.read<AuthBloc>().add(CheckAuthStatus());
+                    } catch (e) {
+                      print('Failed to check auth status: $e');
+                    }
+                  }
+                });
+              }
+              
+              // Always show LoginScreen for AuthInitial state (logout)
+              if (state is AuthInitial) {
+                return const LoginScreen();
+              }
+              
+              // Show HomeScreen for AuthSuccess state (logged in)
+              if (state is AuthSuccess) {
+                return const HomeScreen();
+              }
+              
+              // Show LoginScreen for AuthLoading and AuthFailure states
+              return const LoginScreen();
+            },
+          ),
         ),
         routes: {
           '/login': (context) => const LoginScreen(),

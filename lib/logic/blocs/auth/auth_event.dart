@@ -16,4 +16,13 @@ class LoginRequested extends AuthEvent {
   List<Object?> get props => [email, password];
 }
 
-class LogoutRequested extends AuthEvent {}
+class LogoutRequested extends AuthEvent {
+  final bool isUserInitiated;
+
+  const LogoutRequested({this.isUserInitiated = true});
+
+  @override
+  List<Object?> get props => [isUserInitiated];
+}
+
+class CheckAuthStatus extends AuthEvent {}
