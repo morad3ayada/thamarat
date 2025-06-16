@@ -87,3 +87,16 @@ class AddSellMaterial extends SellEvent {
     weight,
   ];
 }
+
+class DeleteSellMaterial extends SellEvent {
+  final int materialId;
+  final String materialType;
+
+  const DeleteSellMaterial({
+    required this.materialId,
+    required this.materialType,
+  });
+
+  @override
+  List<Object?> get props => [materialId, materialType];
+}

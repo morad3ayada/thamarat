@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:thamarat/logic/blocs/profile/profile_event.dart';
 import '../../../logic/blocs/profile/profile_bloc.dart';
 import '../../../logic/blocs/profile/profile_state.dart';
+import '../../../logic/blocs/chat/chat_bloc.dart';
+import '../../../logic/blocs/chat/chat_event.dart';
+import '../../../logic/blocs/chat/chat_state.dart';
 import 'sell/sell_page.dart' as sell;
 import 'chat/chat_screen.dart';
 import 'profile/profile_screen.dart';
@@ -260,114 +263,175 @@ class OptionCard extends StatelessWidget {
   }
 }
 
-class HeaderSection extends StatelessWidget {
+class HeaderSection extends StatefulWidget {
   final bool isTablet;
 
   const HeaderSection({super.key, required this.isTablet});
 
   @override
+  State<HeaderSection> createState() => _HeaderSectionState();
+}
+
+class _HeaderSectionState extends State<HeaderSection> {
+  final TextEditingController _messageController = TextEditingController();
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  void _sendQuickMessage() {
+    if (_messageController.text.trim().isEmpty) return;
+
+    context.read<ChatBloc>().add(
+          SendMessage(_messageController.text.trim()),
+        );
+    _messageController.clear();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final horizontalPadding = isTablet ? 32.0 : 16.0;
-    final logoHeight = isTablet ? 280.0 : 220.0;
-    final avatarRadius = isTablet ? 32.0 : 26.0;
-    final greetingFontSize = isTablet ? 28.0 : 24.0;
+    final horizontalPadding = widget.isTablet ? 32.0 : 16.0;
+    final logoHeight = widget.isTablet ? 280.0 : 220.0;
+    final avatarRadius = widget.isTablet ? 32.0 : 26.0;
+    final greetingFontSize = widget.isTablet ? 28.0 : 24.0;
 
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        horizontalPadding, 
-        isTablet ? 60 : 50, 
-        horizontalPadding, 
-        isTablet ? 32 : 24,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xFFDAF3D7),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
-        image: DecorationImage(
-          image: const AssetImage('assets/leaves_bg.png'),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(
-            Colors.white.withOpacity(0.1),
-            BlendMode.dstATop,
-          ),
-        ),
-      ),
-      child: Column(
-        children: [
-          Center(child: Image.asset('assets/logo.png', height: logoHeight)),
-          BlocBuilder<ProfileBloc, ProfileState>(
-            builder: (context, state) {
-              String userName = 'مرحباً';
-              
-              if (state is ProfileLoaded) {
-                userName = 'مرحباً ${state.user.name}';
-              } else if (state is ProfileLoading) {
-                userName = 'مرحباً...';
-              } else if (state is ProfileError) {
-                userName = 'مرحباً';
-              }
-              
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    userName,
-                    style: TextStyle(
-                      fontSize: greetingFontSize, 
-                      fontWeight: FontWeight.bold,
-                      color: const Color.fromARGB(255, 28, 98, 32),
-                    ),
-                  ),
-                  SizedBox(width: isTablet ? 16 : 12),
-                  Container(
-                    width: avatarRadius * 2,
-                    height: avatarRadius * 2,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.store,
-                      size: avatarRadius,
-                      color: const Color.fromARGB(255, 28, 98, 32),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-          SizedBox(height: isTablet ? 20 : 16),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(isTablet ? 16 : 12),
+    return BlocListener<ChatBloc, ChatState>(
+      listener: (context, state) {
+        if (state is MessageSent) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تم إرسال الرسالة بنجاح'),
+              backgroundColor: Colors.green,
             ),
-            padding: EdgeInsets.symmetric(horizontal: isTablet ? 16 : 8),
-            child: TextField(
-              textAlign: TextAlign.right,
-              decoration: InputDecoration(
-                hintText: 'أرسل رسالة سريعة لمصدر البرادات؟',
-                hintStyle: TextStyle(fontSize: isTablet ? 16 : 13),
-                border: InputBorder.none,
-                prefixIcon: const Icon(
-                  Icons.send, 
-                  color: Color.fromARGB(255, 28, 98, 32),
-                ),
+          );
+        } else if (state is MessageSendingError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding, 
+          widget.isTablet ? 60 : 50, 
+          horizontalPadding, 
+          widget.isTablet ? 32 : 24,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFFDAF3D7),
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(24),
+            bottomRight: Radius.circular(24),
+          ),
+          image: DecorationImage(
+            image: const AssetImage('assets/leaves_bg.png'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.white.withOpacity(0.1),
+              BlendMode.dstATop,
+            ),
+          ),
+        ),
+        child: Column(
+          children: [
+            Center(child: Image.asset('assets/logo.png', height: logoHeight)),
+            BlocBuilder<ProfileBloc, ProfileState>(
+              builder: (context, state) {
+                String userName = 'مرحباً';
+                
+                if (state is ProfileLoaded) {
+                  userName = 'مرحباً ${state.user.name}';
+                } else if (state is ProfileLoading) {
+                  userName = 'مرحباً...';
+                } else if (state is ProfileError) {
+                  userName = 'مرحباً';
+                }
+                
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      userName,
+                      style: TextStyle(
+                        fontSize: greetingFontSize, 
+                        fontWeight: FontWeight.bold,
+                        color: const Color.fromARGB(255, 28, 98, 32),
+                      ),
+                    ),
+                    SizedBox(width: widget.isTablet ? 16 : 12),
+                    Container(
+                      width: avatarRadius * 2,
+                      height: avatarRadius * 2,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.store,
+                        size: avatarRadius,
+                        color: const Color.fromARGB(255, 28, 98, 32),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+            SizedBox(height: widget.isTablet ? 20 : 16),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(widget.isTablet ? 16 : 12),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: widget.isTablet ? 16 : 8),
+              child: BlocBuilder<ChatBloc, ChatState>(
+                builder: (context, chatState) {
+                  return TextField(
+                    controller: _messageController,
+                    textAlign: TextAlign.right,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _sendQuickMessage(),
+                    enabled: chatState is! ChatLoading,
+                    decoration: InputDecoration(
+                      hintText: 'إرسال رسالة سريعة للمحاسب',
+                      hintStyle: TextStyle(fontSize: widget.isTablet ? 16 : 13),
+                      border: InputBorder.none,
+                      prefixIcon: chatState is ChatLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Color.fromARGB(255, 28, 98, 32),
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : GestureDetector(
+                              onTap: _sendQuickMessage,
+                              child: const Icon(
+                                Icons.send, 
+                                color: Color.fromARGB(255, 28, 98, 32),
+                              ),
+                            ),
+                    ),
+                  );
+                },
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

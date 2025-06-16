@@ -482,7 +482,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   SizedBox(width: isTablet ? 12 : 8),
                                   Expanded(
                                     child: Text(
-                                      'صلاحية بيع المواد التالفة',
+                                      'صلاحية البيع بالگوتره',
                                       style: TextStyle(fontSize: isTablet ? 16 : 14),
                                     ),
                                   ),

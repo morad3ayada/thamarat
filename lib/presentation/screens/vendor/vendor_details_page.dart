@@ -130,13 +130,6 @@ class VendorDetailsPage extends StatelessWidget {
                               color: Color.fromARGB(255, 28, 98, 32),
                             ),
                           ),
-                          Text(
-                            '${activeInvoices.length} فاتورة',
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14,
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -238,10 +231,197 @@ class VendorDetailsPage extends StatelessWidget {
                 fontSize: 14,
               ),
             ),
+            
+            // عرض المواد التفصيلي
+            if (invoice.materials.isNotEmpty || invoice.spoiledMaterials.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+              const Text(
+                'تفاصيل المواد:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Color.fromARGB(255, 28, 98, 32),
+                ),
+              ),
+              const SizedBox(height: 8),
+              
+              // البيع العادي
+              ..._buildNormalMaterialsSection(invoice),
+              
+              // البيع بالكوترة
+              ..._buildWholesaleMaterialsSection(invoice),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  List<Widget> _buildNormalMaterialsSection(InvoiceModel invoice) {
+    List<dynamic> normalMaterials = [];
+    normalMaterials.addAll(invoice.materials.where((m) => 
+      m.materialType == 'consignment' || m.materialType == 'markup'
+    ));
+    
+    if (normalMaterials.isNotEmpty) {
+      return [
+        const Text(
+          'البيع العادي:',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            color: Colors.green,
+          ),
+        ),
+        const SizedBox(height: 4),
+        ...normalMaterials.map((material) => _buildMaterialItem(material, false)),
+        const SizedBox(height: 8),
+      ];
+    }
+    return <Widget>[];
+  }
+
+  List<Widget> _buildWholesaleMaterialsSection(InvoiceModel invoice) {
+    List<dynamic> wholesaleMaterials = [];
+    wholesaleMaterials.addAll(invoice.materials.where((m) => 
+      m.materialType == 'spoiledConsignment' || m.materialType == 'spoiledMarkup'
+    ));
+    wholesaleMaterials.addAll(invoice.spoiledMaterials);
+    
+    if (wholesaleMaterials.isNotEmpty) {
+      return [
+        const Text(
+          'البيع بالكوترة:',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            color: Colors.orange,
+          ),
+        ),
+        const SizedBox(height: 4),
+        ...wholesaleMaterials.map((material) => _buildMaterialItem(material, true)),
+      ];
+    }
+    return <Widget>[];
+  }
+
+  Widget _buildMaterialItem(dynamic material, bool isWholesale) {
+    String materialName = '';
+    String truckName = '';
+    double? quantity;
+    double? weight;
+    double? price;
+    String materialType = '';
+
+    // تحديد نوع المادة واستخراج البيانات
+    if (material is MaterialModel) {
+      materialName = material.name;
+      truckName = material.truckName;
+      quantity = material.quantity;
+      weight = material.weight;
+      price = material.price;
+      materialType = material.materialType;
+    } else if (material is SpoiledMaterialModel) {
+      materialName = material.name;
+      truckName = material.truckName;
+      quantity = material.quantity;
+      weight = material.weight;
+      price = material.price;
+      materialType = material.materialType;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: isWholesale ? Colors.orange.shade50 : Colors.green.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isWholesale ? Colors.orange.shade200 : Colors.green.shade200,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  materialName,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: isWholesale ? Colors.orange.shade700 : Colors.green.shade700,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isWholesale ? Colors.orange.shade100 : Colors.green.shade100,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '${price?.toStringAsFixed(0) ?? 0} دينار',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: isWholesale ? Colors.orange.shade700 : Colors.green.shade700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              if (weight != null && weight > 0) ...[
+                Text(
+                  'الوزن: ${weight.toStringAsFixed(2)} كيلو',
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+                const SizedBox(width: 12),
+              ],
+              if (quantity != null && quantity > 0) ...[
+                Text(
+                  'العدد: ${quantity.toStringAsFixed(0)} قطعة',
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+                const SizedBox(width: 12),
+              ],
+              Text(
+                'البراد: $truckName',
+                style: const TextStyle(fontSize: 11, color: Colors.grey),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'النوع: ${_getMaterialTypeDisplay(materialType)}',
+            style: const TextStyle(fontSize: 11, color: Colors.grey),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getMaterialTypeDisplay(String materialType) {
+    switch (materialType) {
+      case 'consignment':
+        return 'صافي وزن';
+      case 'markup':
+        return 'خابط وزن';
+      case 'spoiledConsignment':
+        return 'صافي عدد';
+      case 'spoiledMarkup':
+        return 'خابط عدد';
+      default:
+        return materialType;
+    }
   }
 
   String _formatDate(DateTime date) {

@@ -1,5 +1,10 @@
 class ApiConstants {
-  static const String baseUrl = 'http://10.0.2.2:5239/api/mobile/';
+  // Base URL for the API
+  // static const String baseUrl = 'http://10.0.2.2:5239/api/mobile/';
+
+
+  static const String baseUrl = 'https://thamarat.runasp.net/api/mobile/';
+
 
   // Auth
   static const String login = 'auth/login';

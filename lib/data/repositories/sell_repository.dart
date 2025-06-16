@@ -99,4 +99,17 @@ class SellRepository {
       throw Exception(data['message'] ?? 'Failed to add sell material');
     }
   }
+
+  Future<void> deleteSellMaterial({
+    required int materialId,
+    required String materialType,
+  }) async {
+    final response = await _apiService.delete(
+      '${ApiConstants.deleteMaterial}?materialId=$materialId&materialType=$materialType',
+    );
+    final data = response.data;
+    if (data['success'] != true) {
+      throw Exception(data['message'] ?? 'Failed to delete sell material');
+    }
+  }
 }

@@ -12,6 +12,7 @@ class SellBloc extends Bloc<SellEvent, SellState> {
     on<CreateNewSaleProcess>(_onCreateNewSaleProcess);
     on<ConfirmSell>(_onConfirmSell);
     on<AddSellMaterial>(_onAddSellMaterial);
+    on<DeleteSellMaterial>(_onDeleteSellMaterial);
   }
 
   Future<void> _onLoadProcesses(LoadSellProcesses event, Emitter<SellState> emit) async {
@@ -84,6 +85,20 @@ class SellBloc extends Bloc<SellEvent, SellState> {
         brokerage: event.brokerage,
         pieceRate: event.pieceRate,
         weight: event.weight,
+      );
+      emit(SellConfirmed());
+      add(LoadSellProcesses());
+    } catch (e) {
+      emit(SellError(e.toString()));
+    }
+  }
+
+  Future<void> _onDeleteSellMaterial(DeleteSellMaterial event, Emitter<SellState> emit) async {
+    emit(SellLoading());
+    try {
+      await sellRepository.deleteSellMaterial(
+        materialId: event.materialId,
+        materialType: event.materialType,
       );
       emit(SellConfirmed());
       add(LoadSellProcesses());

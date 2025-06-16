@@ -217,12 +217,6 @@ class _FridgesScreenState extends State<FridgesScreen> {
                                                   color: Color.fromARGB(255, 28, 98, 32),
                                                 ),
                                               ),
-                                              Text(
-                                                'عدد المواد: ${fridge.materials.length}',
-                                                style: const TextStyle(
-                                                  color: Colors.grey,
-                                                ),
-                                              ),
                                             ],
                                           ),
                                         ],
