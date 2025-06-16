@@ -326,33 +326,6 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                     return Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        // معلومات الفاتورة
-                                        Container(
-                                          padding: const EdgeInsets.all(12),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFE8F5E9),
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                'فاتورة رقم: ${invoice.id}',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color.fromARGB(255, 28, 98, 32),
-                                                ),
-                                              ),
-                                              Text(
-                                                DateFormat('yyyy/MM/dd').format(invoice.createdAt),
-                                                style: const TextStyle(
-                                                  color: Color.fromARGB(255, 28, 98, 32),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
                                         // قائمة المواد
                                         ...materials.map((material) => Padding(
                                           padding: const EdgeInsets.only(bottom: 12),
