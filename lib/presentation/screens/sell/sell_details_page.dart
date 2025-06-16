@@ -300,12 +300,10 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                 List<sell_models.SellModel> customerItems;
                                 
                                 if (widget.pendingInvoiceId != null) {
-                                  // إذا كان لدينا معرف فاتورة معلقة، احسب فقط هذه الفاتورة
                                   customerItems = state.items.where((item) =>
                                     item.id == widget.pendingInvoiceId
                                   ).toList();
                                 } else {
-                                  // فلترة المواد حسب اسم أو رقم هاتف الزبون
                                   customerItems = state.items.where((item) =>
                                     item.customerName == widget.name &&
                                     item.customerPhone == widget.phone
@@ -627,6 +625,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
     String materialType = '';
     DateTime? date;
     int materialId = 0;
+    bool isQuantity = false;
 
     // تحديد نوع المادة واستخراج البيانات
     if (material is sell_models.MaterialModel) {
@@ -638,6 +637,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
       materialType = material.materialType;
       materialId = material.id;
       date = DateTime.now();
+      isQuantity = material.isQuantity ?? false;
     } else if (material is sell_models.SpoiledMaterialModel) {
       materialName = material.name;
       truckName = material.truckName;
@@ -647,6 +647,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
       materialType = material.materialType;
       materialId = material.id;
       date = DateTime.now();
+      isQuantity = material.isQuantity ?? false;
     }
 
     // حساب المجموع للمادة الواحدة
@@ -656,6 +657,9 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
     } else if (quantity != null && quantity > 0) {
       materialTotal = quantity * (price ?? 0);
     }
+
+    // تحديد نوع الإضافة
+    bool isCounter = materialType.contains('markup');
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -696,7 +700,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      _getMaterialTypeDisplay(materialType),
+                      isCounter ? 'بالكوترة' : 'عادي',
                       style: TextStyle(
                         fontSize: 12,
                         color: materialType.contains('spoiled') 
