@@ -151,11 +151,9 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
     // Determine material type based on sell type and material type
     String materialType = selectedMaterial!.materialType;
     if (sellType == "بالكوترة") {
-      if (materialType == "consignment") {
-        materialType = "spoiledConsignment";
-      } else if (materialType == "markup") {
-        materialType = "spoiledMarkup";
-      }
+      materialType = "markup"; // Always use markup type for counter-based selling
+    } else {
+      materialType = "consignment"; // Use consignment type for regular selling
     }
 
     // Call the bloc to add material with converted numbers
