@@ -105,6 +105,22 @@ class MaterialModel {
     required this.materialType,
   });
 
+  // Helper method to generate unique material ID
+  String get uniqueId {
+    String prefix = materialType.startsWith('consignment') ? 'c' : 'm';
+    return '$prefix$id';
+  }
+
+  // Helper method to parse unique ID back to original ID
+  static int parseId(String uniqueId) {
+    return int.parse(uniqueId.substring(1));
+  }
+
+  // Helper method to get material type from unique ID
+  static String getTypeFromId(String uniqueId) {
+    return uniqueId.startsWith('c') ? 'consignment' : 'markup';
+  }
+
   factory MaterialModel.fromJson(Map<String, dynamic> json) {
     return MaterialModel(
       id: json['id'] as int? ?? 0,
@@ -176,6 +192,22 @@ class SpoiledMaterialModel {
     required this.workerPiecePercentage,
     required this.officePiecePercentage,
   });
+
+  // Helper method to generate unique material ID
+  String get uniqueId {
+    String prefix = materialType.startsWith('spoiledConsignment') ? 'sc' : 'sm';
+    return '$prefix$id';
+  }
+
+  // Helper method to parse unique ID back to original ID
+  static int parseId(String uniqueId) {
+    return int.parse(uniqueId.substring(2));
+  }
+
+  // Helper method to get material type from unique ID
+  static String getTypeFromId(String uniqueId) {
+    return uniqueId.startsWith('sc') ? 'spoiledConsignment' : 'spoiledMarkup';
+  }
 
   factory SpoiledMaterialModel.fromJson(Map<String, dynamic> json) {
     return SpoiledMaterialModel(

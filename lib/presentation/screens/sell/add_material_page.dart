@@ -41,6 +41,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
   String selectedTruck = '';
   int selectedTruckIndex = -1;
   MaterialsModel? selectedMaterial;
+  String? selectedMaterialUniqueId;
   List<String> truckNames = [];
   Map<String, List<MaterialsModel>> truckMaterials = {};
 
@@ -117,7 +118,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
     }
   }
 
-  void _submitForm() {
+  void _handleAddMaterial() {
     if (selectedMaterial == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -390,7 +391,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: ElevatedButton(
-                                onPressed: _submitForm,
+                                onPressed: _handleAddMaterial,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Color.fromARGB(255, 28, 98, 32),
                                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -422,12 +423,18 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
   }
 
   Widget _buildMaterialItemWithSelection(MaterialsModel material, String truckName) {
-    bool isSelected = selectedMaterial?.id == material.id;
+    bool isSelected = _isMaterialSelected(material);
     
     return GestureDetector(
       onTap: () {
         setState(() {
-          selectedMaterial = isSelected ? null : material;
+          if (isSelected) {
+            selectedMaterial = null;
+            selectedMaterialUniqueId = null;
+          } else {
+            selectedMaterial = material;
+            selectedMaterialUniqueId = _generateUniqueId(material);
+          }
         });
       },
       child: AnimatedContainer(
@@ -445,62 +452,35 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
           ],
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isSelected ? Color.fromARGB(255, 28, 98, 32) : Colors.grey,
-                        width: 2,
-                      ),
+                  Text(
+                    material.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: isSelected ? const Color.fromARGB(255, 28, 98, 32) : Colors.black87,
                     ),
-                    child: isSelected
-                        ? const Icon(
-                            Icons.check,
-                            size: 18,
-                            color: Color.fromARGB(255, 28, 98, 32),
-                          )
-                        : null,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          material.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Color.fromARGB(255, 28, 98, 32),
-                          ),
-                        ),
-                        Text(
-                          material.displayType,
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 4),
+                  Text(
+                    material.displayType,
+                    style: TextStyle(
+                      color: isSelected ? const Color.fromARGB(255, 28, 98, 32) : Colors.grey,
+                      fontSize: 14,
                     ),
                   ),
                 ],
               ),
             ),
-            Text(
-              truckName,
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 14,
+            if (isSelected)
+              const Icon(
+                Icons.check_circle,
+                color: Color.fromARGB(255, 28, 98, 32),
               ),
-            ),
           ],
         ),
       ),
@@ -792,5 +772,17 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         ],
       ),
     );
+  }
+
+  // Helper method to generate unique ID for a material
+  String _generateUniqueId(MaterialsModel material) {
+    String prefix = material.materialType.startsWith('consignment') ? 'c' : 'm';
+    return '$prefix${material.id}';
+  }
+
+  // Helper method to check if a material is already selected
+  bool _isMaterialSelected(MaterialsModel material) {
+    if (selectedMaterialUniqueId == null) return false;
+    return selectedMaterialUniqueId == _generateUniqueId(material);
   }
 }

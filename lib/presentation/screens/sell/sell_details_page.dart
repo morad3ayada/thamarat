@@ -765,6 +765,11 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
   }
 
   void _showDeleteConfirmation(int materialId, String materialType, String materialName) {
+    // Generate unique ID based on material type
+    String uniqueId = materialType.startsWith('spoiled') 
+        ? 's${materialType.startsWith('spoiledConsignment') ? 'c' : 'm'}$materialId'
+        : '${materialType.startsWith('consignment') ? 'c' : 'm'}$materialId';
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -851,6 +856,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                           context.read<SellBloc>().add(DeleteSellMaterial(
                             materialId: materialId,
                             materialType: materialType,
+                            uniqueId: uniqueId,
                           ));
                         },
                         style: ElevatedButton.styleFrom(
