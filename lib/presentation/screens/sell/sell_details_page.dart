@@ -58,63 +58,63 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
         },
         child: Scaffold(
           backgroundColor: const Color(0xFFF9F9F9),
-          body: Column(
-            children: [
-              // Header
-              Container(
-                height: 120,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFCFE8D7),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24),
+          body: RefreshIndicator(
+            onRefresh: () async {
+              context.read<SellBloc>().add(LoadSellProcesses());
+            },
+            color: const Color.fromARGB(255, 28, 98, 32),
+            child: Column(
+              children: [
+                // Header
+                Container(
+                  height: 120,
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFCFE8D7),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(24),
+                      bottomRight: Radius.circular(24),
+                    ),
+                  ),
+                  padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new,
+                          color: Color.fromARGB(255, 28, 98, 32) ,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'تفاصيل البيع',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color:Color.fromARGB(255, 28, 98, 32),  
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new,
-                        color: Color.fromARGB(255, 28, 98, 32) ,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'تفاصيل البيع',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color:Color.fromARGB(255, 28, 98, 32),  
-                      ),
-                    ),
-                  ],
+                
+                // Progress Steps
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      _buildStep(0, '1', 'الزبون', true),
+                      _buildStepLine(),
+                      _buildStep(1, '2', 'بيانات البيع', true),
+                      _buildStepLine(),
+                      _buildStep(2, '3', 'إتمام العملية', false),
+                    ],
+                  ),
                 ),
-              ),
-              
-              // Progress Steps
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    _buildStep(0, '1', 'الزبون', true),
-                    _buildStepLine(),
-                    _buildStep(1, '2', 'بيانات البيع', true),
-                    _buildStepLine(),
-                    _buildStep(2, '3', 'إتمام العملية', false),
-                  ],
-                ),
-              ),
 
-              // Content
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () async {
-                    context.read<SellBloc>().add(LoadSellProcesses());
-                  },
-                  color: const Color.fromARGB(255, 28, 98, 32),
+                // Content
+                Expanded(
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Padding(
@@ -524,8 +524,8 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
