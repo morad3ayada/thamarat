@@ -130,13 +130,13 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                 child: _buildStatItem('صافي', consignmentCount, const Color.fromARGB(255, 28, 98, 32), isTablet, statFontSize, labelFontSize),
               ),
               Expanded(
-                child: _buildStatItem('ربح', markupCount, Colors.orange, isTablet, statFontSize, labelFontSize),
+                child: _buildStatItem('خابط', markupCount, Colors.orange, isTablet, statFontSize, labelFontSize),
               ),
               Expanded(
-                child: _buildStatItem('تالف', spoiledCount, Colors.red, isTablet, statFontSize, labelFontSize),
+                child: _buildStatItem('برادات', uniqueTrucks, Colors.blue, isTablet, statFontSize, labelFontSize),
               ),
               Expanded(
-                child: _buildStatItem('شاحنات', uniqueTrucks, Colors.blue, isTablet, statFontSize, labelFontSize),
+                child: _buildStatItem('كوتره', spoiledCount, Colors.red, isTablet, statFontSize, labelFontSize),
               ),
             ],
           ),
@@ -509,12 +509,6 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                                           SizedBox(height: isTablet ? 16 : 12),
                                           // Measurement Type Row
                                           _buildInfoRow('نوع القياس:', material.isQuantity ? 'كمية' : 'وزن', typeColor, isTablet),
-                                          SizedBox(height: isTablet ? 16 : 12),
-                                          // Order Row
-                                          _buildInfoRow('الترتيب:', material.order.toString(), typeColor, isTablet),
-                                          SizedBox(height: isTablet ? 16 : 12),
-                                          // Material Type Row
-                                          _buildInfoRow('نوع المادة:', material.materialType, typeColor, isTablet),
                                         ],
                                       ),
                                     ),

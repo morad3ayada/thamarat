@@ -41,13 +41,13 @@ class MaterialsModel {
   String get displayType {
     switch (materialType) {
       case 'consignment':
-        return 'صافي';
+        return 'صافي وزن';
       case 'markup':
-        return 'ربح';
+        return 'خابط وزن';
       case 'spoiledConsignment':
-        return 'صافي تالف';
+        return 'صافي عدد';
       case 'spoiledMarkup':
-        return 'ربح تالف';
+        return 'خابط عدد';
       default:
         return materialType;
     }
