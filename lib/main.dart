@@ -11,6 +11,7 @@ import 'logic/blocs/vendor/vendor_bloc.dart';
 import 'logic/blocs/sell/sell_bloc.dart';
 import 'logic/blocs/fridge/fridge_bloc.dart';
 import 'logic/blocs/chat/chat_bloc.dart';
+import 'logic/blocs/office/office_bloc.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/profile_repository.dart';
 import 'data/repositories/materials_repository.dart';
@@ -18,6 +19,7 @@ import 'data/repositories/vendor_repository.dart';
 import 'data/repositories/sell_repository.dart';
 import 'data/repositories/fridge_repository.dart';
 import 'data/repositories/chat_repository.dart';
+import 'data/repositories/office_repository.dart';
 import 'presentation/screens/home_page.dart';
 import 'presentation/screens/auth/login_screen.dart';
 
@@ -71,6 +73,11 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider<ChatBloc>(
           create: (context) => GetIt.I<ChatBloc>(),
+        ),
+        BlocProvider<OfficeBloc>(
+          create: (context) => OfficeBloc(
+            officeRepository: GetIt.I<OfficeRepository>(),
+          ),
         ),
       ],
       child: MaterialApp(

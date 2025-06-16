@@ -9,7 +9,7 @@ class VendorDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeInvoices = vendor?.activeInvoices ?? [];
+    final allInvoices = vendor?.invoices ?? [];
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -101,7 +101,7 @@ class VendorDetailsPage extends StatelessWidget {
                                   color: Color.fromARGB(255, 28, 98, 32), size: 22),
                               const SizedBox(width: 4),
                               Text(
-                                '${vendor?.activeInvoicesCount ?? 0}',
+                                '${vendor?.totalInvoicesCount ?? 0} فاتورة',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -123,7 +123,7 @@ class VendorDetailsPage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            'الفواتير النشطة',
+                            'الفواتير',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
@@ -138,10 +138,10 @@ class VendorDetailsPage extends StatelessWidget {
 
                     // Invoices list
                     Expanded(
-                      child: activeInvoices.isEmpty
+                      child: allInvoices.isEmpty
                           ? const Center(
                               child: Text(
-                                'لا توجد فواتير نشطة',
+                                'لا توجد فواتير',
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey,
@@ -149,9 +149,9 @@ class VendorDetailsPage extends StatelessWidget {
                               ),
                             )
                           : ListView.builder(
-                              itemCount: activeInvoices.length,
+                              itemCount: allInvoices.length,
                               itemBuilder: (context, index) {
-                                final invoice = activeInvoices[index];
+                                final invoice = allInvoices[index];
                                 return buildInvoiceCard(invoice);
                               },
                             ),

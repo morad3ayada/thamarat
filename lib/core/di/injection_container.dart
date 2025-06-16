@@ -7,6 +7,7 @@ import '../../data/repositories/vendor_repository.dart';
 import '../../data/repositories/sell_repository.dart';
 import '../../data/repositories/fridge_repository.dart';
 import '../../data/repositories/chat_repository.dart';
+import '../../data/repositories/office_repository.dart';
 import '../../logic/blocs/auth/auth_bloc.dart';
 import '../../logic/blocs/profile/profile_bloc.dart';
 import '../../logic/blocs/materials/materials_bloc.dart';
@@ -14,6 +15,7 @@ import '../../logic/blocs/vendor/vendor_bloc.dart';
 import '../../logic/blocs/sell/sell_bloc.dart';
 import '../../logic/blocs/fridge/fridge_bloc.dart';
 import '../../logic/blocs/chat/chat_bloc.dart';
+import '../../logic/blocs/office/office_bloc.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -43,6 +45,9 @@ Future<void> init() async {
   getIt.registerLazySingleton<ChatRepository>(
     () => ChatRepository(getIt<ApiService>()),
   );
+  getIt.registerLazySingleton<OfficeRepository>(
+    () => OfficeRepository(getIt<ApiService>()),
+  );
 
   // Blocs
   getIt.registerFactory<AuthBloc>(
@@ -65,5 +70,8 @@ Future<void> init() async {
   );
   getIt.registerFactory<ChatBloc>(
     () => ChatBloc(chatRepository: getIt<ChatRepository>()),
+  );
+  getIt.registerFactory<OfficeBloc>(
+    () => OfficeBloc(officeRepository: getIt<OfficeRepository>()),
   );
 } 

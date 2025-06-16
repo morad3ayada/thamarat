@@ -7,6 +7,10 @@ import '../../../logic/blocs/auth/auth_bloc.dart';
 import '../../../logic/blocs/auth/auth_event.dart';
 import '../../../logic/blocs/auth/auth_state.dart';
 import '../../../data/models/user_model.dart';
+import '../../../logic/blocs/office/office_bloc.dart';
+import '../../../logic/blocs/office/office_state.dart';
+import '../../../logic/blocs/office/office_event.dart';
+import 'dart:convert';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -30,6 +34,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     context.read<ProfileBloc>().add(LoadProfile());
+    context.read<OfficeBloc>().add(LoadOfficeInfo());
   }
 
   @override
@@ -363,9 +368,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Positioned(
                         top: isTablet ? 50 : 50,
                         left: isTablet ? 32 : 20,
-                        child: Image.asset(
-                          'assets/logo.png',
-                          width: isTablet ? 120 : 100,
+                        child: BlocBuilder<OfficeBloc, OfficeState>(
+                          builder: (context, state) {
+                            if (state is OfficeLoading) {
+                              return SizedBox(
+                                width: isTablet ? 120 : 100,
+                                height: isTablet ? 120 : 100,
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Color.fromARGB(255, 28, 98, 32),
+                                  ),
+                                ),
+                              );
+                            }
+                            
+                            if (state is OfficeLoaded && state.officeInfo['logo'] != null && state.officeInfo['logo'].toString().isNotEmpty) {
+                              return Container(
+                                width: isTablet ? 120 : 100,
+                                height: isTablet ? 120 : 100,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.black12,
+                                      blurRadius: 8,
+                                      offset: Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.memory(
+                                    base64Decode(state.officeInfo['logo']),
+                                    width: isTablet ? 120 : 100,
+                                    height: isTablet ? 120 : 100,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      print('Error loading logo: $error');
+                                      return const Icon(
+                                        Icons.store,
+                                        size: 40,
+                                        color: Color.fromARGB(255, 28, 98, 32),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              );
+                            }
+                            
+                            return Container(
+                              width: isTablet ? 120 : 100,
+                              height: isTablet ? 120 : 100,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 8,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.store,
+                                size: 40,
+                                color: Color.fromARGB(255, 28, 98, 32),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ],
@@ -396,11 +468,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ],
                             ),
-                            child: Icon(
-                              Icons.store,
-                              size: isTablet ? 80 : 60,
-                              color: const Color.fromARGB(255, 28, 98, 32),
-                            ),
+                            child: state.user.imageUrl != null && state.user.imageUrl!.isNotEmpty
+                                ? ClipOval(
+                                    child: Image.network(
+                                      state.user.imageUrl!,
+                                      width: isTablet ? 80 : 60,
+                                      height: isTablet ? 80 : 60,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Icon(
+                                          Icons.store,
+                                          size: isTablet ? 80 : 60,
+                                          color: const Color.fromARGB(255, 28, 98, 32),
+                                        );
+                                      },
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.store,
+                                    size: isTablet ? 80 : 60,
+                                    color: const Color.fromARGB(255, 28, 98, 32),
+                                  ),
                           ),
                         ),
 

@@ -35,14 +35,11 @@ class VendorModel {
     };
   }
 
-  // Helper getter for active invoices (status = true)
-  List<InvoiceModel> get activeInvoices => invoices.where((invoice) => invoice.status).toList();
+  // Helper getter for total invoices count
+  int get totalInvoicesCount => invoices.length;
   
-  // Helper getter for total active invoices count
-  int get activeInvoicesCount => activeInvoices.length;
-  
-  // Helper getter for total amount of active invoices
-  double get totalActiveAmount => activeInvoices.fold(0, (sum, invoice) => sum + invoice.totalAmount);
+  // Helper getter for total amount of all invoices
+  double get totalAmount => invoices.fold(0, (sum, invoice) => sum + invoice.totalAmount);
 }
 
 class InvoiceModel {
@@ -55,7 +52,6 @@ class InvoiceModel {
   final DateTime createdAt;
   final List<MaterialModel> materials;
   final List<SpoiledMaterialModel> spoiledMaterials;
-  final bool status;
 
   InvoiceModel({
     required this.id,
@@ -67,7 +63,6 @@ class InvoiceModel {
     required this.createdAt,
     required this.materials,
     required this.spoiledMaterials,
-    required this.status,
   });
 
   factory InvoiceModel.fromJson(Map<String, dynamic> json) {
@@ -85,7 +80,6 @@ class InvoiceModel {
       spoiledMaterials: (json['spoiledMaterials'] as List<dynamic>?)
           ?.map((e) => SpoiledMaterialModel.fromJson(e))
           .toList() ?? [],
-      status: true, // Set all invoices as active by default
     );
   }
 
@@ -100,7 +94,6 @@ class InvoiceModel {
       'createdAt': createdAt.toIso8601String(),
       'materials': materials.map((e) => e.toJson()).toList(),
       'spoiledMaterials': spoiledMaterials.map((e) => e.toJson()).toList(),
-      'status': status,
     };
   }
 

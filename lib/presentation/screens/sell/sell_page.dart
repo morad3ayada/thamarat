@@ -80,7 +80,7 @@ class _SellPageState extends State<SellPage> {
     });
     
     // البحث عن الفاتورة التي لم ترسل للمكتب بعد
-    final pendingInvoice = selectedCustomer.activeInvoices
+    final pendingInvoice = selectedCustomer.invoices
         .where((invoice) => !invoice.sentToOffice)
         .firstOrNull;
     
@@ -290,7 +290,7 @@ class _SellPageState extends State<SellPage> {
             if (vendorState is VendorsLoaded) {
               // فلترة الزبائن الذين لديهم فواتير لم ترسل للمكتب بعد
               customers = vendorState.vendors.where((vendor) {
-                return vendor.activeInvoices.any((invoice) => !invoice.sentToOffice);
+                return vendor.invoices.any((invoice) => !invoice.sentToOffice);
               }).toList();
               
               if (filteredCustomers.isEmpty) {

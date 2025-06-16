@@ -265,7 +265,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                             mainAxisAlignment: MainAxisAlignment.end,
                                             children: [
                                               Text(
-                                                'الفواتير النشطة:',
+                                                'عدد الفواتير:',
                                                 style: TextStyle(
                                                   color: const Color.fromARGB(255, 28, 98, 32),
                                                   fontSize: isTablet ? 16 : 14,
@@ -273,7 +273,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                               ),
                                               SizedBox(width: isTablet ? 12 : 8),
                                               Text(
-                                                '${vendor.activeInvoicesCount} فاتورة',
+                                                '${vendor.totalInvoicesCount} فاتورة',
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: isTablet ? 17 : 15,

@@ -174,7 +174,7 @@ class VendorRepository {
             if (customerInvoices.containsKey(customer.id)) {
               final invoices = customerInvoices[customer.id]!
                   .map((e) => InvoiceModel.fromJson(e))
-                  .toList(); // Consider all invoices as active
+                  .toList();
               
               // Create a new customer with invoices
               updatedCustomers.add(VendorModel(
