@@ -316,26 +316,54 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                   return const Center(child: Text('لا توجد فواتير لهذا الزبون'));
                                 }
 
-                                // جمع جميع المواد من جميع الفواتير
-                                List<dynamic> allMaterials = [];
-                                for (var item in customerItems) {
-                                  allMaterials.addAll(item.getAllMaterials());
-                                }
-
-                                if (allMaterials.isEmpty) {
-                                  return const Center(child: Text('لا توجد مواد لهذا الزبون'));
-                                }
-
                                 return Column(
-                                  children: [
-                                    ...List.generate(
-                                      allMaterials.length,
-                                      (index) => Padding(
-                                        padding: const EdgeInsets.only(bottom: 12),
-                                        child: _buildMaterialItem(allMaterials[index]),
-                                      ),
-                                    ),
-                                  ],
+                                  children: customerItems.map((invoice) {
+                                    // جمع جميع المواد من الفاتورة
+                                    List<dynamic> materials = invoice.getAllMaterials();
+                                    
+                                    if (materials.isEmpty) {
+                                      return const SizedBox.shrink();
+                                    }
+
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // معلومات الفاتورة
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFE8F5E9),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'فاتورة رقم: ${invoice.id}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color.fromARGB(255, 28, 98, 32),
+                                                ),
+                                              ),
+                                              Text(
+                                                DateFormat('yyyy/MM/dd').format(invoice.createdAt),
+                                                style: const TextStyle(
+                                                  color: Color.fromARGB(255, 28, 98, 32),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        // قائمة المواد
+                                        ...materials.map((material) => Padding(
+                                          padding: const EdgeInsets.only(bottom: 12),
+                                          child: _buildMaterialItem(material),
+                                        )).toList(),
+                                        const SizedBox(height: 16),
+                                      ],
+                                    );
+                                  }).toList(),
                                 );
                               } else if (state is SellError) {
                                 return Center(child: Text(state.message));
@@ -352,12 +380,10 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                 List<sell_models.SellModel> customerItems;
                                 
                                 if (widget.pendingInvoiceId != null) {
-                                  // إذا كان لدينا معرف فاتورة معلقة، احسب فقط هذه الفاتورة
                                   customerItems = state.items.where((item) =>
                                     item.id == widget.pendingInvoiceId
                                   ).toList();
                                 } else {
-                                  // فلترة المواد حسب اسم أو رقم هاتف الزبون
                                   customerItems = state.items.where((item) =>
                                     item.customerName == widget.name &&
                                     item.customerPhone == widget.phone
@@ -365,11 +391,8 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                 }
                                 
                                 // حساب المجموع من جميع الفواتير
-                                for (var item in customerItems) {
-                                  // جمع جميع المواد من الفاتورة
-                                  List<dynamic> materials = item.getAllMaterials();
-                                  
-                                  // حساب مجموع كل مادة (الوزن/العدد × السعر)
+                                for (var invoice in customerItems) {
+                                  List<dynamic> materials = invoice.getAllMaterials();
                                   for (var material in materials) {
                                     double? weight = material.weight;
                                     double? quantity = material.quantity;
@@ -614,7 +637,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
       price = material.price;
       materialType = material.materialType;
       materialId = material.id;
-      date = DateTime.now(); // المواد العادية لا تحتوي على تاريخ منفصل
+      date = DateTime.now();
     } else if (material is sell_models.SpoiledMaterialModel) {
       materialName = material.name;
       truckName = material.truckName;
@@ -623,7 +646,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
       price = material.price;
       materialType = material.materialType;
       materialId = material.id;
-      date = DateTime.now(); // المواد التالفة لا تحتوي على تاريخ منفصل
+      date = DateTime.now();
     }
 
     // حساب المجموع للمادة الواحدة
@@ -673,7 +696,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      materialType.contains('spoiled') ? 'تالف' : 'عادي',
+                      _getMaterialTypeDisplay(materialType),
                       style: TextStyle(
                         fontSize: 12,
                         color: materialType.contains('spoiled') 
@@ -721,7 +744,6 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                       _buildDetailRow('العدد', '${quantity.toStringAsFixed(0)} قطعة'),
                     _buildDetailRow('البراد', truckName),
                     _buildDetailRow('نوع المادة', _getMaterialTypeDisplay(materialType)),
-                    _buildDetailRow('سعر الوحدة', '${NumberFormat.decimalPattern().format(price ?? 0)} دينار'),
                   ],
                 ),
               ),
@@ -811,13 +833,13 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
   String _getMaterialTypeDisplay(String materialType) {
     switch (materialType) {
       case 'consignment':
-        return 'صافي';
+        return 'صافي وزن';
       case 'markup':
-        return 'ربح';
+        return 'صافي عدد';
       case 'spoiledConsignment':
-        return 'صافي تالف';
+        return 'خابط وزن';
       case 'spoiledMarkup':
-        return 'ربح تالف';
+        return 'خابط عدد';
       default:
         return materialType;
     }
