@@ -167,50 +167,52 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Add Material Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AddMaterialPage(
-                                  customerName: widget.name,
-                                  customerPhone: widget.phone,
-                                  saleProcessId: widget.pendingInvoiceId,
+                      // Add Material Button (only show when there's a pending invoice)
+                      if (widget.pendingInvoiceId != null)
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AddMaterialPage(
+                                    customerName: widget.name,
+                                    customerPhone: widget.phone,
+                                    saleProcessId: widget.pendingInvoiceId,
+                                  ),
                                 ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color.fromARGB(255, 28, 98, 32),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color.fromARGB(255, 28, 98, 32),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
                             ),
-                          ),
-                          icon: const Icon(Icons.add, color: Colors.white),
-                          label: const Text(
-                            'إضافة مواد',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                            icon: const Icon(Icons.add, color: Colors.white),
+                            label: const Text(
+                              'إضافة مواد',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
+                      if (widget.pendingInvoiceId != null)
+                        const SizedBox(height: 16),
 
-                      // Create New Invoice Button (for existing customers without pending invoices)
-                      if (widget.customerId != null && widget.pendingInvoiceId == null)
+                      // Create New Invoice Button (for customers without pending invoices)
+                      if (widget.pendingInvoiceId == null)
                         BlocListener<SellBloc, SellState>(
                           listener: (context, state) {
                             if (state is SaleProcessCreated) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
+                                const SnackBar(
                                   content: Text('تم إنشاء فاتورة جديدة بنجاح'),
-                                  backgroundColor: const Color.fromARGB(255, 28, 98, 32),
+                                  backgroundColor: Color.fromARGB(255, 28, 98, 32),
                                 ),
                               );
                               // Navigate to the same page with the new invoice ID
@@ -279,7 +281,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                             },
                           ),
                         ),
-                      if (widget.customerId != null && widget.pendingInvoiceId == null)
+                      if (widget.pendingInvoiceId == null)
                         const SizedBox(height: 16),
 
                       // Items List from API

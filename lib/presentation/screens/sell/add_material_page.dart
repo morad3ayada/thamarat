@@ -44,6 +44,28 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
   List<String> truckNames = [];
   Map<String, List<MaterialsModel>> truckMaterials = {};
 
+  // دالة لتحويل الأرقام العربية إلى إنجليزية
+  String _convertArabicToEnglish(String input) {
+    const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    
+    String result = input;
+    for (int i = 0; i < arabic.length; i++) {
+      result = result.replaceAll(arabic[i], english[i]);
+    }
+    return result;
+  }
+
+  // دالة للتحقق من صحة الرقم وتحويله
+  String? _validateAndConvertNumber(String? value) {
+    if (value == null || value.isEmpty) return null;
+    String converted = _convertArabicToEnglish(value);
+    if (double.tryParse(converted) != null) {
+      return converted;
+    }
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -136,20 +158,20 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
       }
     }
 
-    // Call the bloc to add material
+    // Call the bloc to add material with converted numbers
     context.read<MaterialsBloc>().add(AddMaterialToSaleProcess(
       saleProcessId: widget.saleProcessId ?? 1,
       materialId: selectedMaterial!.id,
       materialType: materialType,
-      quantity: selectedMaterial!.isQuantity ? double.tryParse(quantityController.text) : null,
-      weight: !selectedMaterial!.isQuantity ? double.tryParse(weightController.text) : null,
-      price: double.parse(priceController.text),
+      quantity: selectedMaterial!.isQuantity ? double.tryParse(_validateAndConvertNumber(quantityController.text) ?? '') : null,
+      weight: !selectedMaterial!.isQuantity ? double.tryParse(_validateAndConvertNumber(weightController.text) ?? '') : null,
+      price: double.parse(_validateAndConvertNumber(priceController.text) ?? '0'),
       order: 1,
-      commissionPercentage: sellType == "بالكوترة" ? double.tryParse(commissionController.text) : null,
-      traderCommissionPercentage: sellType == "بالكوترة" ? double.tryParse(traderCommissionController.text) : null,
-      officeCommissionPercentage: sellType == "بالكوترة" ? double.tryParse(officeCommissionController.text) : null,
-      brokerCommissionPercentage: sellType == "بالكوترة" ? double.tryParse(brokerageController.text) : null,
-      pieceFees: sellType == "بالكوترة" ? double.tryParse(pieceRateController.text) : null,
+      commissionPercentage: sellType == "بالكوترة" ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null,
+      traderCommissionPercentage: sellType == "بالكوترة" ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null,
+      officeCommissionPercentage: sellType == "بالكوترة" ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null,
+      brokerCommissionPercentage: sellType == "بالكوترة" ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null,
+      pieceFees: sellType == "بالكوترة" ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null,
       traderPiecePercentage: sellType == "بالكوترة" ? traderPieceRate : null,
       workerPiecePercentage: sellType == "بالكوترة" ? workerPieceRate : null,
       officePiecePercentage: sellType == "بالكوترة" ? officePieceRate : null,
@@ -605,6 +627,16 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
           child: TextField(
             controller: controller,
             keyboardType: TextInputType.number,
+            onChanged: (value) {
+              // تحويل الأرقام العربية إلى إنجليزية أثناء الكتابة
+              final converted = _validateAndConvertNumber(value);
+              if (converted != null && converted != value) {
+                controller.text = converted;
+                controller.selection = TextSelection.fromPosition(
+                  TextPosition(offset: converted.length),
+                );
+              }
+            },
             decoration: InputDecoration(
               hintText: hint,
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),

@@ -103,4 +103,23 @@ class MaterialResponseDto {
       'isQuantity': isQuantity,
     };
   }
+
+  // Helper getter for source
+  String get source => 'غير محدد';
+
+  // Helper getter for display type
+  String get displayType {
+    switch (materialType) {
+      case 'consignment':
+        return 'صافي وزن';
+      case 'markup':
+        return 'خابط وزن';
+      case 'spoiledConsignment':
+        return 'صافي عدد';
+      case 'spoiledMarkup':
+        return 'خابط عدد';
+      default:
+        return materialType;
+    }
+  }
 }

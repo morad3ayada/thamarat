@@ -282,28 +282,6 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                               ),
                                             ],
                                           ),
-                                          SizedBox(height: isTablet ? 16 : 12),
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.end,
-                                            children: [
-                                              Text(
-                                                'إجمالي المبلغ:',
-                                                style: TextStyle(
-                                                  color: const Color.fromARGB(255, 28, 98, 32),
-                                                  fontSize: isTablet ? 16 : 14,
-                                                ),
-                                              ),
-                                              SizedBox(width: isTablet ? 12 : 8),
-                                              Text(
-                                                '${vendor.totalActiveAmount.toStringAsFixed(0)} دينار',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: isTablet ? 17 : 15,
-                                                  color: const Color.fromARGB(255, 28, 98, 32),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
                                           SizedBox(height: isTablet ? 20 : 16),
                                           SizedBox(
                                             width: double.infinity,

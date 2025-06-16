@@ -174,74 +174,19 @@ class _FridgeDetailScreenState extends State<FridgeDetailScreen> {
 
                     return Column(
                         children: [
-                          // معلومات البراد
-                          Card(
-                            elevation: 2,
-                          margin: const EdgeInsets.all(16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: Colors.green.shade100,
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: const Icon(
-                                          Icons.kitchen,
-                                          color: Color.fromARGB(255, 28, 98, 32),
-                                        ),
+                          // قائمة المواد
+                          Expanded(
+                            child: filteredMaterials.isEmpty
+                                ? const Center(
+                                    child: Text(
+                                      'لا توجد مواد متوفرة',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.grey,
                                       ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              fridge.name,
-                                              style: const TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: Color.fromARGB(255, 28, 98, 32),
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                            'عدد المواد: ${fridge.materials.length}',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.grey.shade600,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        // قائمة المواد
-                        Expanded(
-                          child: filteredMaterials.isEmpty
-                              ? const Center(
-                                  child: Text(
-                                    'لا توجد مواد متوفرة',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey,
                                     ),
-                                  ),
-                                )
-                              : ListView.builder(
+                                  )
+                                : ListView.builder(
                                   padding: const EdgeInsets.symmetric(horizontal: 16),
                                   itemCount: filteredMaterials.length,
                                   itemBuilder: (context, index) {
@@ -260,8 +205,8 @@ class _FridgeDetailScreenState extends State<FridgeDetailScreen> {
                                               padding: const EdgeInsets.all(8),
                                               decoration: BoxDecoration(
                                                 color: material.materialType == 'consignment'
-                                                    ? Colors.blue.shade100
-                                                    : Colors.orange.shade100,
+                                                    ? const Color.fromARGB(255, 28, 98, 32).withOpacity(0.1)
+                                                    : Colors.orange.withOpacity(0.1),
                                                 borderRadius: BorderRadius.circular(8),
                                               ),
                                               child: Icon(
@@ -269,8 +214,8 @@ class _FridgeDetailScreenState extends State<FridgeDetailScreen> {
                                                     ? Icons.inventory
                                                     : Icons.shopping_cart,
                                                 color: material.materialType == 'consignment'
-                                                    ? Colors.blue.shade700
-                                                    : Colors.orange.shade700,
+                                                    ? const Color.fromARGB(255, 28, 98, 32)
+                                                    : Colors.orange,
                                                 size: 20,
                                               ),
                                             ),
@@ -284,16 +229,7 @@ class _FridgeDetailScreenState extends State<FridgeDetailScreen> {
                                                     style: const TextStyle(
                                                       fontSize: 16,
                                                       fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    material.materialType == 'consignment'
-                                                        ? 'مادة بالعمولة'
-                                                        : 'مادة بالربح',
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: Colors.grey.shade600,
+                                                      color: Color.fromARGB(255, 28, 98, 32),
                                                     ),
                                                   ),
                                                 ],
@@ -305,18 +241,23 @@ class _FridgeDetailScreenState extends State<FridgeDetailScreen> {
                                                 vertical: 4,
                                               ),
                                               decoration: BoxDecoration(
-                                                color: material.isQuantity
-                                                    ? Colors.green.shade100
-                                                    : Colors.purple.shade100,
+                                                color: material.materialType == 'consignment'
+                                                    ? const Color.fromARGB(255, 28, 98, 32).withOpacity(0.1)
+                                                    : Colors.orange.withOpacity(0.1),
                                                 borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(
+                                                  color: material.materialType == 'consignment'
+                                                      ? const Color.fromARGB(255, 28, 98, 32).withOpacity(0.3)
+                                                      : Colors.orange.withOpacity(0.3),
+                                                ),
                                               ),
                                               child: Text(
-                                                material.isQuantity ? 'كمية' : 'وزن',
+                                                material.displayType,
                                                 style: TextStyle(
                                                   fontSize: 12,
-                                                  color: material.isQuantity
-                                                      ? Colors.green.shade700
-                                                      : Colors.purple.shade700,
+                                                  color: material.materialType == 'consignment'
+                                                      ? const Color.fromARGB(255, 28, 98, 32)
+                                                      : Colors.orange,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
@@ -327,9 +268,9 @@ class _FridgeDetailScreenState extends State<FridgeDetailScreen> {
                                     );
                                   },
                                 ),
-                        ),
-                      ],
-                    );
+                          ),
+                        ],
+                      );
                   } else if (state is FridgeError) {
                     return Center(
                       child: Column(
