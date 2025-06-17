@@ -6,6 +6,9 @@ import '../../../logic/blocs/profile/profile_state.dart';
 import '../../../logic/blocs/chat/chat_bloc.dart';
 import '../../../logic/blocs/chat/chat_event.dart';
 import '../../../logic/blocs/chat/chat_state.dart';
+import '../../../logic/blocs/office/office_bloc.dart';
+import '../../../logic/blocs/office/office_state.dart';
+import '../../../logic/blocs/office/office_event.dart';
 import 'sell/sell_page.dart' as sell;
 import 'chat/chat_screen.dart';
 import 'profile/profile_screen.dart';
@@ -126,6 +129,7 @@ class _HomeContentState extends State<HomeContent> {
     super.initState();
     // Load user profile when home page is opened
     context.read<ProfileBloc>().add(LoadProfile());
+    context.read<OfficeBloc>().add(LoadOfficeInfo());
   }
 
   @override
@@ -274,6 +278,32 @@ class HeaderSection extends StatefulWidget {
 
 class _HeaderSectionState extends State<HeaderSection> {
   final TextEditingController _messageController = TextEditingController();
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      // Load profile and office info sequentially to avoid race conditions
+      context.read<ProfileBloc>().add(LoadProfile());
+      context.read<OfficeBloc>().add(LoadOfficeInfo());
+      
+      // Wait a bit to allow the blocs to process their events
+      await Future.delayed(const Duration(milliseconds: 500));
+    } catch (e) {
+      print('Error loading data: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -342,54 +372,84 @@ class _HeaderSectionState extends State<HeaderSection> {
         child: Column(
           children: [
             Center(child: Image.asset('assets/logo.png', height: logoHeight)),
-            BlocBuilder<ProfileBloc, ProfileState>(
-              builder: (context, state) {
-                String userName = 'مرحباً';
-                
-                if (state is ProfileLoaded) {
-                  userName = 'مرحباً ${state.user.name}';
-                } else if (state is ProfileLoading) {
-                  userName = 'مرحباً...';
-                } else if (state is ProfileError) {
-                  userName = 'مرحباً';
-                }
-                
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      userName,
-                      style: TextStyle(
-                        fontSize: greetingFontSize, 
-                        fontWeight: FontWeight.bold,
-                        color: const Color.fromARGB(255, 28, 98, 32),
-                      ),
-                    ),
-                    SizedBox(width: widget.isTablet ? 16 : 12),
-                    Container(
-                      width: avatarRadius * 2,
-                      height: avatarRadius * 2,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: CircularProgressIndicator(
+                  color: Color.fromARGB(255, 28, 98, 32),
+                ),
+              )
+            else ...[
+              BlocBuilder<OfficeBloc, OfficeState>(
+                builder: (context, officeState) {
+                  String officeName = '';
+                  if (officeState is OfficeLoaded) {
+                    officeName = officeState.officeInfo['name'] ?? '';
+                  }
+                  return officeName.isNotEmpty
+                      ? Padding(
+                          padding: EdgeInsets.only(bottom: widget.isTablet ? 8 : 4),
+                          child: Text(
+                            officeName,
+                            style: TextStyle(
+                              fontSize: widget.isTablet ? 20 : 16,
+                              fontWeight: FontWeight.bold,
+                              color: const Color.fromARGB(255, 28, 98, 32),
+                            ),
                           ),
-                        ],
+                        )
+                      : const SizedBox.shrink();
+                },
+              ),
+              BlocBuilder<ProfileBloc, ProfileState>(
+                builder: (context, state) {
+                  String userName = 'مرحباً';
+                  
+                  if (state is ProfileLoaded) {
+                    userName = 'مرحباً ${state.user.name}';
+                  } else if (state is ProfileLoading) {
+                    userName = 'مرحباً...';
+                  } else if (state is ProfileError) {
+                    userName = 'مرحباً';
+                  }
+                  
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        userName,
+                        style: TextStyle(
+                          fontSize: greetingFontSize, 
+                          fontWeight: FontWeight.bold,
+                          color: const Color.fromARGB(255, 28, 98, 32),
+                        ),
                       ),
-                      child: Icon(
-                        Icons.store,
-                        size: avatarRadius,
-                        color: const Color.fromARGB(255, 28, 98, 32),
+                      SizedBox(width: widget.isTablet ? 16 : 12),
+                      Container(
+                        width: avatarRadius * 2,
+                        height: avatarRadius * 2,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.store,
+                          size: avatarRadius,
+                          color: const Color.fromARGB(255, 28, 98, 32),
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              },
-            ),
+                    ],
+                  );
+                },
+              ),
+            ],
             SizedBox(height: widget.isTablet ? 20 : 16),
             Container(
               decoration: BoxDecoration(
