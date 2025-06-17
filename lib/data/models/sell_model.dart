@@ -7,6 +7,7 @@ class SellModel {
   final String sellerName;
   final bool sentToOffice;
   final DateTime createdAt;
+  final DateTime updatedAt;
   final List<MaterialModel> materials;
   final List<SpoiledMaterialModel> spoiledMaterials;
 
@@ -19,20 +20,23 @@ class SellModel {
     required this.sellerName,
     required this.sentToOffice,
     required this.createdAt,
+    required this.updatedAt,
     required this.materials,
     required this.spoiledMaterials,
   });
 
   factory SellModel.fromJson(Map<String, dynamic> json) {
+    print('SellModel fromJson: $json'); // Debug log
     return SellModel(
       id: json['id'] as int? ?? 0,
       customerId: json['customerId'] as int? ?? 0,
       customerName: json['customerName'] as String? ?? '',
-      customerPhone: json['customerPhone'] as String? ?? '',
+      customerPhone: json['customerPhone'] as String? ?? json['phoneNumber'] as String? ?? '', // Try both field names
       sellerId: json['sellerId'] as int? ?? 0,
       sellerName: json['sellerName'] as String? ?? '',
       sentToOffice: json['sentToOffice'] as bool? ?? false,
       createdAt: DateTime.parse(json['createdAt'] as String? ?? DateTime.now().toIso8601String()),
+      updatedAt: DateTime.parse(json['updatedAt'] as String? ?? DateTime.now().toIso8601String()),
       materials: (json['materials'] as List<dynamic>?)
           ?.map((e) => MaterialModel.fromJson(e))
           .toList() ?? [],
@@ -52,6 +56,7 @@ class SellModel {
       'sellerName': sellerName,
       'sentToOffice': sentToOffice,
       'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
       'materials': materials.map((e) => e.toJson()).toList(),
       'spoiledMaterials': spoiledMaterials.map((e) => e.toJson()).toList(),
     };

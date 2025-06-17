@@ -392,7 +392,7 @@ class _HeaderSectionState extends State<HeaderSection> {
                           child: Text(
                             officeName,
                             style: TextStyle(
-                              fontSize: widget.isTablet ? 20 : 16,
+                              fontSize: widget.isTablet ? 22 : 18,
                               fontWeight: FontWeight.bold,
                               color: const Color.fromARGB(255, 28, 98, 32),
                             ),

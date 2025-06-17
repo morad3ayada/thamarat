@@ -250,12 +250,14 @@ class _SellPageState extends State<SellPage> {
   }
 
   void _buildCustomerPhoneMap(List<VendorModel> vendors) {
-    customerPhoneMap.clear();
+    // Don't clear the map, just update/add entries
     for (var vendor in vendors) {
-      customerPhoneMap[vendor.name] = vendor.phoneNumber;
-      print('Building phone map: ${vendor.name} -> ${vendor.phoneNumber}');
+      if (vendor.phoneNumber.isNotEmpty) {
+        customerPhoneMap[vendor.name] = vendor.phoneNumber;
+        print('Updating phone map: ${vendor.name} -> ${vendor.phoneNumber}');
+      }
     }
-    print('Phone map built with ${customerPhoneMap.length} entries');
+    print('Phone map now has ${customerPhoneMap.length} entries');
   }
 
   String _getCustomerPhone(String customerName) {
@@ -276,328 +278,353 @@ class _SellPageState extends State<SellPage> {
             context.read<SellBloc>().add(LoadSellProcesses());
           },
           color: const Color.fromARGB(255, 28, 98, 32),
-          child: Column(
-            children: [
-              // Header
-              Container(
-                height: 120,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFCFE8D7),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24),
+          child: BlocBuilder<VendorBloc, VendorState>(
+            builder: (context, state) {
+              if (state is VendorsLoaded) {
+                _buildCustomerPhoneMap(state.vendors);
+              }
+              return Column(
+                children: [
+                  // Header
+                  Container(
+                    height: 120,
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFCFE8D7),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(24),
+                        bottomRight: Radius.circular(24),
+                      ),
+                    ),
+                    padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: const Icon(
+                            Icons.arrow_back_ios_new,
+                            color: Color.fromARGB(255, 28, 98, 32),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'بيع مادة',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: Color.fromARGB(255, 28, 98, 32)
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new,
-                        color: Color.fromARGB(255, 28, 98, 32),
-                      ),
+                  
+                  // Progress Steps
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        _buildStep(0, '1', 'الزبون'),
+                        _buildStepLine(),
+                        _buildStep(1, '2', 'بيانات البيع'),
+                        _buildStepLine(),
+                        _buildStep(2, '3', 'إتمام العملية'),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'بيع مادة',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: Color.fromARGB(255, 28, 98, 32)
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Progress Steps
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    _buildStep(0, '1', 'الزبون'),
-                    _buildStepLine(),
-                    _buildStep(1, '2', 'بيانات البيع'),
-                    _buildStepLine(),
-                    _buildStep(2, '3', 'إتمام العملية'),
-                  ],
-                ),
-              ),
+                  ),
 
-              // Content
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: _showAddCustomerDialog,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color.fromARGB(255, 28, 98, 32),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          icon: const Icon(Icons.person_add, color: Colors.white),
-                          label: const Text(
-                            'إضافة زبون جديد',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        ' البحث عن زبون سابق',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: searchController,
-                        onTap: () {
-                          if (searchController.text.isNotEmpty) {
-                            setState(() {
-                              showSearchResults = true;
-                            });
-                          }
-                        },
-                        onEditingComplete: () {
-                          setState(() {
-                            showSearchResults = false;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          hintText: 'ابحث بالاسم أو رقم الهاتف',
-                          prefixIcon: const Icon(Icons.search, color: Color.fromARGB(255, 28, 98, 32)),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                          ),
-                        ),
-                      ),
-                      if (showSearchResults && allCustomers.isNotEmpty)
-                        Container(
-                          margin: const EdgeInsets.only(top: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+                  // Content
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: _showAddCustomerDialog,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color.fromARGB(255, 28, 98, 32),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
-                            ],
+                              icon: const Icon(Icons.person_add, color: Colors.white),
+                              label: const Text(
+                                'إضافة زبون جديد',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                           ),
-                          constraints: const BoxConstraints(maxHeight: 200),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: allCustomers.length,
-                            itemBuilder: (context, index) {
-                              final customer = allCustomers[index];
-                              // Debug print to check customer phone numbers
-                              print('Customer: ${customer.name}, Phone: ${customer.phoneNumber}');
-                              return ListTile(
-                                leading: const Icon(
-                                  Icons.person,
-                                  color: Color.fromARGB(255, 28, 98, 32),
-                                ),
-                                title: Text(
-                                  customer.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color.fromARGB(255, 28, 98, 32),
-                                  ),
-                                ),
-                                subtitle: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.phone_outlined,
-                                      size: 16,
-                                      color: Colors.grey,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      customer.phoneNumber.isNotEmpty 
-                                          ? customer.phoneNumber 
-                                          : 'رقم الهاتف غير متوفر',
-                                      style: const TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                onTap: () => _selectCustomerFromSearch(customer),
-                              );
-                            },
+                          const SizedBox(height: 16),
+                          const Text(
+                            ' البحث عن زبون سابق',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        ' قائمة الزبائن الذين لم يكملوا عملية البيع',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 14,
-                        )
-                      ),
-                      Expanded(
-                        child: BlocBuilder<SellBloc, SellState>(
-                          builder: (context, sellState) {
-                            if (sellState is SellLoaded) {
-                              customers = sellState.items.map((item) => VendorModel(
-                                id: item.customerId ?? 0,
-                                name: item.customerName ?? '',
-                                phoneNumber: item.customerPhone ?? '',
-                                deleted: false,
-                                invoices: [],
-                              )).toList();
-                              if (filteredCustomers.isEmpty) {
-                                filteredCustomers = customers;
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: searchController,
+                            onTap: () {
+                              if (searchController.text.isNotEmpty) {
+                                setState(() {
+                                  showSearchResults = true;
+                                });
                               }
-                              
-                              // بناء خريطة أرقام الهواتف
-                              _buildCustomerPhoneMap(customers);
-                            }
-
-                            // إذا كان لدينا بيانات البيع، نستخدمها لعرض الفواتير المعلقة
-                            List<SellModel> pendingInvoices = [];
-                            if (sellState is SellLoaded) {
-                              pendingInvoices = sellState.items.where((item) => !item.sentToOffice).toList();
-                            }
-
-                            return pendingInvoices.isEmpty
-                                ? const Center(
-                                    child: Text(
-                                      'لا توجد فواتير معلقة',
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 16,
+                            },
+                            onEditingComplete: () {
+                              setState(() {
+                                showSearchResults = false;
+                              });
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'ابحث بالاسم أو رقم الهاتف',
+                              prefixIcon: const Icon(Icons.search, color: Color.fromARGB(255, 28, 98, 32)),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                              ),
+                            ),
+                          ),
+                          if (showSearchResults && allCustomers.isNotEmpty)
+                            Container(
+                              margin: const EdgeInsets.only(top: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              constraints: const BoxConstraints(maxHeight: 200),
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: allCustomers.length,
+                                itemBuilder: (context, index) {
+                                  final customer = allCustomers[index];
+                                  // Debug print to check customer phone numbers
+                                  print('Customer: ${customer.name}, Phone: ${customer.phoneNumber}');
+                                  return ListTile(
+                                    leading: const Icon(
+                                      Icons.person,
+                                      color: Color.fromARGB(255, 28, 98, 32),
+                                    ),
+                                    title: Text(
+                                      customer.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color.fromARGB(255, 28, 98, 32),
                                       ),
                                     ),
-                                  )
-                                : ListView.separated(
-                                    itemCount: pendingInvoices.length,
-                                    separatorBuilder: (context, index) => const SizedBox(height: 12),
-                                    itemBuilder: (context, index) {
-                                      final invoice = pendingInvoices[index];
-                                      return GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => SellDetailsPage(
-                                                name: invoice.customerName,
-                                                phone: _getCustomerPhone(invoice.customerName),
-                                                customerId: invoice.customerId,
-                                                pendingInvoiceId: invoice.id,
+                                    subtitle: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.phone_outlined,
+                                          size: 16,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          customer.phoneNumber.isNotEmpty 
+                                              ? customer.phoneNumber 
+                                              : 'رقم الهاتف غير متوفر',
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    onTap: () => _selectCustomerFromSearch(customer),
+                                  );
+                                },
+                              ),
+                            ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            ' قائمة الزبائن الذين لم يكملوا عملية البيع',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                            )
+                          ),
+                          Expanded(
+                            child: BlocBuilder<SellBloc, SellState>(
+                              builder: (context, sellState) {
+                                if (sellState is SellLoaded) {
+                                  customers = sellState.items.map((item) => VendorModel(
+                                    id: item.customerId ?? 0,
+                                    name: item.customerName ?? '',
+                                    phoneNumber: item.customerPhone ?? '',
+                                    deleted: false,
+                                    invoices: [],
+                                  )).toList();
+                                  if (filteredCustomers.isEmpty) {
+                                    filteredCustomers = customers;
+                                  }
+                                  
+                                  // بناء خريطة أرقام الهواتف
+                                  _buildCustomerPhoneMap(customers);
+                                }
+
+                                // إذا كان لدينا بيانات البيع، نستخدمها لعرض الفواتير المعلقة
+                                List<SellModel> pendingInvoices = [];
+                                if (sellState is SellLoaded) {
+                                  pendingInvoices = sellState.items.where((item) => !item.sentToOffice).toList();
+                                }
+
+                                return pendingInvoices.isEmpty
+                                    ? const Center(
+                                        child: Text(
+                                          'لا توجد فواتير معلقة',
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      )
+                                    : ListView.separated(
+                                        itemCount: pendingInvoices.length,
+                                        separatorBuilder: (context, index) => const SizedBox(height: 12),
+                                        itemBuilder: (context, index) {
+                                          final invoice = pendingInvoices[index];
+                                          return GestureDetector(
+                                            onTap: () {
+                                              print('Invoice data: ${invoice.toJson()}'); // Debug log
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => SellDetailsPage(
+                                                    name: invoice.customerName,
+                                                    phone: invoice.customerPhone,
+                                                    customerId: invoice.customerId,
+                                                    pendingInvoiceId: invoice.id,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.all(16),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.circular(16),
+                                                boxShadow: const [
+                                                  BoxShadow(
+                                                    color: Colors.black12,
+                                                    blurRadius: 4,
+                                                    offset: Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            Text(
+                                                              invoice.customerName,
+                                                              style: const TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                                color: Color.fromARGB(255, 28, 98, 32),
+                                                              ),
+                                                            ),
+                                                            const SizedBox(height: 4),
+                                                            Row(
+                                                              children: [
+                                                                const Icon(
+                                                                  Icons.phone_outlined,
+                                                                  size: 16,
+                                                                  color: Colors.grey,
+                                                                ),
+                                                                const SizedBox(width: 4),
+                                                                Text(
+                                                                  _getCustomerPhone(invoice.customerName),
+                                                                  style: const TextStyle(
+                                                                    fontSize: 14,
+                                                                    color: Colors.grey,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(
+                                                          horizontal: 12,
+                                                          vertical: 6,
+                                                        ),
+                                                        decoration: BoxDecoration(
+                                                          color: const Color(0xFFE8F5E9),
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          '${invoice.materials.length + invoice.spoiledMaterials.length} مادة',
+                                                          style: const TextStyle(
+                                                            color: Color.fromARGB(255, 28, 98, 32),
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 12),
+                                                  Row(
+                                                    children: [
+                                                      const Icon(
+                                                        Icons.access_time,
+                                                        size: 16,
+                                                        color: Colors.grey,
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        'آخر تحديث: ${_formatTime(invoice.updatedAt)}',
+                                                        style: const TextStyle(
+                                                          fontSize: 12,
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           );
                                         },
-                                        child: Container(
-                                          padding: const EdgeInsets.all(16),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(16),
-                                            boxShadow: const [
-                                              BoxShadow(
-                                                color: Colors.black12,
-                                                blurRadius: 4,
-                                                offset: Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      invoice.customerName,
-                                                      style: const TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 16,
-                                                        color: Color.fromARGB(255, 28, 98, 32),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 4),
-                                                    Row(
-                                                      children: [
-                                                        const Icon(
-                                                          Icons.phone_outlined,
-                                                          size: 16,
-                                                          color: Colors.grey,
-                                                        ),
-                                                        const SizedBox(width: 4),
-                                                        Text(
-                                                          _getCustomerPhone(invoice.customerName),
-                                                          style: const TextStyle(
-                                                            color: Colors.grey,
-                                                            fontSize: 14,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    const SizedBox(height: 4),
-                                                    Row(
-                                                      children: [
-                                                        const Icon(
-                                                          Icons.inventory_2_outlined,
-                                                          size: 16,
-                                                          color: Colors.blue,
-                                                        ),
-                                                        const SizedBox(width: 4),
-                                                        Text(
-                                                          'عدد المواد: ${invoice.materialsCount}',
-                                                          style: const TextStyle(
-                                                            color: Colors.blue,
-                                                            fontSize: 12,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              const Icon(
-                                                Icons.arrow_forward_ios,
-                                                size: 16,
-                                                color: Colors.grey,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
                                       );
-                                    },
-                                  );
-                          },
-                        ),
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -645,5 +672,18 @@ class _SellPageState extends State<SellPage> {
         color: Colors.grey[300],
       ),
     );
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inMinutes < 60) {
+      return 'منذ ${difference.inMinutes} دقيقة';
+    } else if (difference.inHours < 24) {
+      return 'منذ ${difference.inHours} ساعة';
+    } else {
+      return 'منذ ${difference.inDays} يوم';
+    }
   }
 }
