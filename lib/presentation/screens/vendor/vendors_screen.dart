@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../logic/blocs/vendor/vendor_bloc.dart';
 import '../../../logic/blocs/vendor/vendor_event.dart';
 import '../../../logic/blocs/vendor/vendor_state.dart';
+import '../../../data/models/vendor_model.dart';
 import 'vendor_details_page.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 class VendorsScreen extends StatefulWidget {
   const VendorsScreen({super.key});
@@ -33,6 +35,23 @@ class _VendorsScreenState extends State<VendorsScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  bool _isTodayInvoice(DateTime date) {
+    final now = DateTime.now();
+    return date.year == now.year && 
+           date.month == now.month && 
+           date.day == now.day;
+  }
+
+  List<VendorModel> _getTodayVendors(List<VendorModel> vendors) {
+    return vendors.where((vendor) {
+      return vendor.invoices?.any((invoice) => _isTodayInvoice(invoice.createdAt)) ?? false;
+    }).toList();
+  }
+
+  int _getTodayInvoiceCount(VendorModel vendor) {
+    return vendor.invoices?.where((invoice) => _isTodayInvoice(invoice.createdAt)).length ?? 0;
   }
 
   @override
@@ -88,7 +107,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                       ),
                       SizedBox(width: isTablet ? 12 : 8),
                       Text(
-                        'المتسوقين',
+                        'متسوقي اليوم',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: isTablet ? 24 : 20,
@@ -143,10 +162,10 @@ class _VendorsScreenState extends State<VendorsScreen> {
                   )
                 else if (state is VendorsLoaded)
                   Expanded(
-                    child: state.vendors.isEmpty
+                    child: _getTodayVendors(state.vendors).isEmpty
                         ? const Center(
                             child: Text(
-                              'لا يوجد متسوقين',
+                              'لا يوجد متسوقين اليوم',
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey,
@@ -155,10 +174,11 @@ class _VendorsScreenState extends State<VendorsScreen> {
                           )
                         : ListView.builder(
                             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                            itemCount: state.vendors.length,
+                            itemCount: _getTodayVendors(state.vendors).length,
                             itemBuilder: (context, index) {
                               final isExpanded = expandedIndex == index;
-                              final vendor = state.vendors[index];
+                              final vendor = _getTodayVendors(state.vendors)[index];
+                              final todayInvoiceCount = _getTodayInvoiceCount(vendor);
                               
                               return Column(
                                 children: [
@@ -198,13 +218,25 @@ class _VendorsScreenState extends State<VendorsScreen> {
                                                 size: isTablet ? 28 : 24,
                                               ),
                                               SizedBox(width: isTablet ? 12 : 8),
-                                              Text(
-                                                vendor.name,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: isTablet ? 18 : 16,
-                                                  color: const Color.fromARGB(255, 28, 98, 32),
-                                                ),
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    vendor.name,
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: isTablet ? 18 : 16,
+                                                      color: const Color.fromARGB(255, 28, 98, 32),
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    'عدد الفواتير اليوم: $todayInvoiceCount',
+                                                    style: TextStyle(
+                                                      fontSize: isTablet ? 14 : 12,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),

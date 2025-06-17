@@ -1,15 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../logic/blocs/vendor/vendor_bloc.dart';
+import '../../../logic/blocs/vendor/vendor_event.dart';
+import '../../../logic/blocs/vendor/vendor_state.dart';
 import '../../../data/models/vendor_model.dart';
+import 'package:intl/intl.dart' as intl hide TextDirection;
 
-class VendorDetailsPage extends StatelessWidget {
+class VendorDetailsPage extends StatefulWidget {
   final String vendorName;
-  final VendorModel? vendor;
+  final VendorModel vendor;
 
-  const VendorDetailsPage({super.key, required this.vendorName, this.vendor});
+  const VendorDetailsPage({
+    super.key,
+    required this.vendorName,
+    required this.vendor,
+  });
+
+  @override
+  State<VendorDetailsPage> createState() => _VendorDetailsPageState();
+}
+
+class _VendorDetailsPageState extends State<VendorDetailsPage> {
+  bool _isTodayInvoice(DateTime date) {
+    final now = DateTime.now();
+    return date.year == now.year && 
+           date.month == now.month && 
+           date.day == now.day;
+  }
+
+  List<InvoiceModel> _getTodayInvoices(List<InvoiceModel> invoices) {
+    return invoices.where((invoice) => _isTodayInvoice(invoice.createdAt)).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final allInvoices = vendor?.invoices ?? [];
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    final headerHeight = isTablet ? 140.0 : 120.0;
+    final horizontalPadding = isTablet ? 32.0 : 16.0;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -19,7 +47,7 @@ class VendorDetailsPage extends StatelessWidget {
           children: [
             // Header
             Container(
-              height: 120,
+              height: headerHeight,
               width: double.infinity,
               decoration: const BoxDecoration(
                 color: Color(0xFFDAF3D7),
@@ -28,137 +56,250 @@ class VendorDetailsPage extends StatelessWidget {
                   bottomRight: Radius.circular(24),
                 ),
               ),
-              padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
+              padding: EdgeInsets.only(
+                top: isTablet ? 55 : 45, 
+                right: horizontalPadding, 
+                left: horizontalPadding,
+              ),
               child: Row(
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(
+                    child: Icon(
                       Icons.arrow_back_ios_new,
-                      color: Color.fromARGB(255, 28, 98, 32),
+                      color: const Color.fromARGB(255, 28, 98, 32),
+                      size: isTablet ? 28 : 24,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: isTablet ? 12 : 8),
                   Text(
-                    vendorName,
-                    style: const TextStyle(
+                    widget.vendorName,
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      color: Color.fromARGB(255, 28, 98, 32),
+                      fontSize: isTablet ? 24 : 20,
+                      color: const Color.fromARGB(255, 28, 98, 32),
                     ),
                   ),
                 ],
               ),
             ),
 
-            // Vendor Info & List
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    // Vendor info card
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 6,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
+            // Vendor Info
+            Container(
+              margin: EdgeInsets.all(isTablet ? 24 : 16),
+              padding: EdgeInsets.all(isTablet ? 24 : 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 5,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'رقم الهاتف:',
+                        style: TextStyle(
+                          fontSize: isTablet ? 16 : 14,
+                          color: Colors.grey[600],
+                        ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
+                      Text(
+                        widget.vendor.phoneNumber,
+                        style: TextStyle(
+                          fontSize: isTablet ? 16 : 14,
+                          fontWeight: FontWeight.bold,
+                          color: const Color.fromARGB(255, 28, 98, 32),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: isTablet ? 16 : 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'عدد الفواتير اليوم:',
+                        style: TextStyle(
+                          fontSize: isTablet ? 16 : 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      Text(
+                        '${_getTodayInvoices(widget.vendor.invoices ?? []).length} فاتورة',
+                        style: TextStyle(
+                          fontSize: isTablet ? 16 : 14,
+                          fontWeight: FontWeight.bold,
+                          color: const Color.fromARGB(255, 28, 98, 32),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Today's Invoices
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+              child: Row(
+                children: [
+                  Text(
+                    'فواتير اليوم',
+                    style: TextStyle(
+                      fontSize: isTablet ? 20 : 18,
+                      fontWeight: FontWeight.bold,
+                      color: const Color.fromARGB(255, 28, 98, 32),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Invoices List
+            Expanded(
+              child: _getTodayInvoices(widget.vendor.invoices ?? []).isEmpty
+                  ? const Center(
+                      child: Text(
+                        'لا توجد فواتير اليوم',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.all(isTablet ? 24 : 16),
+                      itemCount: _getTodayInvoices(widget.vendor.invoices ?? []).length,
+                      itemBuilder: (context, index) {
+                        final invoice = _getTodayInvoices(widget.vendor.invoices ?? [])[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: EdgeInsets.all(isTablet ? 20 : 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(isTablet ? 20 : 16),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                vendorName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: Color.fromARGB(255, 28, 98, 32),
-                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'رقم الفاتورة:',
+                                    style: TextStyle(
+                                      fontSize: isTablet ? 16 : 14,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        '#${invoice.id}',
+                                        style: TextStyle(
+                                          fontSize: isTablet ? 16 : 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: const Color.fromARGB(255, 28, 98, 32),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: invoice.sentToOffice ? Colors.green.shade100 : Colors.orange.shade100,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          invoice.sentToOffice ? 'مرسلة للمكتب' : 'قيد المعالجة',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: invoice.sentToOffice ? Colors.green.shade700 : Colors.orange.shade700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                vendor?.phoneNumber ?? '',
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 14,
-                                ),
+                              SizedBox(height: isTablet ? 12 : 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'المبلغ:',
+                                    style: TextStyle(
+                                      fontSize: isTablet ? 16 : 14,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  Text(
+                                    '${invoice.totalAmount} ريال',
+                                    style: TextStyle(
+                                      fontSize: isTablet ? 16 : 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color.fromARGB(255, 28, 98, 32),
+                                    ),
+                                  ),
+                                ],
                               ),
+                              SizedBox(height: isTablet ? 12 : 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'الوقت:',
+                                    style: TextStyle(
+                                      fontSize: isTablet ? 16 : 14,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  Text(
+                                    intl.DateFormat('hh:mm a').format(invoice.createdAt),
+                                    style: TextStyle(
+                                      fontSize: isTablet ? 16 : 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color.fromARGB(255, 28, 98, 32),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (invoice.materials.isNotEmpty || invoice.spoiledMaterials.isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                const Divider(),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'المواد:',
+                                  style: TextStyle(
+                                    fontSize: isTablet ? 16 : 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color.fromARGB(255, 28, 98, 32),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                ...invoice.materials.map((material) => _buildMaterialItem(material, false)),
+                                ...invoice.spoiledMaterials.map((material) => _buildMaterialItem(material, true)),
+                              ],
                             ],
                           ),
-                          Row(
-                            children: [
-                              const Icon(Icons.receipt_long,
-                                  color: Color.fromARGB(255, 28, 98, 32), size: 22),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${vendor?.totalInvoicesCount ?? 0} فاتورة',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Color.fromARGB(255, 28, 98, 32),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-
-                    const SizedBox(height: 16),
-
-                    // Items list header
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'الفواتير',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Color.fromARGB(255, 28, 98, 32),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Invoices list
-                    Expanded(
-                      child: allInvoices.isEmpty
-                          ? const Center(
-                              child: Text(
-                                'لا توجد فواتير',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            )
-                          : ListView.builder(
-                              itemCount: allInvoices.length,
-                              itemBuilder: (context, index) {
-                                final invoice = allInvoices[index];
-                                return buildInvoiceCard(invoice);
-                              },
-                            ),
-                    ),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -166,180 +307,15 @@ class VendorDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget buildInvoiceCard(InvoiceModel invoice) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'فاتورة رقم: #${invoice.id}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Color.fromARGB(255, 28, 98, 32),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: invoice.sentToOffice ? Colors.green.shade100 : Colors.orange.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    invoice.sentToOffice ? 'مرسلة للمكتب' : 'قيد المعالجة',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: invoice.sentToOffice ? Colors.green.shade700 : Colors.orange.shade700,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'التاريخ: ${_formatDate(invoice.createdAt)}',
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'إجمالي المبلغ: ${invoice.totalAmount.toStringAsFixed(0)} دينار',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: Color.fromARGB(255, 28, 98, 32),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'عدد المواد: ${invoice.materials.length + invoice.spoiledMaterials.length}',
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 14,
-              ),
-            ),
-            
-            // عرض المواد التفصيلي
-            if (invoice.materials.isNotEmpty || invoice.spoiledMaterials.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 8),
-              const Text(
-                'تفاصيل المواد:',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: Color.fromARGB(255, 28, 98, 32),
-                ),
-              ),
-              const SizedBox(height: 8),
-              
-              // البيع العادي
-              ..._buildNormalMaterialsSection(invoice),
-              
-              // البيع بالكوترة
-              ..._buildWholesaleMaterialsSection(invoice),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildNormalMaterialsSection(InvoiceModel invoice) {
-    List<dynamic> normalMaterials = [];
-    normalMaterials.addAll(invoice.materials.where((m) => 
-      m.materialType == 'consignment' || m.materialType == 'markup'
-    ));
-    
-    if (normalMaterials.isNotEmpty) {
-      return [
-        const Text(
-          'البيع العادي:',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-            color: Colors.green,
-          ),
-        ),
-        const SizedBox(height: 4),
-        ...normalMaterials.map((material) => _buildMaterialItem(material, false)),
-        const SizedBox(height: 8),
-      ];
-    }
-    return <Widget>[];
-  }
-
-  List<Widget> _buildWholesaleMaterialsSection(InvoiceModel invoice) {
-    List<dynamic> wholesaleMaterials = [];
-    wholesaleMaterials.addAll(invoice.materials.where((m) => 
-      m.materialType == 'spoiledConsignment' || m.materialType == 'spoiledMarkup'
-    ));
-    wholesaleMaterials.addAll(invoice.spoiledMaterials);
-    
-    if (wholesaleMaterials.isNotEmpty) {
-      return [
-        const Text(
-          'البيع بالكوترة:',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-            color: Colors.orange,
-          ),
-        ),
-        const SizedBox(height: 4),
-        ...wholesaleMaterials.map((material) => _buildMaterialItem(material, true)),
-      ];
-    }
-    return <Widget>[];
-  }
-
-  Widget _buildMaterialItem(dynamic material, bool isWholesale) {
-    String materialName = '';
-    String truckName = '';
-    double? quantity;
-    double? weight;
-    double? price;
-    String materialType = '';
-
-    // تحديد نوع المادة واستخراج البيانات
-    if (material is MaterialModel) {
-      materialName = material.name;
-      truckName = material.truckName;
-      quantity = material.quantity;
-      weight = material.weight;
-      price = material.price;
-      materialType = material.materialType;
-    } else if (material is SpoiledMaterialModel) {
-      materialName = material.name;
-      truckName = material.truckName;
-      quantity = material.quantity;
-      weight = material.weight;
-      price = material.price;
-      materialType = material.materialType;
-    }
-
+  Widget _buildMaterialItem(dynamic material, bool isSpoiled) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 6),
+      margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isWholesale ? Colors.orange.shade50 : Colors.green.shade50,
+        color: isSpoiled ? Colors.orange.shade50 : Colors.green.shade50,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isWholesale ? Colors.orange.shade200 : Colors.green.shade200,
+          color: isSpoiled ? Colors.orange.shade200 : Colors.green.shade200,
           width: 1,
         ),
       ),
@@ -351,26 +327,26 @@ class VendorDetailsPage extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  materialName,
+                  material.name,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: isWholesale ? Colors.orange.shade700 : Colors.green.shade700,
+                    fontSize: 14,
+                    color: isSpoiled ? Colors.orange.shade700 : Colors.green.shade700,
                   ),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isWholesale ? Colors.orange.shade100 : Colors.green.shade100,
+                  color: isSpoiled ? Colors.orange.shade100 : Colors.green.shade100,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  '${price?.toStringAsFixed(0) ?? 0} دينار',
+                  '${material.price} ريال',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: isWholesale ? Colors.orange.shade700 : Colors.green.shade700,
+                    color: isSpoiled ? Colors.orange.shade700 : Colors.green.shade700,
                   ),
                 ),
               ),
@@ -379,30 +355,30 @@ class VendorDetailsPage extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              if (weight != null && weight > 0) ...[
+              if (material.weight != null && material.weight > 0) ...[
                 Text(
-                  'الوزن: ${weight.toStringAsFixed(2)} كيلو',
-                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  'الوزن: ${material.weight.toStringAsFixed(2)} كيلو',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 const SizedBox(width: 12),
               ],
-              if (quantity != null && quantity > 0) ...[
+              if (material.quantity != null && material.quantity > 0) ...[
                 Text(
-                  'العدد: ${quantity.toStringAsFixed(0)} قطعة',
-                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  'العدد: ${material.quantity.toStringAsFixed(0)} قطعة',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 const SizedBox(width: 12),
               ],
               Text(
-                'البراد: $truckName',
-                style: const TextStyle(fontSize: 11, color: Colors.grey),
+                'البراد: ${material.truckName}',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ),
           const SizedBox(height: 2),
           Text(
-            'النوع: ${_getMaterialTypeDisplay(materialType)}',
-            style: const TextStyle(fontSize: 11, color: Colors.grey),
+            'النوع: ${_getMaterialTypeDisplay(material.materialType)}',
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
           ),
         ],
       ),
@@ -422,9 +398,5 @@ class VendorDetailsPage extends StatelessWidget {
       default:
         return materialType;
     }
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year}/${date.month}/${date.day}';
   }
 }
