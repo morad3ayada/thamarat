@@ -513,7 +513,7 @@ class _SellPageState extends State<SellPage> {
                                                 MaterialPageRoute(
                                                   builder: (context) => SellDetailsPage(
                                                     name: invoice.customerName,
-                                                    phone: invoice.customerPhone,
+                                                    phone: _getCustomerPhone(invoice.customerName),
                                                     customerId: invoice.customerId,
                                                     pendingInvoiceId: invoice.id,
                                                   ),
