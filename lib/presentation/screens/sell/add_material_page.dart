@@ -331,8 +331,31 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                         
                         // Materials List
                         if (selectedTruck.isNotEmpty && truckMaterials.containsKey(selectedTruck))
-                          ...truckMaterials[selectedTruck]!.map((material) => 
-                            _buildMaterialItemWithSelection(material, selectedTruck)
+                          ...truckMaterials[selectedTruck]!.map((material) =>
+                            _buildCustomRadioTile(
+                              value: material.id.toString(),
+                              groupValue: selectedMaterial?.id.toString() ?? '',
+                              onChanged: (val) {
+                                setState(() {
+                                  selectedMaterial = material;
+                                  selectedMaterialUniqueId = _generateUniqueId(material);
+                                });
+                              },
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    material.name,
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    material.displayType,
+                                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                            )
                           ),
                         
                         const SizedBox(height: 20),
@@ -417,95 +440,11 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
     );
   }
 
-  Widget _buildMaterialItemWithSelection(MaterialsModel material, String truckName) {
-    bool isSelected = _isMaterialSelected(material);
-    
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          if (isSelected) {
-            selectedMaterial = null;
-            selectedMaterialUniqueId = null;
-          } else {
-            selectedMaterial = material;
-            selectedMaterialUniqueId = _generateUniqueId(material);
-          }
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFDEF2E0) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 5,
-              offset: Offset(0, 3))
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    material.name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: isSelected ? const Color.fromARGB(255, 28, 98, 32) : Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    material.displayType,
-                    style: TextStyle(
-                      color: isSelected ? const Color.fromARGB(255, 28, 98, 32) : Colors.grey,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected)
-              const Icon(
-                Icons.check_circle,
-                color: Color.fromARGB(255, 28, 98, 32),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSellTypeSelector() {
-    return Column(
-      children: [
-        _buildCustomRadioTile(
-          value: "عادي",
-          groupValue: sellType,
-          onChanged: (val) => setState(() => sellType = val!),
-          title: "البيع العادي",
-        ),
-        _buildCustomRadioTile(
-          value: "بالكوترة",
-          groupValue: sellType,
-          onChanged: (val) => setState(() => sellType = val!),
-          title: "البيع بالكوترة",
-        ),
-      ],
-    );
-  }
-
   Widget _buildCustomRadioTile({
     required String value,
     required String groupValue,
     required ValueChanged<String?> onChanged,
-    required String title,
+    required Widget title,
   }) {
     final isSelected = value == groupValue;
     
@@ -516,7 +455,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         margin: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isSelected ? const Color(0xFFDEF2E0) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: const [
             BoxShadow(
@@ -546,16 +485,45 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                   : null,
             ),
             const SizedBox(width: 12),
-            Text(
-              title,
-              style: TextStyle(
-                color: isSelected ? Color.fromARGB(255, 28, 98, 32) : Colors.black,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
+            title,
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSellTypeSelector() {
+    return Column(
+      children: [
+        _buildCustomRadioTile(
+          value: "عادي",
+          groupValue: sellType,
+          onChanged: (val) => setState(() => sellType = val!),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "البيع العادي",
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+        _buildCustomRadioTile(
+          value: "بالكوترة",
+          groupValue: sellType,
+          onChanged: (val) => setState(() => sellType = val!),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "البيع بالكوترة",
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
