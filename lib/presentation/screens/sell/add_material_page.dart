@@ -149,13 +149,8 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
       return;
     }
 
-    // Determine material type based on sell type and material type
+    // لا تغير نوع المادة بناءً على نوع البيع
     String materialType = selectedMaterial!.materialType;
-    if (sellType == "بالكوترة") {
-      materialType = "markup"; // Always use markup type for counter-based selling
-    } else {
-      materialType = "consignment"; // Use consignment type for regular selling
-    }
 
     // Call the bloc to add material with converted numbers
     context.read<MaterialsBloc>().add(AddMaterialToSaleProcess(
@@ -565,14 +560,29 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
   }
 
   Widget _buildInputFieldsSection() {
+    final String? type = selectedMaterial?.materialType;
+    final bool? isQty = selectedMaterial?.isQuantity;
     return Column(
       children: [
-        if (sellType == "بالكوترة" && selectedMaterial?.isQuantity == true)
-          _buildBorderlessInputField("العدد", "العدد", quantityController),
-        if (selectedMaterial?.isQuantity == true)
-          _buildBorderlessInputField("الكمية", "قطعة", quantityController),
-        if (selectedMaterial?.isQuantity == false)
+        // خابط عدد: وزن موجود، عدد موجود
+        if (type == 'markup' && isQty == true) ...[
           _buildBorderlessInputField("الوزن", "كيلو", weightController),
+          _buildBorderlessInputField("العدد", "عدد", quantityController),
+        ]
+        // خابط وزن: وزن موجود فقط
+        else if (type == 'markup' && isQty == false) ...[
+          _buildBorderlessInputField("الوزن", "كيلو", weightController),
+        ]
+        // صافي عدد: عدد موجود فقط
+        else if (type == 'consignment' && isQty == true) ...[
+          _buildBorderlessInputField("العدد", "عدد", quantityController),
+        ]
+        // صافي وزن: وزن موجود، عدد موجود
+        else if (type == 'consignment' && isQty == false) ...[
+          _buildBorderlessInputField("الوزن", "كيلو", weightController),
+          _buildBorderlessInputField("العدد", "عدد", quantityController),
+        ]
+        ,
         const SizedBox(height: 16),
         _buildBorderlessInputField("السعر", "دينار", priceController),
       ],
