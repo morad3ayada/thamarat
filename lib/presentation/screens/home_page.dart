@@ -537,7 +537,7 @@ class TodayVendorsSection extends StatelessWidget {
             Image.asset('assets/vendor.png', height: imageHeight),
             SizedBox(height: isTablet ? 24 : 20),
             Text(
-              'المتسوقين ',
+              '  المتسوقين اليوم ',
               style: TextStyle(
                 fontSize: fontSize, 
                 fontWeight: FontWeight.bold, 

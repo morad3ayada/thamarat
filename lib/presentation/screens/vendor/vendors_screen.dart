@@ -107,7 +107,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                       ),
                       SizedBox(width: isTablet ? 12 : 8),
                       Text(
-                        'متسوقي اليوم',
+                        'المتسوقين اليوم',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: isTablet ? 24 : 20,

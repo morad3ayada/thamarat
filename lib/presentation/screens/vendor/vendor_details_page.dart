@@ -242,27 +242,6 @@ class _VendorDetailsPageState extends State<VendorDetailsPage> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'المبلغ:',
-                                    style: TextStyle(
-                                      fontSize: isTablet ? 16 : 14,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                  Text(
-                                    '${invoice.totalAmount} ريال',
-                                    style: TextStyle(
-                                      fontSize: isTablet ? 16 : 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color.fromARGB(255, 28, 98, 32),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: isTablet ? 12 : 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
                                     'الوقت:',
                                     style: TextStyle(
                                       fontSize: isTablet ? 16 : 14,
