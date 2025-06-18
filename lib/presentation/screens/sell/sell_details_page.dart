@@ -493,6 +493,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                             sellType: 'قطاعي',
                                             totalPrice: total,
                                             saleDate: DateTime.now(),
+                                            invoiceNumber: widget.pendingInvoiceId,
                                           ),
                                         ),
                                       );

@@ -17,6 +17,7 @@ class ConfirmSellPage extends StatelessWidget {
   final String sellType;
   final double totalPrice;
   final DateTime saleDate;
+  final int? invoiceNumber;
 
   const ConfirmSellPage({
     super.key,
@@ -27,13 +28,25 @@ class ConfirmSellPage extends StatelessWidget {
     required this.sellType,
     required this.totalPrice,
     required this.saleDate,
+    this.invoiceNumber,
   });
 
   @override
   Widget build(BuildContext context) {
     // Debug print to check if phone number is being passed
-    print('Customer Name: [35m${customer.name}[0m');
-    print('Customer Phone: [35m${customer.phoneNumber}[0m');
+    print('Customer Name: ${customer.name}');
+    print('Customer Phone: ${customer.phoneNumber}');
+    
+    // استخدام رقم الفاتورة كما يأتي من السيرفر
+    final String displayInvoiceNumber = invoiceNumber?.toString() ?? '---';
+    
+    String getSellTypeText() {
+      if (sellType.toLowerCase().contains('كوتره') || sellType.toLowerCase().contains('quota')) {
+        return 'بيع بالكوترة';
+      } else {
+        return 'بيع عادي';
+      }
+    }
     
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -136,8 +149,8 @@ class ConfirmSellPage extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     _buildInfoColumn(
-                                      'الرقم التعريفي',
-                                      '#${DateTime.now().millisecondsSinceEpoch}',
+                                      'رقم الفاتورة',
+                                      '#$displayInvoiceNumber',
                                     ),
                                     _buildInfoColumn('التاريخ', '${saleDate.day}-${saleDate.month}-${saleDate.year}'),
                                     _buildInfoColumn('اسم البائع', sellerName),
@@ -301,7 +314,7 @@ class ConfirmSellPage extends StatelessWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                _buildInfoColumn('نوع البيع', sellType),
+                                _buildInfoColumn('نوع البيع', getSellTypeText()),
                                 _buildInfoColumn('عدد المواد', '${materials.length}'),
                               ],
                             ),
@@ -328,7 +341,7 @@ class ConfirmSellPage extends StatelessWidget {
                                     ),
                                   ),
                                   Text(
-                                    '$totalPrice دينار',
+                                    '${totalPrice.toInt()} دينار',
                                     style: const TextStyle(
                                       color: Color.fromARGB(255, 28, 98, 32),
                                       fontWeight: FontWeight.bold,
@@ -521,7 +534,7 @@ class ConfirmSellPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '${material.price ?? 0} دينار',
+                    '${(material.price ?? 0).toInt()} دينار',
                     style: const TextStyle(
                       color: Color.fromARGB(255, 28, 98, 32),
                       fontWeight: FontWeight.bold,
@@ -576,7 +589,7 @@ class ConfirmSellPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '${material.price ?? 0} دينار',
+                    '${(material.price ?? 0).toInt()} دينار',
                     style: const TextStyle(
                       color: Colors.red,
                       fontWeight: FontWeight.bold,
