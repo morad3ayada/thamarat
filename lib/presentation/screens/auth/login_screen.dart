@@ -4,6 +4,7 @@ import '../../../logic/blocs/auth/auth_bloc.dart';
 import '../../../logic/blocs/auth/auth_event.dart';
 import '../../../logic/blocs/auth/auth_state.dart';
 import '../home_page.dart';
+import 'package:thamarat/presentation/app_loader.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -269,10 +270,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 ? const SizedBox(
                                                     height: 20,
                                                     width: 20,
-                                                    child: CircularProgressIndicator(
-                                                      color: Colors.white,
-                                                      strokeWidth: 2,
-                                                    ),
+                                                    child: AppLoader(),
                                                   )
                                                 : const Text(
                                                     "تسجيل الدخول",

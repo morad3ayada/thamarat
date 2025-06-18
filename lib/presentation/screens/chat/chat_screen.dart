@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../logic/blocs/chat/chat_bloc.dart';
 import '../../../logic/blocs/chat/chat_event.dart';
 import '../../../logic/blocs/chat/chat_state.dart';
+import 'package:thamarat/presentation/app_loader.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -157,7 +158,7 @@ class _ChatScreenState extends State<ChatScreen> {
               },
               builder: (context, state) {
                 if (state is ChatLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(child: AppLoader(color: Color.fromARGB(255, 28, 98, 32)));
                 } else if (state is ChatLoaded) {
                   return RefreshIndicator(
                     onRefresh: () async {
@@ -287,12 +288,12 @@ class _ChatScreenState extends State<ChatScreen> {
                       onPressed: state is ChatLoading ? null : _sendMessage,
                       backgroundColor: const Color.fromARGB(255, 28, 98, 32),
                       child: state is ChatLoading
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 24,
                               height: 24,
-                              child: CircularProgressIndicator(
+                              child: AppLoader(
+                                size: 24,
                                 color: Colors.white,
-                                strokeWidth: 2,
                               ),
                             )
                           : const Icon(

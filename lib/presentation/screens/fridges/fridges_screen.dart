@@ -5,6 +5,7 @@ import '../../../logic/blocs/fridge/fridge_event.dart';
 import '../../../logic/blocs/fridge/fridge_state.dart';
 import '../../../data/models/fridge_model.dart';
 import 'fridge_detail_screen.dart';
+import 'package:thamarat/presentation/app_loader.dart';
 
 class FridgesScreen extends StatefulWidget {
   const FridgesScreen({super.key});
@@ -122,11 +123,11 @@ class _FridgesScreenState extends State<FridgesScreen> {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       context.read<FridgeBloc>().add(LoadFridgeItems());
                     });
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(child: AppLoader(message: 'جاري تحميل البرادات...'));
                   }
                   
                   if (state is FridgeLoading) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(child: AppLoader(message: 'جاري تحميل البرادات...'));
                   } else if (state is FridgeLoaded) {
                     final filteredFridges = state.items.where((fridge) {
                       return fridge.name.toLowerCase().contains(_searchQuery.toLowerCase());

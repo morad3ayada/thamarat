@@ -4,6 +4,7 @@ import '../../../logic/blocs/materials/materials_bloc.dart';
 import '../../../logic/blocs/materials/materials_event.dart';
 import '../../../logic/blocs/materials/materials_state.dart';
 import '../../../data/models/materials_model.dart';
+import 'package:thamarat/presentation/app_loader.dart';
 
 class MaterialsScreen extends StatefulWidget {
   const MaterialsScreen({super.key});
@@ -283,24 +284,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
                 // Materials List
                 if (state is MaterialsLoading)
                   const Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(
-                            color: Color.fromARGB(255, 28, 98, 32),
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            'جاري تحميل المواد...',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: AppLoader(message: 'جاري تحميل المواد...'),
                   )
                 else if (state is MaterialsError)
                   Expanded(

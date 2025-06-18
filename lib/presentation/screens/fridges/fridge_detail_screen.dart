@@ -4,6 +4,7 @@ import '../../../logic/blocs/fridge/fridge_bloc.dart';
 import '../../../logic/blocs/fridge/fridge_event.dart';
 import '../../../logic/blocs/fridge/fridge_state.dart';
 import '../../../data/models/fridge_model.dart';
+import 'package:thamarat/presentation/app_loader.dart';
 
 class FridgeDetailScreen extends StatefulWidget {
   final int fridgeId;
@@ -161,11 +162,11 @@ class _FridgeDetailScreenState extends State<FridgeDetailScreen> {
                         print('Error loading details in BlocBuilder: $e');
                       }
                     });
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(child: AppLoader(message: 'جاري تحميل التفاصيل...'));
                   }
                   
                   if (state is FridgeLoading) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(child: AppLoader(message: 'جاري تحميل التفاصيل...'));
                   } else if (state is FridgeDetailsLoaded) {
                     final fridge = state.fridge;
                     final filteredMaterials = fridge.materials.where((material) {

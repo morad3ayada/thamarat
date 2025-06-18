@@ -6,6 +6,7 @@ import '../../../logic/blocs/vendor/vendor_state.dart';
 import '../../../data/models/vendor_model.dart';
 import 'vendor_details_page.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+import 'package:thamarat/presentation/app_loader.dart';
 
 class VendorsScreen extends StatefulWidget {
   const VendorsScreen({super.key});
@@ -154,11 +155,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                 // Vendors List
                 if (state is VendorLoading)
                   const Expanded(
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: Color.fromARGB(255, 28, 98, 32),
-                      ),
-                    ),
+                    child: AppLoader(message: 'جاري تحميل المتسوقين...'),
                   )
                 else if (state is VendorsLoaded)
                   Expanded(

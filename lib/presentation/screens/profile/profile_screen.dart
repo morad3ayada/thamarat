@@ -11,6 +11,7 @@ import '../../../logic/blocs/office/office_bloc.dart';
 import '../../../logic/blocs/office/office_state.dart';
 import '../../../logic/blocs/office/office_event.dart';
 import 'dart:convert';
+import 'package:thamarat/presentation/app_loader.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -375,9 +376,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 width: isTablet ? 120 : 100,
                                 height: isTablet ? 120 : 100,
                                 child: const Center(
-                                  child: CircularProgressIndicator(
-                                    color: Color.fromARGB(255, 28, 98, 32),
-                                  ),
+                                  child: AppLoader(message: 'جاري تحميل بيانات المكتب...'),
                                 ),
                               );
                             }
@@ -451,7 +450,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       SizedBox(height: isTablet ? 140 : 140),
 
                       if (state is ProfileLoading)
-                        const Center(child: CircularProgressIndicator())
+                        const Center(child: AppLoader(message: 'جاري تحميل الملف الشخصي...'))
                       else if (state is ProfileLoaded) ...[
                         // صورة العميل داخل إطار أبيض أكبر
                         Center(

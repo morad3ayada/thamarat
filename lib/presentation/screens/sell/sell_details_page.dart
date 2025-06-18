@@ -8,6 +8,7 @@ import '../../../data/models/sell_model.dart' as sell_models;
 import '../../../data/models/vendor_model.dart' as vendor_models;
 import 'confirm_sell_page.dart';
 import 'add_material_page.dart';
+import 'package:thamarat/presentation/app_loader.dart';
 
 class SellDetailsPage extends StatefulWidget {
   final String name;
@@ -295,7 +296,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                           BlocBuilder<SellBloc, SellState>(
                             builder: (context, state) {
                               if (state is SellLoading) {
-                                return const Center(child: CircularProgressIndicator());
+                                return const Center(child: AppLoader(message: 'جاري تحميل الفواتير...'));
                               } else if (state is SellLoaded) {
                                 List<sell_models.SellModel> customerItems;
                                 

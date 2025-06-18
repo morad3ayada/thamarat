@@ -16,6 +16,7 @@ import 'materials/materials_screen.dart';
 import 'fridges/fridges_screen.dart';
 import 'vendor/vendors_screen.dart'; // تأكد إنه مضاف
 import 'vendor/vendor_details_page.dart';
+import 'package:thamarat/presentation/app_loader.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -432,10 +433,7 @@ class _HeaderSectionState extends State<HeaderSection> {
                           ? const SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(
-                                color: Color.fromARGB(255, 28, 98, 32),
-                                strokeWidth: 2,
-                              ),
+                              child: AppLoader(size: 20),
                             )
                           : GestureDetector(
                               onTap: _sendQuickMessage,
