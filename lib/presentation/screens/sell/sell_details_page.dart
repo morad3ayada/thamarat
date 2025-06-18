@@ -406,7 +406,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                       crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
                                         Text(
-                                          NumberFormat.decimalPattern().format(total),
+                                          NumberFormat.decimalPattern().format(total.toInt()),
                                           style: const TextStyle(
                                             color:Color.fromARGB(255, 28, 98, 32),
                                             fontWeight: FontWeight.bold,
@@ -718,9 +718,9 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (weight != null && weight > 0)
-                      _buildDetailRow('الوزن', '${weight.toStringAsFixed(2)} كيلو'),
+                      _buildDetailRow('الوزن', '${weight.toInt()} كيلو'),
                     if (quantity != null && quantity > 0)
-                      _buildDetailRow('العدد', '${quantity.toStringAsFixed(0)} قطعة'),
+                      _buildDetailRow('العدد', '${quantity.toInt()} قطعة'),
                     _buildDetailRow('البراد', truckName),
                     _buildDetailRow('نوع المادة', _getMaterialTypeDisplay(materialType)),
                   ],
@@ -742,7 +742,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                       ),
                     ),
                     child: Text(
-                      NumberFormat.decimalPattern().format(materialTotal),
+                      NumberFormat.decimalPattern().format(materialTotal.toInt()),
                       style: const TextStyle(
                         color: Color.fromARGB(255, 28, 98, 32),
                         fontWeight: FontWeight.bold,
