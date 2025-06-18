@@ -7,6 +7,7 @@ import 'package:thamarat/core/utils/profile_cache.dart';
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final ProfileRepository profileRepository;
   bool _hasLoadedProfile = false;
+  bool _isLoading = false;
 
   ProfileBloc({required this.profileRepository}) : super(ProfileInitial()) {
     on<LoadProfile>(_onLoadProfile);
@@ -14,26 +15,39 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   Future<void> _onLoadProfile(LoadProfile event, Emitter<ProfileState> emit) async {
-    if (_hasLoadedProfile) {
+    // Prevent multiple simultaneous loads
+    if (_isLoading) {
       return;
     }
 
+    // If already loaded, don't reload
+    if (_hasLoadedProfile && state is ProfileLoaded) {
+      return;
+    }
+
+    _isLoading = true;
     emit(ProfileLoading());
+    
     try {
+      // Try to get cached profile first
       final cachedProfile = await ProfileCache.getCachedProfile();
       
       if (cachedProfile != null) {
         emit(ProfileLoaded(cachedProfile));
         _hasLoadedProfile = true;
+        _isLoading = false;
         return;
       }
 
+      // If no cache, fetch from server
       final user = await profileRepository.fetchProfile();
       await ProfileCache.cacheProfile(user);
       emit(ProfileLoaded(user));
       _hasLoadedProfile = true;
     } catch (e) {
       emit(ProfileError(e.toString()));
+    } finally {
+      _isLoading = false;
     }
   }
 
@@ -43,8 +57,15 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       final updatedUser = await profileRepository.updateProfile(event.request);
       await ProfileCache.cacheProfile(updatedUser);
       emit(ProfileLoaded(updatedUser));
+      _hasLoadedProfile = true;
     } catch (e) {
       emit(ProfileError(e.toString()));
     }
+  }
+
+  // Method to reset the loaded state (useful for logout)
+  void resetLoadedState() {
+    _hasLoadedProfile = false;
+    _isLoading = false;
   }
 }

@@ -33,8 +33,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<ProfileBloc>().add(LoadProfile());
-    context.read<OfficeBloc>().add(LoadOfficeInfo());
+    // Data will be loaded once from InitialDataLoader when app starts
+    // No need to reload here
   }
 
   @override

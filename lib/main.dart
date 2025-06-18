@@ -6,12 +6,14 @@ import 'logic/blocs/auth/auth_bloc.dart';
 import 'logic/blocs/auth/auth_event.dart';
 import 'logic/blocs/auth/auth_state.dart';
 import 'logic/blocs/profile/profile_bloc.dart';
+import 'logic/blocs/profile/profile_event.dart';
 import 'logic/blocs/materials/materials_bloc.dart';
 import 'logic/blocs/vendor/vendor_bloc.dart';
 import 'logic/blocs/sell/sell_bloc.dart';
 import 'logic/blocs/fridge/fridge_bloc.dart';
 import 'logic/blocs/chat/chat_bloc.dart';
 import 'logic/blocs/office/office_bloc.dart';
+import 'logic/blocs/office/office_event.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/profile_repository.dart';
 import 'data/repositories/materials_repository.dart';
@@ -153,6 +155,10 @@ class _MyAppState extends State<MyApp> {
                 // Check if user actually logged out
                 final authBloc = context.read<AuthBloc>();
                 if (authBloc.wasUserLogout) {
+                  // Reset loaded states when user logs out
+                  context.read<ProfileBloc>().resetLoadedState();
+                  context.read<OfficeBloc>().resetLoadedState();
+                  
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('تم تسجيل الخروج بنجاح'),
@@ -166,34 +172,36 @@ class _MyAppState extends State<MyApp> {
               print('Failed to show snackbar: $e');
             }
           },
-          child: BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              // Check auth status on app start
-              if (state is AuthInitial) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (context.mounted) {
-                    try {
-                      context.read<AuthBloc>().add(CheckAuthStatus());
-                    } catch (e) {
-                      print('Failed to check auth status: $e');
+          child: InitialDataLoader(
+            child: BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) {
+                // Check auth status on app start
+                if (state is AuthInitial) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (context.mounted) {
+                      try {
+                        context.read<AuthBloc>().add(CheckAuthStatus());
+                      } catch (e) {
+                        print('Failed to check auth status: $e');
+                      }
                     }
-                  }
-                });
-              }
-              
-              // Always show LoginScreen for AuthInitial state (logout)
-              if (state is AuthInitial) {
+                  });
+                }
+                
+                // Always show LoginScreen for AuthInitial state (logout)
+                if (state is AuthInitial) {
+                  return const LoginScreen();
+                }
+                
+                // Show HomeScreen for AuthSuccess state (logged in)
+                if (state is AuthSuccess) {
+                  return const HomeScreen();
+                }
+                
+                // Show LoginScreen for AuthLoading and AuthFailure states
                 return const LoginScreen();
-              }
-              
-              // Show HomeScreen for AuthSuccess state (logged in)
-              if (state is AuthSuccess) {
-                return const HomeScreen();
-              }
-              
-              // Show LoginScreen for AuthLoading and AuthFailure states
-              return const LoginScreen();
-            },
+              },
+            ),
           ),
         ),
         routes: {
@@ -201,6 +209,63 @@ class _MyAppState extends State<MyApp> {
           '/home': (context) => const HomeScreen(),
         },
       ),
+    );
+  }
+}
+
+// Widget to load initial data once when app starts
+class InitialDataLoader extends StatefulWidget {
+  final Widget child;
+  
+  const InitialDataLoader({super.key, required this.child});
+
+  @override
+  State<InitialDataLoader> createState() => _InitialDataLoaderState();
+}
+
+class _InitialDataLoaderState extends State<InitialDataLoader> {
+  bool _dataLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> _loadInitialData() async {
+    if (_dataLoaded) return;
+    
+    try {
+      // Load profile and office data once when app starts
+      context.read<ProfileBloc>().add(LoadProfile());
+      context.read<OfficeBloc>().add(LoadOfficeInfo());
+      
+      // Mark data as loaded
+      setState(() {
+        _dataLoaded = true;
+      });
+    } catch (e) {
+      print('Error loading initial data: $e');
+      setState(() {
+        _dataLoaded = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, authState) {
+        // Load data only when user is authenticated
+        if (authState is AuthSuccess && !_dataLoaded) {
+          _loadInitialData();
+        } else if (authState is AuthInitial) {
+          // Reset data loaded flag when user logs out
+          setState(() {
+            _dataLoaded = false;
+          });
+        }
+      },
+      child: widget.child,
     );
   }
 }
