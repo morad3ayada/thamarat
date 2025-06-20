@@ -59,8 +59,8 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
 
   // دالة للتحقق من صحة الرقم وتحويله
   String? _validateAndConvertNumber(String? value) {
-    if (value == null || value.isEmpty) return null;
-    String converted = _convertArabicToEnglish(value);
+    if (value == null || value.trim().isEmpty) return null;
+    String converted = _convertArabicToEnglish(value.trim());
     if (double.tryParse(converted) != null) {
       return converted;
     }
@@ -168,32 +168,79 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
     bool? isRate;
     int order = 1;
 
-    // البيع العادي
-    if (materialType == "markup" && selectedMaterial!.isQuantity) {
-      // خابط عدد: أرسل الوزن والعدد معًا
-      commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
-      traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
-      officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
-      brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
-      pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
-      traderPiecePercentage = traderPieceRate;
-      workerPiecePercentage = workerPieceRate;
-      officePiecePercentage = officePieceRate;
-    } else if (materialType == "markup" && !selectedMaterial!.isQuantity) {
-      // خابط وزن: أرسل الوزن فقط
-      commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
-      traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
-      officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
-      pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
-      workerPiecePercentage = workerPieceRate;
-      brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
-    } else if (materialType == "consignment") {
-      // الصافي: أرسل العدد أو الوزن أو الاثنين معًا
-      isRate = false; // أو اجعلها اختيار من الواجهة لاحقًا
-      commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
-      pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
-      workerPiecePercentage = workerPieceRate;
-      brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+    if (sellType == "بالكوترة") {
+      if (materialType == "markup" && selectedMaterial!.isQuantity) {
+        // خابط عدد
+        if (commissionController.text.isEmpty || traderCommissionController.text.isEmpty || officeCommissionController.text.isEmpty || brokerageController.text.isEmpty || pieceRateController.text.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('يرجى تعبئة جميع الحقول المطلوبة للكوترة (خابط عدد)'), backgroundColor: Colors.red),
+          );
+          return;
+        }
+        commissionPercentage = double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '');
+        traderCommissionPercentage = double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '');
+        officeCommissionPercentage = double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '');
+        brokerCommissionPercentage = double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '');
+        pieceFees = double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '');
+        traderPiecePercentage = traderPieceRate;
+        workerPiecePercentage = workerPieceRate;
+        officePiecePercentage = officePieceRate;
+        materialType = "spoiledMarkup";
+      } else if (materialType == "markup" && !selectedMaterial!.isQuantity) {
+        // خابط وزن
+        if (commissionController.text.isEmpty || traderCommissionController.text.isEmpty || officeCommissionController.text.isEmpty || brokerageController.text.isEmpty || pieceRateController.text.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('يرجى تعبئة جميع الحقول المطلوبة للكوترة (خابط وزن)'), backgroundColor: Colors.red),
+          );
+          return;
+        }
+        commissionPercentage = double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '');
+        traderCommissionPercentage = double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '');
+        officeCommissionPercentage = double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '');
+        brokerCommissionPercentage = double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '');
+        pieceFees = double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '');
+        workerPiecePercentage = workerPieceRate;
+        materialType = "spoiledMarkup";
+      } else if (materialType == "consignment") {
+        // الصافي (عدد أو وزن أو الاثنين)
+        if (commissionController.text.isEmpty || pieceRateController.text.isEmpty || brokerageController.text.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('يرجى تعبئة جميع الحقول المطلوبة للكوترة (صافي)'), backgroundColor: Colors.red),
+          );
+          return;
+        }
+        isRate = false;
+        commissionPercentage = double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '');
+        pieceFees = double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '');
+        workerPiecePercentage = workerPieceRate;
+        brokerCommissionPercentage = double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '');
+        materialType = "spoiledConsignment";
+      }
+    } else {
+      // البيع العادي
+      if (materialType == "markup" && selectedMaterial!.isQuantity) {
+        commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
+        traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
+        officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
+        brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+        pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+        traderPiecePercentage = traderPieceRate;
+        workerPiecePercentage = workerPieceRate;
+        officePiecePercentage = officePieceRate;
+      } else if (materialType == "markup" && !selectedMaterial!.isQuantity) {
+        commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
+        traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
+        officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
+        pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+        workerPiecePercentage = workerPieceRate;
+        brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+      } else if (materialType == "consignment") {
+        isRate = false;
+        commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
+        pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+        workerPiecePercentage = workerPieceRate;
+        brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+      }
     }
 
     context.read<MaterialsBloc>().add(
@@ -213,7 +260,6 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         traderPiecePercentage: traderPiecePercentage,
         workerPiecePercentage: workerPiecePercentage,
         officePiecePercentage: officePiecePercentage,
-        // isRate غير مدعومة في الحدث الحالي، إذا احتجت أضفها في الحدث والريبو
       ),
     );
   }
@@ -379,8 +425,8 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                         if (selectedTruck.isNotEmpty && truckMaterials.containsKey(selectedTruck))
                           ...truckMaterials[selectedTruck]!.map((material) =>
                             _buildCustomRadioTile(
-                              value: material.id.toString(),
-                              groupValue: selectedMaterial?.id.toString() ?? '',
+                              value: _generateUniqueId(material),
+                              groupValue: selectedMaterialUniqueId ?? '',
                               onChanged: (val) {
                                 setState(() {
                                   selectedMaterial = material;
@@ -654,47 +700,79 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
   }
 
   Widget _buildWholesaleOptions() {
-    return Column(
-      children: [
-        _buildCommissionCard(
-          title: "نسبة التاجر من العمولة",
-          controller: traderCommissionController,
-        ),
-        const SizedBox(height: 8),
-        _buildCommissionCard(
-          title: "نسبة المكتب من العمولة",
-          controller: officeCommissionController,
-        ),
-        const SizedBox(height: 8),
-        _buildCommissionCard(
-          title: "نسبة الدلالية",
-          controller: brokerageController,
-        ),
-        const SizedBox(height: 8),
-        _buildCommissionCard(
-          title: "أجور القطعة",
-          controller: pieceRateController,
-        ),
-        const SizedBox(height: 8),
-        _buildRateCardWithSlider(
-          title: "نسبة التاجر من أجور القطعة",
-          value: traderPieceRate,
-          onChanged: (val) => setState(() => traderPieceRate = val),
-        ),
-        const SizedBox(height: 8),
-        _buildRateCardWithSlider(
-          title: "نسبة العامل من أجور القطعة",
-          value: workerPieceRate,
-          onChanged: (val) => setState(() => workerPieceRate = val),
-        ),
-        const SizedBox(height: 8),
-        _buildRateCardWithSlider(
-          title: "نسبة المكتب من أجور القطعة",
-          value: officePieceRate,
-          onChanged: (val) => setState(() => officePieceRate = val),
-        ),
-      ],
-    );
+    final String? type = selectedMaterial?.materialType;
+    final bool? isQty = selectedMaterial?.isQuantity;
+    List<Widget> widgets = [];
+    if (sellType == "بالكوترة") {
+      if (type == "markup" && isQty == true) {
+        // خابط عدد
+        widgets.addAll([
+          _buildCommissionCard(title: "نسبة العمولة", controller: commissionController),
+          const SizedBox(height: 8),
+          _buildCommissionCard(title: "نسبة التاجر من العمولة", controller: traderCommissionController),
+          const SizedBox(height: 8),
+          _buildCommissionCard(title: "نسبة المكتب من العمولة", controller: officeCommissionController),
+          const SizedBox(height: 8),
+          _buildCommissionCard(title: "نسبة الدلالية", controller: brokerageController),
+          const SizedBox(height: 8),
+          _buildCommissionCard(title: "أجور القطعة", controller: pieceRateController),
+          const SizedBox(height: 8),
+          _buildRateCardWithSlider(title: "نسبة التاجر من أجور القطعة", value: traderPieceRate, onChanged: (val) => setState(() => traderPieceRate = val)),
+          const SizedBox(height: 8),
+          _buildRateCardWithSlider(title: "نسبة العامل من أجور القطعة", value: workerPieceRate, onChanged: (val) => setState(() => workerPieceRate = val)),
+          const SizedBox(height: 8),
+          _buildRateCardWithSlider(title: "نسبة المكتب من أجور القطعة", value: officePieceRate, onChanged: (val) => setState(() => officePieceRate = val)),
+        ]);
+      } else if (type == "markup" && isQty == false) {
+        // خابط وزن
+        widgets.addAll([
+          _buildCommissionCard(title: "نسبة العمولة", controller: commissionController),
+          const SizedBox(height: 8),
+          _buildCommissionCard(title: "نسبة التاجر من العمولة", controller: traderCommissionController),
+          const SizedBox(height: 8),
+          _buildCommissionCard(title: "نسبة المكتب من العمولة", controller: officeCommissionController),
+          const SizedBox(height: 8),
+          _buildCommissionCard(title: "نسبة الدلالية", controller: brokerageController),
+          const SizedBox(height: 8),
+          _buildCommissionCard(title: "أجور القطعة", controller: pieceRateController),
+          const SizedBox(height: 8),
+          _buildRateCardWithSlider(title: "نسبة العامل من أجور القطعة", value: workerPieceRate, onChanged: (val) => setState(() => workerPieceRate = val)),
+        ]);
+      } else if (type == "consignment") {
+        // الصافي عدد أو وزن
+        widgets.addAll([
+          _buildCommissionCard(title: "عمولة المكتب (%)", controller: commissionController),
+          const SizedBox(height: 8),
+          _buildCommissionCard(title: "أجور النقل", controller: pieceRateController),
+          const SizedBox(height: 8),
+          _buildRateCardWithSlider(title: "نسبة العامل من أجور النقل", value: workerPieceRate, onChanged: (val) => setState(() => workerPieceRate = val)),
+          const SizedBox(height: 8),
+          _buildCommissionCard(title: "نسبة الدلالية", controller: brokerageController),
+        ]);
+      }
+    } else {
+      // البيع العادي (ابقِ الديزاين كما هو سابقًا)
+      if (type == "markup" && isQty == true) {
+        widgets.addAll([
+          _buildBorderlessInputField("الوزن", "كيلو", weightController),
+          _buildBorderlessInputField("العدد", "عدد", quantityController),
+        ]);
+      } else if (type == "markup" && isQty == false) {
+        widgets.addAll([
+          _buildBorderlessInputField("الوزن", "كيلو", weightController),
+        ]);
+      } else if (type == "consignment" && isQty == true) {
+        widgets.addAll([
+          _buildBorderlessInputField("العدد", "عدد", quantityController),
+        ]);
+      } else if (type == "consignment" && isQty == false) {
+        widgets.addAll([
+          _buildBorderlessInputField("الوزن", "كيلو", weightController),
+          _buildBorderlessInputField("العدد", "عدد", quantityController),
+        ]);
+      }
+    }
+    return Column(children: widgets);
   }
 
   Widget _buildCommissionCard({
@@ -800,7 +878,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
 
   // Helper method to generate unique ID for a material
   String _generateUniqueId(MaterialsModel material) {
-    String prefix = material.materialType.startsWith('consignment') ? 'c' : 'm';
+    String prefix = material.materialType == 'consignment' ? 'c' : 'm';
     return '$prefix${material.id}';
   }
 
