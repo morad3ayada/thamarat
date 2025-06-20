@@ -149,27 +149,73 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
       return;
     }
 
-    // لا تغير نوع المادة بناءً على نوع البيع
     String materialType = selectedMaterial!.materialType;
+    double? quantity = quantityController.text.isNotEmpty
+        ? double.tryParse(_validateAndConvertNumber(quantityController.text) ?? '')
+        : null;
+    double? weight = weightController.text.isNotEmpty
+        ? double.tryParse(_validateAndConvertNumber(weightController.text) ?? '')
+        : null;
+    double price = double.parse(_validateAndConvertNumber(priceController.text) ?? '0');
+    double? commissionPercentage;
+    double? traderCommissionPercentage;
+    double? officeCommissionPercentage;
+    double? brokerCommissionPercentage;
+    double? pieceFees;
+    double? traderPiecePercentage;
+    double? workerPiecePercentage;
+    double? officePiecePercentage;
+    bool? isRate;
+    int order = 1;
 
-    // Call the bloc to add material with converted numbers
-    context.read<MaterialsBloc>().add(AddMaterialToSaleProcess(
-      saleProcessId: widget.saleProcessId ?? 1,
-      materialId: selectedMaterial!.id,
-      materialType: materialType,
-      quantity: selectedMaterial!.isQuantity ? double.tryParse(_validateAndConvertNumber(quantityController.text) ?? '') : null,
-      weight: !selectedMaterial!.isQuantity ? double.tryParse(_validateAndConvertNumber(weightController.text) ?? '') : null,
-      price: double.parse(_validateAndConvertNumber(priceController.text) ?? '0'),
-      order: 1,
-      commissionPercentage: sellType == "بالكوترة" ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null,
-      traderCommissionPercentage: sellType == "بالكوترة" ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null,
-      officeCommissionPercentage: sellType == "بالكوترة" ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null,
-      brokerCommissionPercentage: sellType == "بالكوترة" ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null,
-      pieceFees: sellType == "بالكوترة" ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null,
-      traderPiecePercentage: sellType == "بالكوترة" ? traderPieceRate : null,
-      workerPiecePercentage: sellType == "بالكوترة" ? workerPieceRate : null,
-      officePiecePercentage: sellType == "بالكوترة" ? officePieceRate : null,
-    ));
+    // البيع العادي
+    if (materialType == "markup" && selectedMaterial!.isQuantity) {
+      // خابط عدد: أرسل الوزن والعدد معًا
+      commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
+      traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
+      officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
+      brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+      pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+      traderPiecePercentage = traderPieceRate;
+      workerPiecePercentage = workerPieceRate;
+      officePiecePercentage = officePieceRate;
+    } else if (materialType == "markup" && !selectedMaterial!.isQuantity) {
+      // خابط وزن: أرسل الوزن فقط
+      commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
+      traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
+      officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
+      pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+      workerPiecePercentage = workerPieceRate;
+      brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+    } else if (materialType == "consignment") {
+      // الصافي: أرسل العدد أو الوزن أو الاثنين معًا
+      isRate = false; // أو اجعلها اختيار من الواجهة لاحقًا
+      commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
+      pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+      workerPiecePercentage = workerPieceRate;
+      brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+    }
+
+    context.read<MaterialsBloc>().add(
+      AddMaterialToSaleProcess(
+        saleProcessId: widget.saleProcessId ?? 1,
+        materialId: selectedMaterial!.id,
+        materialType: materialType,
+        quantity: quantity,
+        weight: weight,
+        price: price,
+        order: order,
+        commissionPercentage: commissionPercentage,
+        traderCommissionPercentage: traderCommissionPercentage,
+        officeCommissionPercentage: officeCommissionPercentage,
+        brokerCommissionPercentage: brokerCommissionPercentage,
+        pieceFees: pieceFees,
+        traderPiecePercentage: traderPiecePercentage,
+        workerPiecePercentage: workerPiecePercentage,
+        officePiecePercentage: officePiecePercentage,
+        // isRate غير مدعومة في الحدث الحالي، إذا احتجت أضفها في الحدث والريبو
+      ),
+    );
   }
 
   @override
@@ -362,7 +408,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                         const Divider(height: 1, color: Color(0xFFE0E0E0)),
                         const SizedBox(height: 16),
                         
-                        // Sell Type Section
+                        // نظام البيع
                         const Text(
                           "نظام البيع",
                           style: TextStyle(
@@ -374,13 +420,13 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                         _buildSellTypeSelector(),
                         const SizedBox(height: 16),
                         
-                        // Wholesale Options (if selected)
+                        // خيارات الكوترة
                         if (sellType == "بالكوترة") ...[
                           _buildWholesaleOptions(),
                           const SizedBox(height: 16),
                         ],
                         
-                        // Input Fields
+                        // الحقول الأساسية
                         _buildInputFieldsSection(),
                         const SizedBox(height: 24),
                         
