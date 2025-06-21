@@ -39,52 +39,61 @@ class ConfirmSell extends SellEvent {
   List<Object?> get props => [id];
 }
 
-class AddSellMaterial extends SellEvent {
-  final String customerName;
-  final String customerPhone;
-  final String materialName;
-  final String fridgeName;
-  final String sellType;
-  final double quantity;
-  final double price;
-  final double? commission;
-  final double? traderCommission;
-  final double? officeCommission;
-  final double? brokerage;
-  final double? pieceRate;
+class AddMaterialToSaleProcess extends SellEvent {
+  final int saleProcessId;
+  final int materialId;
+  final String materialType;
+  final double? price;
+  final double? quantity;
   final double? weight;
+  final bool? isRate;
+  final double? commissionPercentage;
+  final double? traderCommissionPercentage;
+  final double? officeCommissionPercentage;
+  final double? brokerCommissionPercentage;
+  final double? pieceFees;
+  final double? traderPiecePercentage;
+  final double? workerPiecePercentage;
+  final double? officePiecePercentage;
+  final double? brokerPiecePercentage;
 
-  const AddSellMaterial({
-    required this.customerName,
-    required this.customerPhone,
-    required this.materialName,
-    required this.fridgeName,
-    required this.sellType,
-    required this.quantity,
-    required this.price,
-    this.commission,
-    this.traderCommission,
-    this.officeCommission,
-    this.brokerage,
-    this.pieceRate,
+  const AddMaterialToSaleProcess({
+    required this.saleProcessId,
+    required this.materialId,
+    required this.materialType,
+    this.price,
+    this.quantity,
     this.weight,
+    this.isRate,
+    this.commissionPercentage,
+    this.traderCommissionPercentage,
+    this.officeCommissionPercentage,
+    this.brokerCommissionPercentage,
+    this.pieceFees,
+    this.traderPiecePercentage,
+    this.workerPiecePercentage,
+    this.officePiecePercentage,
+    this.brokerPiecePercentage,
   });
 
   @override
   List<Object?> get props => [
-    customerName,
-    customerPhone,
-    materialName,
-    fridgeName,
-    sellType,
-    quantity,
+    saleProcessId,
+    materialId,
+    materialType,
     price,
-    commission,
-    traderCommission,
-    officeCommission,
-    brokerage,
-    pieceRate,
+    quantity,
     weight,
+    isRate,
+    commissionPercentage,
+    traderCommissionPercentage,
+    officeCommissionPercentage,
+    brokerCommissionPercentage,
+    pieceFees,
+    traderPiecePercentage,
+    workerPiecePercentage,
+    officePiecePercentage,
+    brokerPiecePercentage,
   ];
 }
 

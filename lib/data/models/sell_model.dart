@@ -7,7 +7,6 @@ class SellModel {
   final String sellerName;
   final bool sentToOffice;
   final DateTime createdAt;
-  final DateTime updatedAt;
   final List<MaterialModel> materials;
   final List<SpoiledMaterialModel> spoiledMaterials;
 
@@ -20,23 +19,20 @@ class SellModel {
     required this.sellerName,
     required this.sentToOffice,
     required this.createdAt,
-    required this.updatedAt,
     required this.materials,
     required this.spoiledMaterials,
   });
 
   factory SellModel.fromJson(Map<String, dynamic> json) {
-    print('SellModel fromJson: $json'); // Debug log
     return SellModel(
       id: json['id'] as int? ?? 0,
       customerId: json['customerId'] as int? ?? 0,
       customerName: json['customerName'] as String? ?? '',
-      customerPhone: json['customerPhone'] as String? ?? json['phoneNumber'] as String? ?? '', // Try both field names
+      customerPhone: json['customerPhone'] as String? ?? '',
       sellerId: json['sellerId'] as int? ?? 0,
       sellerName: json['sellerName'] as String? ?? '',
       sentToOffice: json['sentToOffice'] as bool? ?? false,
       createdAt: DateTime.parse(json['createdAt'] as String? ?? DateTime.now().toIso8601String()),
-      updatedAt: DateTime.parse(json['updatedAt'] as String? ?? DateTime.now().toIso8601String()),
       materials: (json['materials'] as List<dynamic>?)
           ?.map((e) => MaterialModel.fromJson(e))
           .toList() ?? [],
@@ -56,7 +52,6 @@ class SellModel {
       'sellerName': sellerName,
       'sentToOffice': sentToOffice,
       'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
       'materials': materials.map((e) => e.toJson()).toList(),
       'spoiledMaterials': spoiledMaterials.map((e) => e.toJson()).toList(),
     };
@@ -71,10 +66,10 @@ class SellModel {
   double get totalPrice {
     double total = 0;
     for (var material in materials) {
-      total += material.price ?? 0;
+      total += material.totalPrice;
     }
     for (var material in spoiledMaterials) {
-      total += material.price ?? 0;
+      total += material.totalPrice;
     }
     return total;
   }
@@ -96,6 +91,8 @@ class MaterialModel {
   final double? price;
   final int order;
   final String materialType;
+  final double? commission;
+  final double totalPrice;
 
   MaterialModel({
     required this.id,
@@ -108,6 +105,8 @@ class MaterialModel {
     this.price,
     required this.order,
     required this.materialType,
+    this.commission,
+    required this.totalPrice,
   });
 
   // Helper method to generate unique material ID
@@ -138,6 +137,8 @@ class MaterialModel {
       price: json['price']?.toDouble(),
       order: json['order'] as int? ?? 0,
       materialType: json['materialType'] as String? ?? '',
+      commission: json['commission']?.toDouble(),
+      totalPrice: json['totalPrice']?.toDouble() ?? 0.0,
     );
   }
 
@@ -153,6 +154,8 @@ class MaterialModel {
       'price': price,
       'order': order,
       'materialType': materialType,
+      'commission': commission,
+      'totalPrice': totalPrice,
     };
   }
 }
@@ -168,14 +171,17 @@ class SpoiledMaterialModel {
   final double? price;
   final int order;
   final String materialType;
-  final double commissionPercentage;
-  final double traderCommissionPercentage;
-  final double officeCommissionPercentage;
-  final double brokerCommissionPercentage;
-  final double pieceFees;
-  final double traderPiecePercentage;
-  final double workerPiecePercentage;
-  final double officePiecePercentage;
+  final bool isRate;
+  final double? commissionPercentage;
+  final double? traderCommissionPercentage;
+  final double? officeCommissionPercentage;
+  final double? brokerCommissionPercentage;
+  final double? pieceFees;
+  final double? traderPiecePercentage;
+  final double? workerPiecePercentage;
+  final double? officePiecePercentage;
+  final double? brokerPiecePercentage;
+  final double totalPrice;
 
   SpoiledMaterialModel({
     required this.id,
@@ -188,14 +194,17 @@ class SpoiledMaterialModel {
     this.price,
     required this.order,
     required this.materialType,
-    required this.commissionPercentage,
-    required this.traderCommissionPercentage,
-    required this.officeCommissionPercentage,
-    required this.brokerCommissionPercentage,
-    required this.pieceFees,
-    required this.traderPiecePercentage,
-    required this.workerPiecePercentage,
-    required this.officePiecePercentage,
+    required this.isRate,
+    this.commissionPercentage,
+    this.traderCommissionPercentage,
+    this.officeCommissionPercentage,
+    this.brokerCommissionPercentage,
+    this.pieceFees,
+    this.traderPiecePercentage,
+    this.workerPiecePercentage,
+    this.officePiecePercentage,
+    this.brokerPiecePercentage,
+    required this.totalPrice,
   });
 
   // Helper method to generate unique material ID
@@ -226,14 +235,17 @@ class SpoiledMaterialModel {
       price: json['price']?.toDouble(),
       order: json['order'] as int? ?? 0,
       materialType: json['materialType'] as String? ?? '',
-      commissionPercentage: json['commissionPercentage']?.toDouble() ?? 0.0,
-      traderCommissionPercentage: json['traderCommissionPercentage']?.toDouble() ?? 0.0,
-      officeCommissionPercentage: json['officeCommissionPercentage']?.toDouble() ?? 0.0,
-      brokerCommissionPercentage: json['brokerCommissionPercentage']?.toDouble() ?? 0.0,
-      pieceFees: json['pieceFees']?.toDouble() ?? 0.0,
-      traderPiecePercentage: json['traderPiecePercentage']?.toDouble() ?? 0.0,
-      workerPiecePercentage: json['workerPiecePercentage']?.toDouble() ?? 0.0,
-      officePiecePercentage: json['officePiecePercentage']?.toDouble() ?? 0.0,
+      isRate: json['isRate'] as bool? ?? false,
+      commissionPercentage: json['commissionPercentage']?.toDouble(),
+      traderCommissionPercentage: json['traderCommissionPercentage']?.toDouble(),
+      officeCommissionPercentage: json['officeCommissionPercentage']?.toDouble(),
+      brokerCommissionPercentage: json['brokerCommissionPercentage']?.toDouble(),
+      pieceFees: json['pieceFees']?.toDouble(),
+      traderPiecePercentage: json['traderPiecePercentage']?.toDouble(),
+      workerPiecePercentage: json['workerPiecePercentage']?.toDouble(),
+      officePiecePercentage: json['officePiecePercentage']?.toDouble(),
+      brokerPiecePercentage: json['brokerPiecePercentage']?.toDouble(),
+      totalPrice: json['totalPrice']?.toDouble() ?? 0.0,
     );
   }
 
@@ -249,6 +261,7 @@ class SpoiledMaterialModel {
       'price': price,
       'order': order,
       'materialType': materialType,
+      'isRate': isRate,
       'commissionPercentage': commissionPercentage,
       'traderCommissionPercentage': traderCommissionPercentage,
       'officeCommissionPercentage': officeCommissionPercentage,
@@ -257,6 +270,8 @@ class SpoiledMaterialModel {
       'traderPiecePercentage': traderPiecePercentage,
       'workerPiecePercentage': workerPiecePercentage,
       'officePiecePercentage': officePiecePercentage,
+      'brokerPiecePercentage': brokerPiecePercentage,
+      'totalPrice': totalPrice,
     };
   }
 }

@@ -25,61 +25,6 @@ class AddMaterial extends MaterialsEvent {
   List<Object?> get props => [material];
 }
 
-class AddMaterialToSaleProcess extends MaterialsEvent {
-  final int saleProcessId;
-  final int materialId;
-  final String materialType;
-  final double? quantity;
-  final double? weight;
-  final double price;
-  final int order;
-  final double? commissionPercentage;
-  final double? traderCommissionPercentage;
-  final double? officeCommissionPercentage;
-  final double? brokerCommissionPercentage;
-  final double? pieceFees;
-  final double? traderPiecePercentage;
-  final double? workerPiecePercentage;
-  final double? officePiecePercentage;
-
-  const AddMaterialToSaleProcess({
-    required this.saleProcessId,
-    required this.materialId,
-    required this.materialType,
-    this.quantity,
-    this.weight,
-    required this.price,
-    this.order = 1,
-    this.commissionPercentage,
-    this.traderCommissionPercentage,
-    this.officeCommissionPercentage,
-    this.brokerCommissionPercentage,
-    this.pieceFees,
-    this.traderPiecePercentage,
-    this.workerPiecePercentage,
-    this.officePiecePercentage,
-  });
-
-  @override
-  List<Object?> get props => [
-    saleProcessId,
-    materialId,
-    materialType,
-    quantity,
-    weight,
-    price,
-    order,
-    commissionPercentage,
-    traderCommissionPercentage,
-    officeCommissionPercentage,
-    brokerCommissionPercentage,
-    pieceFees,
-    traderPiecePercentage,
-    workerPiecePercentage,
-    officePiecePercentage,
-  ];
-}
-
 class DeleteMaterial extends MaterialsEvent {
   final int id;
   const DeleteMaterial(this.id);

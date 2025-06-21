@@ -185,8 +185,6 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => AddMaterialPage(
-                                        customerName: widget.name,
-                                        customerPhone: widget.phone,
                                         saleProcessId: widget.pendingInvoiceId,
                                       ),
                                     ),
@@ -364,18 +362,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                 
                                 // حساب المجموع من جميع الفواتير
                                 for (var invoice in customerItems) {
-                                  List<dynamic> materials = invoice.getAllMaterials();
-                                  for (var material in materials) {
-                                    double? weight = material.weight;
-                                    double? quantity = material.quantity;
-                                    double? price = material.price;
-                                    
-                                    if (weight != null && weight > 0) {
-                                      total += weight * (price ?? 0);
-                                    } else if (quantity != null && quantity > 0) {
-                                      total += quantity * (price ?? 0);
-                                    }
-                                  }
+                                  total += invoice.totalPrice;
                                 }
                               }
                               return Container(
@@ -460,18 +447,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                 // حساب المجموع
                                 double total = 0;
                                 for (var item in customerItems) {
-                                  List<dynamic> materials = item.getAllMaterials();
-                                  for (var material in materials) {
-                                    double? weight = material.weight;
-                                    double? quantity = material.quantity;
-                                    double? price = material.price;
-                                    
-                                    if (weight != null && weight > 0) {
-                                      total += weight * (price ?? 0);
-                                    } else if (quantity != null && quantity > 0) {
-                                      total += quantity * (price ?? 0);
-                                    }
-                                  }
+                                  total += item.totalPrice;
                                 }
 
                                 return SizedBox(
@@ -601,6 +577,8 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
     DateTime? date;
     int materialId = 0;
     bool isQuantity = false;
+    double totalPrice = 0;
+    bool isRate = false;
 
     // تحديد نوع المادة واستخراج البيانات
     if (material is sell_models.MaterialModel) {
@@ -612,7 +590,9 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
       materialType = material.materialType;
       materialId = material.id;
       date = DateTime.now();
-      isQuantity = material.isQuantity ?? false;
+      isQuantity = material.isQuantity;
+      totalPrice = material.totalPrice;
+      isRate = false; // Normal materials are not rate-based
     } else if (material is sell_models.SpoiledMaterialModel) {
       materialName = material.name;
       truckName = material.truckName;
@@ -622,15 +602,9 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
       materialType = material.materialType;
       materialId = material.id;
       date = DateTime.now();
-      isQuantity = material.isQuantity ?? false;
-    }
-
-    // حساب المجموع للمادة الواحدة
-    double materialTotal = 0;
-    if (weight != null && weight > 0) {
-      materialTotal = weight * (price ?? 0);
-    } else if (quantity != null && quantity > 0) {
-      materialTotal = quantity * (price ?? 0);
+      isQuantity = material.isQuantity;
+      totalPrice = material.totalPrice;
+      isRate = material.isRate;
     }
 
     // تحديد نوع الإضافة
@@ -675,7 +649,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      isCounter ? 'بالكوترة' : 'عادي',
+                      isRate ? 'بيع بالكوترة' : (isCounter ? 'بالكوترة' : 'عادي'),
                       style: TextStyle(
                         fontSize: 12,
                         color: materialType.contains('spoiled') 
@@ -721,6 +695,8 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                       _buildDetailRow('الوزن', '${weight.toInt()} كيلو'),
                     if (quantity != null && quantity > 0)
                       _buildDetailRow('العدد', '${quantity.toInt()} قطعة'),
+                    if (price != null && price > 0)
+                      _buildDetailRow('سعر الوحدة', '${price.toInt()} دينار'),
                     _buildDetailRow('البراد', truckName),
                     _buildDetailRow('نوع المادة', _getMaterialTypeDisplay(materialType)),
                   ],
@@ -742,7 +718,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                       ),
                     ),
                     child: Text(
-                      NumberFormat.decimalPattern().format(materialTotal.toInt()),
+                      NumberFormat.decimalPattern().format(totalPrice.toInt()),
                       style: const TextStyle(
                         color: Color.fromARGB(255, 28, 98, 32),
                         fontWeight: FontWeight.bold,

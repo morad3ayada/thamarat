@@ -20,7 +20,6 @@ import 'data/repositories/materials_repository.dart';
 import 'data/repositories/vendor_repository.dart';
 import 'data/repositories/sell_repository.dart';
 import 'data/repositories/fridge_repository.dart';
-import 'data/repositories/chat_repository.dart';
 import 'data/repositories/office_repository.dart';
 import 'presentation/screens/home_page.dart';
 import 'presentation/screens/auth/login_screen.dart';
@@ -169,7 +168,7 @@ class _MyAppState extends State<MyApp> {
                 }
               }
             } catch (e) {
-              print('Failed to show snackbar: $e');
+              // Handle error silently or log to a proper logging service
             }
           },
           child: InitialDataLoader(
@@ -182,7 +181,7 @@ class _MyAppState extends State<MyApp> {
                       try {
                         context.read<AuthBloc>().add(CheckAuthStatus());
                       } catch (e) {
-                        print('Failed to check auth status: $e');
+                        // Handle error silently or log to a proper logging service
                       }
                     }
                   });
@@ -244,7 +243,7 @@ class _InitialDataLoaderState extends State<InitialDataLoader> {
         _dataLoaded = true;
       });
     } catch (e) {
-      print('Error loading initial data: $e');
+      // Handle error silently or log to a proper logging service
       setState(() {
         _dataLoaded = true;
       });

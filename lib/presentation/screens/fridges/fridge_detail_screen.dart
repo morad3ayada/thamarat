@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../logic/blocs/fridge/fridge_bloc.dart';
 import '../../../logic/blocs/fridge/fridge_event.dart';
 import '../../../logic/blocs/fridge/fridge_state.dart';
-import '../../../data/models/fridge_model.dart';
+import '../../../data/models/vendor_model.dart';
 import 'package:thamarat/presentation/app_loader.dart';
 
 class FridgeDetailScreen extends StatefulWidget {

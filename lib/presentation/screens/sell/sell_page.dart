@@ -407,7 +407,7 @@ class _SellPageState extends State<SellPage> {
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Colors.black.withValues(alpha: 0.1),
                                     blurRadius: 4,
                                     offset: const Offset(0, 2),
                                   ),
@@ -420,7 +420,6 @@ class _SellPageState extends State<SellPage> {
                                 itemBuilder: (context, index) {
                                   final customer = allCustomers[index];
                                   // Debug print to check customer phone numbers
-                                  print('Customer: ${customer.name}, Phone: ${customer.phoneNumber}');
                                   return ListTile(
                                     leading: const Icon(
                                       Icons.person,
@@ -470,9 +469,9 @@ class _SellPageState extends State<SellPage> {
                               builder: (context, sellState) {
                                 if (sellState is SellLoaded) {
                                   customers = sellState.items.map((item) => VendorModel(
-                                    id: item.customerId ?? 0,
-                                    name: item.customerName ?? '',
-                                    phoneNumber: item.customerPhone ?? '',
+                                    id: item.customerId,
+                                    name: item.customerName,
+                                    phoneNumber: item.customerPhone,
                                     deleted: false,
                                     invoices: [],
                                   )).toList();
@@ -507,7 +506,6 @@ class _SellPageState extends State<SellPage> {
                                           final invoice = pendingInvoices[index];
                                           return GestureDetector(
                                             onTap: () {
-                                              print('Invoice data: ${invoice.toJson()}'); // Debug log
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
@@ -601,7 +599,7 @@ class _SellPageState extends State<SellPage> {
                                                       ),
                                                       const SizedBox(width: 4),
                                                       Text(
-                                                        'آخر تحديث: ${_formatTime(invoice.updatedAt)}',
+                                                        'آخر تحديث: ${_formatTime(invoice.createdAt)}',
                                                         style: const TextStyle(
                                                           fontSize: 12,
                                                           color: Colors.grey,

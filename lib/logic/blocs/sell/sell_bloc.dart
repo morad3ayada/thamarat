@@ -11,7 +11,7 @@ class SellBloc extends Bloc<SellEvent, SellState> {
     on<LoadSellDetails>(_onLoadDetails);
     on<CreateNewSaleProcess>(_onCreateNewSaleProcess);
     on<ConfirmSell>(_onConfirmSell);
-    on<AddSellMaterial>(_onAddSellMaterial);
+    on<AddMaterialToSaleProcess>(_onAddMaterialToSaleProcess);
     on<DeleteSellMaterial>(_onDeleteSellMaterial);
   }
 
@@ -68,23 +68,26 @@ class SellBloc extends Bloc<SellEvent, SellState> {
     }
   }
 
-  Future<void> _onAddSellMaterial(AddSellMaterial event, Emitter<SellState> emit) async {
+  Future<void> _onAddMaterialToSaleProcess(AddMaterialToSaleProcess event, Emitter<SellState> emit) async {
     emit(SellLoading());
     try {
-      await sellRepository.addSellMaterial(
-        customerName: event.customerName,
-        customerPhone: event.customerPhone,
-        materialName: event.materialName,
-        fridgeName: event.fridgeName,
-        sellType: event.sellType,
-        quantity: event.quantity,
+      await sellRepository.addMaterialToSaleProcess(
+        saleProcessId: event.saleProcessId,
+        materialId: event.materialId,
+        materialType: event.materialType,
         price: event.price,
-        commission: event.commission,
-        traderCommission: event.traderCommission,
-        officeCommission: event.officeCommission,
-        brokerage: event.brokerage,
-        pieceRate: event.pieceRate,
+        quantity: event.quantity,
         weight: event.weight,
+        isRate: event.isRate,
+        commissionPercentage: event.commissionPercentage,
+        traderCommissionPercentage: event.traderCommissionPercentage,
+        officeCommissionPercentage: event.officeCommissionPercentage,
+        brokerCommissionPercentage: event.brokerCommissionPercentage,
+        pieceFees: event.pieceFees,
+        traderPiecePercentage: event.traderPiecePercentage,
+        workerPiecePercentage: event.workerPiecePercentage,
+        officePiecePercentage: event.officePiecePercentage,
+        brokerPiecePercentage: event.brokerPiecePercentage,
       );
       emit(SellConfirmed());
       add(LoadSellProcesses());

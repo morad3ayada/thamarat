@@ -1,9 +1,10 @@
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../models/user_model.dart';
+import '../../core/constants/api_constants.dart';
+import '../../core/utils/profile_cache.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:thamarat/core/api/api_service.dart';
-import 'package:thamarat/core/constants/api_constants.dart';
-import 'package:thamarat/data/models/user_model.dart';
-import 'package:dio/dio.dart';
 
 class AuthRepository {
   final ApiService _apiService;

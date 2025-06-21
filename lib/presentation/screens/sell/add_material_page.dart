@@ -59,8 +59,8 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
 
   // دالة للتحقق من صحة الرقم وتحويله
   String? _validateAndConvertNumber(String? value) {
-    if (value == null || value.trim().isEmpty) return null;
-    String converted = _convertArabicToEnglish(value.trim());
+    if (value == null || value.isEmpty) return null;
+    String converted = _convertArabicToEnglish(value);
     if (double.tryParse(converted) != null) {
       return converted;
     }
@@ -166,84 +166,36 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
     double? workerPiecePercentage;
     double? officePiecePercentage;
     bool? isRate;
-    int order = 1;
 
-    if (sellType == "بالكوترة") {
-      if (materialType == "markup" && selectedMaterial!.isQuantity) {
-        // خابط عدد
-        if (commissionController.text.isEmpty || traderCommissionController.text.isEmpty || officeCommissionController.text.isEmpty || brokerageController.text.isEmpty || pieceRateController.text.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('يرجى تعبئة جميع الحقول المطلوبة للكوترة (خابط عدد)'), backgroundColor: Colors.red),
-          );
-          return;
-        }
-        commissionPercentage = double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '');
-        traderCommissionPercentage = double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '');
-        officeCommissionPercentage = double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '');
-        brokerCommissionPercentage = double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '');
-        pieceFees = double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '');
-        traderPiecePercentage = traderPieceRate;
-        workerPiecePercentage = workerPieceRate;
-        officePiecePercentage = officePieceRate;
-        materialType = "spoiledMarkup";
-      } else if (materialType == "markup" && !selectedMaterial!.isQuantity) {
-        // خابط وزن
-        if (commissionController.text.isEmpty || traderCommissionController.text.isEmpty || officeCommissionController.text.isEmpty || brokerageController.text.isEmpty || pieceRateController.text.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('يرجى تعبئة جميع الحقول المطلوبة للكوترة (خابط وزن)'), backgroundColor: Colors.red),
-          );
-          return;
-        }
-        commissionPercentage = double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '');
-        traderCommissionPercentage = double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '');
-        officeCommissionPercentage = double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '');
-        brokerCommissionPercentage = double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '');
-        pieceFees = double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '');
-        workerPiecePercentage = workerPieceRate;
-        materialType = "spoiledMarkup";
-      } else if (materialType == "consignment") {
-        // الصافي (عدد أو وزن أو الاثنين)
-        if (commissionController.text.isEmpty || pieceRateController.text.isEmpty || brokerageController.text.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('يرجى تعبئة جميع الحقول المطلوبة للكوترة (صافي)'), backgroundColor: Colors.red),
-          );
-          return;
-        }
-        isRate = false;
-        commissionPercentage = double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '');
-        pieceFees = double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '');
-        workerPiecePercentage = workerPieceRate;
-        brokerCommissionPercentage = double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '');
-        materialType = "spoiledConsignment";
-      }
-    } else {
-      // البيع العادي
-      if (materialType == "markup" && selectedMaterial!.isQuantity) {
-        commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
-        traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
-        officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
-        brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
-        pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
-        traderPiecePercentage = traderPieceRate;
-        workerPiecePercentage = workerPieceRate;
-        officePiecePercentage = officePieceRate;
-      } else if (materialType == "markup" && !selectedMaterial!.isQuantity) {
-        commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
-        traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
-        officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
-        pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
-        workerPiecePercentage = workerPieceRate;
-        brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
-      } else if (materialType == "consignment") {
-        isRate = false;
-        commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
-        pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
-        workerPiecePercentage = workerPieceRate;
-        brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
-      }
+    // البيع العادي
+    if (materialType == "markup" && selectedMaterial!.isQuantity) {
+      // خابط عدد: أرسل الوزن والعدد معًا
+      commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
+      traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
+      officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
+      brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+      pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+      traderPiecePercentage = traderPieceRate;
+      workerPiecePercentage = workerPieceRate;
+      officePiecePercentage = officePieceRate;
+    } else if (materialType == "markup" && !selectedMaterial!.isQuantity) {
+      // خابط وزن: أرسل الوزن فقط
+      commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
+      traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
+      officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
+      pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+      workerPiecePercentage = workerPieceRate;
+      brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+    } else if (materialType == "consignment") {
+      // الصافي: أرسل العدد أو الوزن أو الاثنين معًا
+      isRate = false; // أو اجعلها اختيار من الواجهة لاحقًا
+      commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
+      pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+      workerPiecePercentage = workerPieceRate;
+      brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
     }
 
-    context.read<MaterialsBloc>().add(
+    context.read<SellBloc>().add(
       AddMaterialToSaleProcess(
         saleProcessId: widget.saleProcessId ?? 1,
         materialId: selectedMaterial!.id,
@@ -251,7 +203,6 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         quantity: quantity,
         weight: weight,
         price: price,
-        order: order,
         commissionPercentage: commissionPercentage,
         traderCommissionPercentage: traderCommissionPercentage,
         officeCommissionPercentage: officeCommissionPercentage,
@@ -260,6 +211,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         traderPiecePercentage: traderPiecePercentage,
         workerPiecePercentage: workerPiecePercentage,
         officePiecePercentage: officePiecePercentage,
+        isRate: sellType == "بالكوترة",
       ),
     );
   }
@@ -279,16 +231,6 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                   backgroundColor: Colors.red,
                 ),
               );
-            } else if (state is MaterialAdded) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('تم إضافة المادة بنجاح'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-              // تحديث بيانات البيع بعد إضافة المادة
-              context.read<SellBloc>().add(LoadSellProcesses());
-              Navigator.pop(context);
             }
           },
           builder: (context, state) {
@@ -296,235 +238,257 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
               _updateTruckData(state.materials);
             }
             
-            return Column(
-              children: [
-                // Header
-                Container(
-                  height: 120,
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFCFE8D7),
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(24),
-                      bottomRight: Radius.circular(24),
+            return BlocListener<SellBloc, SellState>(
+              listener: (context, sellState) {
+                if (sellState is SellConfirmed) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('تم إضافة المادة بنجاح'),
+                      backgroundColor: Colors.green,
                     ),
-                  ),
-                  padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: const Icon(
-                              Icons.arrow_back_ios_new,
-                              color: Color.fromARGB(255, 28, 98, 32),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'إضافة مادة',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                              color: Color.fromARGB(255, 28, 98, 32),
-                            ),
-                          ),
-                        ],
+                  );
+                  // تحديث بيانات البيع بعد إضافة المادة
+                  context.read<SellBloc>().add(LoadSellProcesses());
+                  Navigator.pop(context);
+                } else if (sellState is SellError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(sellState.message),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: Column(
+                children: [
+                  // Header
+                  Container(
+                    height: 120,
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFCFE8D7),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(24),
+                        bottomRight: Radius.circular(24),
                       ),
-                      Text(
-                        '${selectedMaterial != null ? 1 : 0} مواد',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Color.fromARGB(255, 28, 98, 32),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Content
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                    padding: const EdgeInsets.only(top: 45, right: 20, left: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Search Box
-                        TextField(
-                          controller: searchController,
-                          decoration: InputDecoration(
-                            hintText: 'ابحث عن اسم البراد',
-                            prefixIcon: const Icon(Icons.search, color: Color.fromARGB(255, 28, 98, 32)),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        // Truck Chips
-                        if (truckNames.isNotEmpty)
-                          SizedBox(
-                            height: 50,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: truckNames.length,
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        selectedTruck = truckNames[index];
-                                        selectedTruckIndex = index;
-                                        selectedMaterial = null;
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: selectedTruckIndex == index 
-                                            ? Color.fromARGB(255, 28, 98, 32) 
-                                            : Colors.white,
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(
-                                          color: selectedTruckIndex == index 
-                                              ? Color.fromARGB(255, 28, 98, 32) 
-                                              : const Color(0xFFE0E0E0),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        truckNames[index],
-                                        style: TextStyle(
-                                          color: selectedTruckIndex == index 
-                                              ? Colors.white 
-                                              : Color.fromARGB(255, 28, 98, 32),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        const SizedBox(height: 16),
-                        
-                        // Materials List
-                        if (selectedTruck.isNotEmpty && truckMaterials.containsKey(selectedTruck))
-                          ...truckMaterials[selectedTruck]!.map((material) =>
-                            _buildCustomRadioTile(
-                              value: _generateUniqueId(material),
-                              groupValue: selectedMaterialUniqueId ?? '',
-                              onChanged: (val) {
-                                setState(() {
-                                  selectedMaterial = material;
-                                  selectedMaterialUniqueId = _generateUniqueId(material);
-                                });
-                              },
-                              title: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    material.name,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    material.displayType,
-                                    style: const TextStyle(color: Colors.grey, fontSize: 13),
-                                  ),
-                                ],
-                              ),
-                            )
-                          ),
-                        
-                        const SizedBox(height: 20),
-                        const Divider(height: 1, color: Color(0xFFE0E0E0)),
-                        const SizedBox(height: 16),
-                        
-                        // نظام البيع
-                        const Text(
-                          "نظام البيع",
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildSellTypeSelector(),
-                        const SizedBox(height: 16),
-                        
-                        // خيارات الكوترة
-                        if (sellType == "بالكوترة") ...[
-                          _buildWholesaleOptions(),
-                          const SizedBox(height: 16),
-                        ],
-                        
-                        // الحقول الأساسية
-                        _buildInputFieldsSection(),
-                        const SizedBox(height: 24),
-                        
-                        // Buttons
                         Row(
                           children: [
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () => Navigator.pop(context),
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  side: const BorderSide(color: Color.fromARGB(255, 28, 98, 32)),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                ),
-                                child: const Text(
-                                  "رجوع",
-                                  style: TextStyle(
-                                    color: Color.fromARGB(255, 28, 98, 32),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                            GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: const Icon(
+                                Icons.arrow_back_ios_new,
+                                color: Color.fromARGB(255, 28, 98, 32),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: _handleAddMaterial,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color.fromARGB(255, 28, 98, 32),
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                ),
-                                child: const Text(
-                                  "إضافة المادة",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'إضافة مادة',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                                color: Color.fromARGB(255, 28, 98, 32),
                               ),
                             ),
                           ],
                         ),
+                        Text(
+                          '${selectedMaterial != null ? 1 : 0} مواد',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Color.fromARGB(255, 28, 98, 32),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                ),
-              ],
+
+                  // Content
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Search Box
+                          TextField(
+                            controller: searchController,
+                            decoration: InputDecoration(
+                              hintText: 'ابحث عن اسم البراد',
+                              prefixIcon: const Icon(Icons.search, color: Color.fromARGB(255, 28, 98, 32)),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          // Truck Chips
+                          if (truckNames.isNotEmpty)
+                            SizedBox(
+                              height: 50,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: truckNames.length,
+                                itemBuilder: (context, index) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          selectedTruck = truckNames[index];
+                                          selectedTruckIndex = index;
+                                          selectedMaterial = null;
+                                        });
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: selectedTruckIndex == index 
+                                              ? Color.fromARGB(255, 28, 98, 32) 
+                                              : Colors.white,
+                                          borderRadius: BorderRadius.circular(16),
+                                          border: Border.all(
+                                            color: selectedTruckIndex == index 
+                                                ? Color.fromARGB(255, 28, 98, 32) 
+                                                : const Color(0xFFE0E0E0),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          truckNames[index],
+                                          style: TextStyle(
+                                            color: selectedTruckIndex == index 
+                                                ? Colors.white 
+                                                : Color.fromARGB(255, 28, 98, 32),
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          const SizedBox(height: 16),
+                          
+                          // Materials List
+                          if (selectedTruck.isNotEmpty && truckMaterials.containsKey(selectedTruck))
+                            ...truckMaterials[selectedTruck]!.map((material) =>
+                              _buildCustomRadioTile(
+                                value: material.id.toString(),
+                                groupValue: selectedMaterial?.id.toString() ?? '',
+                                onChanged: (val) {
+                                  setState(() {
+                                    selectedMaterial = material;
+                                    selectedMaterialUniqueId = _generateUniqueId(material);
+                                  });
+                                },
+                                title: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      material.name,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      material.displayType,
+                                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ),
+                          
+                          const SizedBox(height: 20),
+                          const Divider(height: 1, color: Color(0xFFE0E0E0)),
+                          const SizedBox(height: 16),
+                          
+                          // نظام البيع
+                          const Text(
+                            "نظام البيع",
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildSellTypeSelector(),
+                          const SizedBox(height: 16),
+                          
+                          // خيارات الكوترة
+                          if (sellType == "بالكوترة") ...[
+                            _buildWholesaleOptions(),
+                            const SizedBox(height: 16),
+                          ],
+                          
+                          // الحقول الأساسية
+                          _buildInputFieldsSection(),
+                          const SizedBox(height: 24),
+                          
+                          // Buttons
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    side: const BorderSide(color: Color.fromARGB(255, 28, 98, 32)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    "رجوع",
+                                    style: TextStyle(
+                                      color: Color.fromARGB(255, 28, 98, 32),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: _handleAddMaterial,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color.fromARGB(255, 28, 98, 32),
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    "إضافة المادة",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             );
           },
         ),
@@ -700,79 +664,47 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
   }
 
   Widget _buildWholesaleOptions() {
-    final String? type = selectedMaterial?.materialType;
-    final bool? isQty = selectedMaterial?.isQuantity;
-    List<Widget> widgets = [];
-    if (sellType == "بالكوترة") {
-      if (type == "markup" && isQty == true) {
-        // خابط عدد
-        widgets.addAll([
-          _buildCommissionCard(title: "نسبة العمولة", controller: commissionController),
-          const SizedBox(height: 8),
-          _buildCommissionCard(title: "نسبة التاجر من العمولة", controller: traderCommissionController),
-          const SizedBox(height: 8),
-          _buildCommissionCard(title: "نسبة المكتب من العمولة", controller: officeCommissionController),
-          const SizedBox(height: 8),
-          _buildCommissionCard(title: "نسبة الدلالية", controller: brokerageController),
-          const SizedBox(height: 8),
-          _buildCommissionCard(title: "أجور القطعة", controller: pieceRateController),
-          const SizedBox(height: 8),
-          _buildRateCardWithSlider(title: "نسبة التاجر من أجور القطعة", value: traderPieceRate, onChanged: (val) => setState(() => traderPieceRate = val)),
-          const SizedBox(height: 8),
-          _buildRateCardWithSlider(title: "نسبة العامل من أجور القطعة", value: workerPieceRate, onChanged: (val) => setState(() => workerPieceRate = val)),
-          const SizedBox(height: 8),
-          _buildRateCardWithSlider(title: "نسبة المكتب من أجور القطعة", value: officePieceRate, onChanged: (val) => setState(() => officePieceRate = val)),
-        ]);
-      } else if (type == "markup" && isQty == false) {
-        // خابط وزن
-        widgets.addAll([
-          _buildCommissionCard(title: "نسبة العمولة", controller: commissionController),
-          const SizedBox(height: 8),
-          _buildCommissionCard(title: "نسبة التاجر من العمولة", controller: traderCommissionController),
-          const SizedBox(height: 8),
-          _buildCommissionCard(title: "نسبة المكتب من العمولة", controller: officeCommissionController),
-          const SizedBox(height: 8),
-          _buildCommissionCard(title: "نسبة الدلالية", controller: brokerageController),
-          const SizedBox(height: 8),
-          _buildCommissionCard(title: "أجور القطعة", controller: pieceRateController),
-          const SizedBox(height: 8),
-          _buildRateCardWithSlider(title: "نسبة العامل من أجور القطعة", value: workerPieceRate, onChanged: (val) => setState(() => workerPieceRate = val)),
-        ]);
-      } else if (type == "consignment") {
-        // الصافي عدد أو وزن
-        widgets.addAll([
-          _buildCommissionCard(title: "عمولة المكتب (%)", controller: commissionController),
-          const SizedBox(height: 8),
-          _buildCommissionCard(title: "أجور النقل", controller: pieceRateController),
-          const SizedBox(height: 8),
-          _buildRateCardWithSlider(title: "نسبة العامل من أجور النقل", value: workerPieceRate, onChanged: (val) => setState(() => workerPieceRate = val)),
-          const SizedBox(height: 8),
-          _buildCommissionCard(title: "نسبة الدلالية", controller: brokerageController),
-        ]);
-      }
-    } else {
-      // البيع العادي (ابقِ الديزاين كما هو سابقًا)
-      if (type == "markup" && isQty == true) {
-        widgets.addAll([
-          _buildBorderlessInputField("الوزن", "كيلو", weightController),
-          _buildBorderlessInputField("العدد", "عدد", quantityController),
-        ]);
-      } else if (type == "markup" && isQty == false) {
-        widgets.addAll([
-          _buildBorderlessInputField("الوزن", "كيلو", weightController),
-        ]);
-      } else if (type == "consignment" && isQty == true) {
-        widgets.addAll([
-          _buildBorderlessInputField("العدد", "عدد", quantityController),
-        ]);
-      } else if (type == "consignment" && isQty == false) {
-        widgets.addAll([
-          _buildBorderlessInputField("الوزن", "كيلو", weightController),
-          _buildBorderlessInputField("العدد", "عدد", quantityController),
-        ]);
-      }
-    }
-    return Column(children: widgets);
+    return Column(
+      children: [
+        _buildCommissionCard(
+          title: "نسبة التاجر من العمولة",
+          controller: traderCommissionController,
+        ),
+        const SizedBox(height: 8),
+        _buildCommissionCard(
+          title: "نسبة المكتب من العمولة",
+          controller: officeCommissionController,
+        ),
+        const SizedBox(height: 8),
+        _buildCommissionCard(
+          title: "نسبة الدلالية",
+          controller: brokerageController,
+        ),
+        const SizedBox(height: 8),
+        _buildCommissionCard(
+          title: "أجور القطعة",
+          controller: pieceRateController,
+        ),
+        const SizedBox(height: 8),
+        _buildRateCardWithSlider(
+          title: "نسبة التاجر من أجور القطعة",
+          value: traderPieceRate,
+          onChanged: (val) => setState(() => traderPieceRate = val),
+        ),
+        const SizedBox(height: 8),
+        _buildRateCardWithSlider(
+          title: "نسبة العامل من أجور القطعة",
+          value: workerPieceRate,
+          onChanged: (val) => setState(() => workerPieceRate = val),
+        ),
+        const SizedBox(height: 8),
+        _buildRateCardWithSlider(
+          title: "نسبة المكتب من أجور القطعة",
+          value: officePieceRate,
+          onChanged: (val) => setState(() => officePieceRate = val),
+        ),
+      ],
+    );
   }
 
   Widget _buildCommissionCard({
@@ -878,7 +810,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
 
   // Helper method to generate unique ID for a material
   String _generateUniqueId(MaterialsModel material) {
-    String prefix = material.materialType == 'consignment' ? 'c' : 'm';
+    String prefix = material.materialType.startsWith('consignment') ? 'c' : 'm';
     return '$prefix${material.id}';
   }
 

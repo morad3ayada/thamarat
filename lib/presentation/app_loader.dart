@@ -5,7 +5,7 @@ class AppLoader extends StatelessWidget {
   final double size;
   final Color? color;
 
-  const AppLoader({Key? key, this.message, this.size = 48.0, this.color}) : super(key: key);
+  const AppLoader({super.key, this.message, this.size = 48.0, this.color});
 
   @override
   Widget build(BuildContext context) {

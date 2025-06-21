@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:thamarat/logic/blocs/profile/profile_event.dart';
 import '../../../logic/blocs/profile/profile_bloc.dart';
 import '../../../logic/blocs/profile/profile_state.dart';
 import '../../../logic/blocs/chat/chat_bloc.dart';
@@ -8,14 +7,12 @@ import '../../../logic/blocs/chat/chat_event.dart';
 import '../../../logic/blocs/chat/chat_state.dart';
 import '../../../logic/blocs/office/office_bloc.dart';
 import '../../../logic/blocs/office/office_state.dart';
-import '../../../logic/blocs/office/office_event.dart';
 import 'sell/sell_page.dart' as sell;
 import 'chat/chat_screen.dart';
 import 'profile/profile_screen.dart';
 import 'materials/materials_screen.dart';
 import 'fridges/fridges_screen.dart';
-import 'vendor/vendors_screen.dart'; // تأكد إنه مضاف
-import 'vendor/vendor_details_page.dart';
+import 'vendor/vendors_screen.dart';
 import 'package:thamarat/presentation/app_loader.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -47,8 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isTablet = screenWidth > 600; // تعريف التابلت
+    final isTablet = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
       body: _pages[_selectedIndex],
@@ -127,9 +123,7 @@ class HomeContent extends StatefulWidget {
 class _HomeContentState extends State<HomeContent> {
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isTablet = screenWidth > 600;
+    final isTablet = MediaQuery.of(context).size.width > 600;
 
     return SingleChildScrollView(
       child: Column(
@@ -155,7 +149,6 @@ class MainOptions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
     final horizontalPadding = isTablet ? 48.0 : 24.0;
     final cardWidth = isTablet ? 200.0 : 150.0;
     final cardHeight = isTablet ? 240.0 : 180.0;
@@ -231,7 +224,7 @@ class OptionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -289,7 +282,6 @@ class _HeaderSectionState extends State<HeaderSection> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
     final horizontalPadding = widget.isTablet ? 32.0 : 16.0;
     final logoHeight = widget.isTablet ? 280.0 : 220.0;
     final avatarRadius = widget.isTablet ? 32.0 : 26.0;
@@ -331,7 +323,7 @@ class _HeaderSectionState extends State<HeaderSection> {
             image: const AssetImage('assets/leaves_bg.png'),
             fit: BoxFit.cover,
             colorFilter: ColorFilter.mode(
-              Colors.white.withOpacity(0.1),
+              Colors.white.withValues(alpha: 0.1),
               BlendMode.dstATop,
             ),
           ),
@@ -394,7 +386,7 @@ class _HeaderSectionState extends State<HeaderSection> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -413,7 +405,7 @@ class _HeaderSectionState extends State<HeaderSection> {
             SizedBox(height: widget.isTablet ? 20 : 16),
             Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(widget.isTablet ? 16 : 12),
               ),
               padding: EdgeInsets.symmetric(horizontal: widget.isTablet ? 16 : 8),
@@ -524,7 +516,7 @@ class TodayVendorsSection extends StatelessWidget {
           borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
