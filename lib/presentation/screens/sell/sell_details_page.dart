@@ -953,44 +953,67 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
     double? weight;
     double? price;
     String materialType = '';
-    DateTime? date;
     int materialId = 0;
     bool isQuantity = false;
     double totalPrice = 0;
     bool isRate = false;
 
-    // تحديد نوع المادة واستخراج البيانات
-    if (material is sell_models.MaterialModel) {
-      materialName = material.name;
-      truckName = material.truckName;
-      quantity = material.quantity;
-      weight = material.weight;
-      price = material.price;
-      materialType = material.materialType;
-      materialId = material.id;
-      date = DateTime.now();
-      isQuantity = material.isQuantity;
-      totalPrice = material.totalPrice;
-      isRate = false; // Normal materials are not rate-based
-    } else if (material is sell_models.SpoiledMaterialModel) {
-      materialName = material.name;
-      truckName = material.truckName;
-      quantity = material.quantity;
-      weight = material.weight;
-      price = material.price;
-      materialType = material.materialType;
-      materialId = material.id;
-      date = DateTime.now();
-      isQuantity = material.isQuantity;
-      totalPrice = material.totalPrice;
-      isRate = material.isRate;
+    if (material is Map) {
+      materialName = material['name'] ?? '';
+      truckName = material['truckName'] ?? '';
+      quantity = material['quantity']?.toDouble();
+      weight = material['weight']?.toDouble();
+      price = material['price']?.toDouble();
+      materialType = material['materialType'] ?? '';
+      materialId = material['id'] ?? 0;
+      isQuantity = material['isQuantity'] == true;
+      totalPrice = material['totalPrice']?.toDouble() ?? 0.0;
+      if (material.containsKey('isRate')) {
+        isRate = material['isRate'] == true;
+      }
+    } else if (material is sell_models.MaterialModel || material is sell_models.SpoiledMaterialModel) {
+      final m = material;
+      materialName = m.name;
+      truckName = m.truckName;
+      quantity = m.quantity;
+      weight = m.weight;
+      price = m.price;
+      materialType = m.materialType;
+      materialId = m.id;
+      isQuantity = m.isQuantity;
+      totalPrice = m.totalPrice;
+      try {
+        if (m is Map && m.containsKey('isRate')) {
+          isRate = m['isRate'] == true;
+        } else {
+          isRate = (m as dynamic).isRate == true;
+        }
+      } catch (_) {
+        isRate = false;
+      }
     }
 
-    // تحديد نوع الإضافة
-    bool isCounter = materialType.contains('markup');
+    // ترجمة نوع المادة
+    String typeText = '';
+    if (materialType.contains('markup')) {
+      typeText = isQuantity ? 'خابط عدد' : 'خابط وزن';
+    } else if (materialType.contains('consignment')) {
+      typeText = isQuantity ? 'صافي عدد' : 'صافي وزن';
+    } else {
+      typeText = materialType;
+    }
+
+    // تحديد نظام البيع حسب نوع المادة
+    String saleType = '';
+    if ((material is sell_models.SpoiledMaterialModel) || (materialType.contains('spoiled'))) {
+      saleType = 'بيع بالكوترة';
+    } else {
+      saleType = 'بيع عادي';
+    }
 
     return Container(
       padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -1017,57 +1040,20 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                   ),
                 ),
               ),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color:
-                          materialType.contains('spoiled')
-                              ? const Color(0xFFFFEBEE)
-                              : const Color(0xFFE8F5E9),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      isRate ? 'بيع بالكوترة' : 'بيع عادي',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color:
-                            materialType.contains('spoiled')
-                                ? Colors.red
-                                : const Color.fromARGB(255, 28, 98, 32),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isRate ? Colors.orange[50] : Colors.green[50],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  saleType,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isRate ? Colors.orange[800] : Color.fromARGB(255, 28, 98, 32),
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(width: 8),
-                  // Delete Button
-                  GestureDetector(
-                    onTap: () {
-                      _showDeleteConfirmation(
-                        materialId,
-                        materialType,
-                        materialName,
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red),
-                      ),
-                      child: const Icon(
-                        Icons.delete_outline,
-                        color: Colors.red,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
@@ -1086,10 +1072,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                     if (price != null && price > 0)
                       _buildDetailRow('سعر الوحدة', '${price.toInt()} دينار'),
                     _buildDetailRow('البراد', truckName),
-                    _buildDetailRow(
-                      'نوع المادة',
-                      _getMaterialTypeDisplay(materialType, isQuantity),
-                    ),
+                    _buildDetailRow('نوع المادة', typeText),
                   ],
                 ),
               ),
@@ -1097,10 +1080,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE8F5E9),
                       borderRadius: BorderRadius.circular(12),
@@ -1109,7 +1089,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                       ),
                     ),
                     child: Text(
-                      NumberFormat.decimalPattern().format(totalPrice.toInt()),
+                      totalPrice.toInt().toString(),
                       style: const TextStyle(
                         color: Color.fromARGB(255, 28, 98, 32),
                         fontWeight: FontWeight.bold,
