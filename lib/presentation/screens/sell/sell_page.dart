@@ -300,7 +300,14 @@ class _SellPageState extends State<SellPage> {
                     child: Row(
                       children: [
                         GestureDetector(
-                          onTap: () => Navigator.pop(context),
+                          onTap: () {
+                            // العودة إلى الصفحة الرئيسية
+                            Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              '/',
+                              (route) => false,
+                            );
+                          },
                           child: const Icon(
                             Icons.arrow_back_ios_new,
                             color: Color.fromARGB(255, 28, 98, 32),
