@@ -56,6 +56,7 @@ class AddMaterialToSaleProcess extends SellEvent {
   final double? workerPiecePercentage;
   final double? officePiecePercentage;
   final double? brokerPiecePercentage;
+  final String? materialUniqueId;
 
   const AddMaterialToSaleProcess({
     required this.saleProcessId,
@@ -74,6 +75,7 @@ class AddMaterialToSaleProcess extends SellEvent {
     this.workerPiecePercentage,
     this.officePiecePercentage,
     this.brokerPiecePercentage,
+    this.materialUniqueId,
   });
 
   @override
@@ -94,6 +96,7 @@ class AddMaterialToSaleProcess extends SellEvent {
     workerPiecePercentage,
     officePiecePercentage,
     brokerPiecePercentage,
+    materialUniqueId,
   ];
 }
 

@@ -77,6 +77,7 @@ class SellRepository {
     double? workerPiecePercentage,
     double? officePiecePercentage,
     double? brokerPiecePercentage,
+    String? materialUniqueId,
   }) async {
     final response = await _apiService.post(
       ApiConstants.addMaterial,
@@ -97,6 +98,7 @@ class SellRepository {
         'workerPiecePercentage': workerPiecePercentage,
         'officePiecePercentage': officePiecePercentage,
         'brokerPiecePercentage': brokerPiecePercentage,
+        'materialUniqueId': materialUniqueId,
       },
     );
     final data = response.data;

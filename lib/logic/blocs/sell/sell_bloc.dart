@@ -88,6 +88,7 @@ class SellBloc extends Bloc<SellEvent, SellState> {
         workerPiecePercentage: event.workerPiecePercentage,
         officePiecePercentage: event.officePiecePercentage,
         brokerPiecePercentage: event.brokerPiecePercentage,
+        materialUniqueId: event.materialUniqueId,
       );
       emit(SellConfirmed());
       add(LoadSellProcesses());

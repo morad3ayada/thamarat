@@ -212,6 +212,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         workerPiecePercentage: workerPiecePercentage,
         officePiecePercentage: officePiecePercentage,
         isRate: sellType == "بالكوترة",
+        materialUniqueId: selectedMaterialUniqueId,
       ),
     );
   }
@@ -297,7 +298,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                           ],
                         ),
                         Text(
-                          '${selectedMaterial != null ? 1 : 0} مواد',
+                          '${selectedMaterialUniqueId != null ? 1 : 0} مواد',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
@@ -388,12 +389,12 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                           if (selectedTruck.isNotEmpty && truckMaterials.containsKey(selectedTruck))
                             ...truckMaterials[selectedTruck]!.map((material) =>
                               _buildCustomRadioTile(
-                                value: material.id.toString(),
-                                groupValue: selectedMaterial?.id.toString() ?? '',
+                                value: _generateUniqueId(material),
+                                groupValue: selectedMaterialUniqueId ?? '',
                                 onChanged: (val) {
                                   setState(() {
                                     selectedMaterial = material;
-                                    selectedMaterialUniqueId = _generateUniqueId(material);
+                                    selectedMaterialUniqueId = val;
                                   });
                                 },
                                 title: Column(
@@ -808,13 +809,16 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
     );
   }
 
-  // Helper method to generate unique ID for a material
+  // دالة لتوليد معرف فريد للمادة
+  // يستخدم لتجنب تضارب المواد من نوعين مختلفين (خابط وصافي) قد يكون لها نفس الـ ID
+  // c = consignment (صافي), m = markup (خابط)
+  // مثال: c10 للمادة رقم 10 من نوع صافي، m10 للمادة رقم 10 من نوع خابط
   String _generateUniqueId(MaterialsModel material) {
-    String prefix = material.materialType.startsWith('consignment') ? 'c' : 'm';
+    String prefix = material.materialType == 'consignment' ? 'c' : 'm';
     return '$prefix${material.id}';
   }
 
-  // Helper method to check if a material is already selected
+  // دالة للتحقق من اختيار المادة
   bool _isMaterialSelected(MaterialsModel material) {
     if (selectedMaterialUniqueId == null) return false;
     return selectedMaterialUniqueId == _generateUniqueId(material);
