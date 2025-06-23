@@ -22,8 +22,8 @@ class SellDetailsPage extends StatefulWidget {
   final int? customerId; // معرف العميل لإنشاء فاتورة جديدة
 
   const SellDetailsPage({
-    super.key, 
-    required this.name, 
+    super.key,
+    required this.name,
     required this.phone,
     this.pendingInvoiceId,
     this.customerId,
@@ -62,7 +62,9 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
             );
             // تحديث البيانات من السيرفر بعد الحذف
             if (widget.pendingInvoiceId != null) {
-              context.read<SellBloc>().add(LoadSellDetails(widget.pendingInvoiceId!));
+              context.read<SellBloc>().add(
+                LoadSellDetails(widget.pendingInvoiceId!),
+              );
             } else {
               context.read<SellBloc>().add(LoadSellProcesses());
             }
@@ -81,7 +83,9 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
             onRefresh: () async {
               // تحديث البيانات من السيرفر
               if (widget.pendingInvoiceId != null) {
-                context.read<SellBloc>().add(LoadSellDetails(widget.pendingInvoiceId!));
+                context.read<SellBloc>().add(
+                  LoadSellDetails(widget.pendingInvoiceId!),
+                );
               } else {
                 context.read<SellBloc>().add(LoadSellProcesses());
               }
@@ -115,7 +119,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                         },
                         child: const Icon(
                           Icons.arrow_back_ios_new,
-                          color: Color.fromARGB(255, 28, 98, 32) ,
+                          color: Color.fromARGB(255, 28, 98, 32),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -124,13 +128,13 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
-                          color:Color.fromARGB(255, 28, 98, 32),  
+                          color: Color.fromARGB(255, 28, 98, 32),
                         ),
                       ),
                     ],
                   ),
                 ),
-                
+
                 // Progress Steps
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -161,7 +165,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: const [
                                 BoxShadow(
-                                  color: Color.fromARGB(255, 28, 98, 32) ,
+                                  color: Color.fromARGB(255, 28, 98, 32),
                                   blurRadius: 4,
                                   offset: Offset(0, 2),
                                 ),
@@ -171,15 +175,18 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                               children: [
                                 Row(
                                   children: [
-                                    const Icon(Icons.person_outline, 
-                                        color: Color.fromARGB(255, 28, 98, 32) , size: 20),
+                                    const Icon(
+                                      Icons.person_outline,
+                                      color: Color.fromARGB(255, 28, 98, 32),
+                                      size: 20,
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
                                       widget.name,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
-                                        color: Color.fromARGB(255, 28, 98, 32) 
+                                        color: Color.fromARGB(255, 28, 98, 32),
                                       ),
                                     ),
                                   ],
@@ -187,12 +194,15 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                 const SizedBox(height: 8),
                                 Row(
                                   children: [
-                                    const Icon(Icons.phone_outlined, 
-                                        color: Color.fromARGB(255, 28, 98, 32) , size: 20),
+                                    const Icon(
+                                      Icons.phone_outlined,
+                                      color: Color.fromARGB(255, 28, 98, 32),
+                                      size: 20,
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      widget.phone.isNotEmpty 
-                                          ? widget.phone 
+                                      widget.phone.isNotEmpty
+                                          ? widget.phone
                                           : 'رقم الهاتف غير متوفر',
                                       style: const TextStyle(
                                         color: Color.fromARGB(255, 28, 98, 32),
@@ -215,20 +225,32 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => AddMaterialPage(
-                                        saleProcessId: widget.pendingInvoiceId,
-                                      ),
+                                      builder:
+                                          (context) => AddMaterialPage(
+                                            saleProcessId:
+                                                widget.pendingInvoiceId,
+                                          ),
                                     ),
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color.fromARGB(255, 28, 98, 32),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  backgroundColor: Color.fromARGB(
+                                    255,
+                                    28,
+                                    98,
+                                    32,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                icon: const Icon(Icons.add, color: Colors.white),
+                                icon: const Icon(
+                                  Icons.add,
+                                  color: Colors.white,
+                                ),
                                 label: const Text(
                                   'إضافة مواد',
                                   style: TextStyle(
@@ -248,20 +270,29 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                 if (state is SaleProcessCreated) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('تم إنشاء فاتورة جديدة بنجاح'),
-                                      backgroundColor: Color.fromARGB(255, 28, 98, 32),
+                                      content: Text(
+                                        'تم إنشاء فاتورة جديدة بنجاح',
+                                      ),
+                                      backgroundColor: Color.fromARGB(
+                                        255,
+                                        28,
+                                        98,
+                                        32,
+                                      ),
                                     ),
                                   );
                                   // Navigate to the same page with the new invoice ID
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => SellDetailsPage(
-                                        name: widget.name,
-                                        phone: widget.phone,
-                                        customerId: widget.customerId,
-                                        pendingInvoiceId: state.saleProcessId,
-                                      ),
+                                      builder:
+                                          (context) => SellDetailsPage(
+                                            name: widget.name,
+                                            phone: widget.phone,
+                                            customerId: widget.customerId,
+                                            pendingInvoiceId:
+                                                state.saleProcessId,
+                                          ),
                                     ),
                                   );
                                 } else if (state is SellError) {
@@ -278,36 +309,54 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                   return SizedBox(
                                     width: double.infinity,
                                     child: ElevatedButton.icon(
-                                      onPressed: state is SellLoading
-                                          ? null
-                                          : () {
-                                              context.read<SellBloc>().add(
-                                                    CreateNewSaleProcess(
-                                                      customerId: widget.customerId!,
-                                                      customerName: widget.name,
-                                                      customerPhone: widget.phone,
-                                                    ),
-                                                  );
-                                            },
+                                      onPressed:
+                                          state is SellLoading
+                                              ? null
+                                              : () {
+                                                context.read<SellBloc>().add(
+                                                  CreateNewSaleProcess(
+                                                    customerId:
+                                                        widget.customerId!,
+                                                    customerName: widget.name,
+                                                    customerPhone: widget.phone,
+                                                  ),
+                                                );
+                                              },
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color.fromARGB(255, 28, 98, 32),
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        backgroundColor: const Color.fromARGB(
+                                          255,
+                                          28,
+                                          98,
+                                          32,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 12,
+                                        ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                       ),
-                                      icon: state is SellLoading
-                                          ? const SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: CircularProgressIndicator(
+                                      icon:
+                                          state is SellLoading
+                                              ? const SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      color: Colors.white,
+                                                      strokeWidth: 2,
+                                                    ),
+                                              )
+                                              : const Icon(
+                                                Icons.receipt_long,
                                                 color: Colors.white,
-                                                strokeWidth: 2,
                                               ),
-                                            )
-                                          : const Icon(Icons.receipt_long, color: Colors.white),
                                       label: Text(
-                                        state is SellLoading ? 'جاري الإنشاء...' : 'إنشاء فاتورة جديدة',
+                                        state is SellLoading
+                                            ? 'جاري الإنشاء...'
+                                            : 'إنشاء فاتورة جديدة',
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
@@ -325,17 +374,24 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                           BlocBuilder<SellBloc, SellState>(
                             builder: (context, state) {
                               if (state is SellLoading) {
-                                return const Center(child: AppLoader(message: 'جاري تحميل بيانات الفاتورة الحالية...'));
+                                return const Center(
+                                  child: AppLoader(
+                                    message:
+                                        'جاري تحميل بيانات الفاتورة الحالية...',
+                                  ),
+                                );
                               } else if (state is SellDetailsLoaded) {
                                 // عرض تفاصيل الفاتورة المحددة من السيرفر
                                 sell_models.SellModel invoice = state.sell;
-                                List<dynamic> materials = invoice.getAllMaterials();
-                                
+                                List<dynamic> materials =
+                                    invoice.getAllMaterials();
+
                                 if (materials.isEmpty) {
                                   return Container(
                                     padding: const EdgeInsets.all(32),
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         const Icon(
                                           Icons.inventory_2_outlined,
@@ -364,20 +420,32 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                 return Column(
                                   children: [
                                     // قائمة المواد
-                                    ...materials.map((material) => Padding(
-                                      padding: const EdgeInsets.only(bottom: 12),
-                                      child: _buildMaterialItem(material),
-                                    )).toList(),
+                                    ...materials
+                                        .map(
+                                          (material) => Padding(
+                                            padding: const EdgeInsets.only(
+                                              bottom: 12,
+                                            ),
+                                            child: _buildMaterialItem(material),
+                                          ),
+                                        )
+                                        .toList(),
                                     const SizedBox(height: 16),
                                   ],
                                 );
                               } else if (state is SellLoaded) {
                                 // البحث عن الفاتورة الحالية للعميل من السيرفر
-                                List<sell_models.SellModel> customerInvoices = state.items.where((item) =>
-                                  item.customerName == widget.name &&
-                                  item.customerPhone == widget.phone
-                                ).toList();
-                                
+                                List<sell_models.SellModel> customerInvoices =
+                                    state.items
+                                        .where(
+                                          (item) =>
+                                              item.customerName ==
+                                                  widget.name &&
+                                              item.customerPhone ==
+                                                  widget.phone,
+                                        )
+                                        .toList();
+
                                 // البحث عن الفاتورة المعلقة (الحالية)
                                 sell_models.SellModel? currentInvoice;
                                 for (var invoice in customerInvoices) {
@@ -387,18 +455,22 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                     break;
                                   }
                                 }
-                                
+
                                 // إذا لم توجد فاتورة معلقة، خذ آخر فاتورة
-                                if (currentInvoice == null && customerInvoices.isNotEmpty) {
-                                  customerInvoices.sort((a, b) => b.id.compareTo(a.id));
+                                if (currentInvoice == null &&
+                                    customerInvoices.isNotEmpty) {
+                                  customerInvoices.sort(
+                                    (a, b) => b.id.compareTo(a.id),
+                                  );
                                   currentInvoice = customerInvoices.first;
                                 }
-                                
+
                                 if (currentInvoice == null) {
                                   return Container(
                                     padding: const EdgeInsets.all(32),
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         const Icon(
                                           Icons.receipt_long_outlined,
@@ -423,15 +495,17 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                     ),
                                   );
                                 }
-                                
+
                                 // عرض الفاتورة الحالية
-                                List<dynamic> materials = currentInvoice!.getAllMaterials();
-                                
+                                List<dynamic> materials =
+                                    currentInvoice!.getAllMaterials();
+
                                 if (materials.isEmpty) {
                                   return Container(
                                     padding: const EdgeInsets.all(32),
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         const Icon(
                                           Icons.inventory_2_outlined,
@@ -460,10 +534,16 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                 return Column(
                                   children: [
                                     // قائمة المواد
-                                    ...materials.map((material) => Padding(
-                                      padding: const EdgeInsets.only(bottom: 12),
-                                      child: _buildMaterialItem(material),
-                                    )).toList(),
+                                    ...materials
+                                        .map(
+                                          (material) => Padding(
+                                            padding: const EdgeInsets.only(
+                                              bottom: 12,
+                                            ),
+                                            child: _buildMaterialItem(material),
+                                          ),
+                                        )
+                                        .toList(),
                                     const SizedBox(height: 16),
                                   ],
                                 );
@@ -490,15 +570,23 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                       Text(
                                         state.message,
                                         textAlign: TextAlign.center,
-                                        style: const TextStyle(color: Colors.grey),
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                        ),
                                       ),
                                       const SizedBox(height: 16),
                                       ElevatedButton(
                                         onPressed: () {
                                           if (widget.pendingInvoiceId != null) {
-                                            context.read<SellBloc>().add(LoadSellDetails(widget.pendingInvoiceId!));
+                                            context.read<SellBloc>().add(
+                                              LoadSellDetails(
+                                                widget.pendingInvoiceId!,
+                                              ),
+                                            );
                                           } else {
-                                            context.read<SellBloc>().add(LoadSellProcesses());
+                                            context.read<SellBloc>().add(
+                                              LoadSellProcesses(),
+                                            );
                                           }
                                         },
                                         child: const Text('إعادة المحاولة'),
@@ -507,7 +595,9 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                   ),
                                 );
                               }
-                              return const Center(child: Text('جاري تحميل بيانات الفاتورة...'));
+                              return const Center(
+                                child: Text('جاري تحميل بيانات الفاتورة...'),
+                              );
                             },
                           ),
 
@@ -520,11 +610,17 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                 total = state.sell.totalPrice;
                               } else if (state is SellLoaded) {
                                 // البحث عن الفاتورة الحالية للعميل من السيرفر
-                                List<sell_models.SellModel> customerInvoices = state.items.where((item) =>
-                                  item.customerName == widget.name &&
-                                  item.customerPhone == widget.phone
-                                ).toList();
-                                
+                                List<sell_models.SellModel> customerInvoices =
+                                    state.items
+                                        .where(
+                                          (item) =>
+                                              item.customerName ==
+                                                  widget.name &&
+                                              item.customerPhone ==
+                                                  widget.phone,
+                                        )
+                                        .toList();
+
                                 // البحث عن الفاتورة المعلقة (الحالية)
                                 sell_models.SellModel? currentInvoice;
                                 for (var invoice in customerInvoices) {
@@ -533,19 +629,22 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                     break;
                                   }
                                 }
-                                
+
                                 // إذا لم توجد فاتورة معلقة، خذ آخر فاتورة
-                                if (currentInvoice == null && customerInvoices.isNotEmpty) {
-                                  customerInvoices.sort((a, b) => b.id.compareTo(a.id));
+                                if (currentInvoice == null &&
+                                    customerInvoices.isNotEmpty) {
+                                  customerInvoices.sort(
+                                    (a, b) => b.id.compareTo(a.id),
+                                  );
                                   currentInvoice = customerInvoices.first;
                                 }
-                                
+
                                 // حساب المجموع من الفاتورة الحالية
                                 if (currentInvoice != null) {
                                   total = currentInvoice.totalPrice;
                                 }
                               }
-                              
+
                               // عرض المجموع فقط إذا كان هناك بيانات
                               if (total > 0) {
                                 return Container(
@@ -562,30 +661,45 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                     ],
                                   ),
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       const Text(
                                         'مجموع الفاتورة الحالية',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
-                                          color: Color.fromARGB(255, 28, 98, 32)
+                                          color: Color.fromARGB(
+                                            255,
+                                            28,
+                                            98,
+                                            32,
+                                          ),
                                         ),
                                       ),
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
                                         children: [
                                           Text(
-                                            NumberFormat.decimalPattern().format(total.toInt()),
+                                            NumberFormat.decimalPattern()
+                                                .format(total.toInt()),
                                             style: const TextStyle(
-                                              color:Color.fromARGB(255, 28, 98, 32),
+                                              color: Color.fromARGB(
+                                                255,
+                                                28,
+                                                98,
+                                                32,
+                                              ),
                                               fontWeight: FontWeight.bold,
                                               fontSize: 18,
                                             ),
                                           ),
                                           const Text(
                                             'دينار',
-                                            style: TextStyle(color: Colors.grey),
+                                            style: TextStyle(
+                                              color: Colors.grey,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -604,8 +718,9 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                               if (state is SellDetailsLoaded) {
                                 // عرض زر التالي للفاتورة المحددة من السيرفر
                                 sell_models.SellModel invoice = state.sell;
-                                List<dynamic> materials = invoice.getAllMaterials();
-                                
+                                List<dynamic> materials =
+                                    invoice.getAllMaterials();
+
                                 if (materials.isEmpty) {
                                   return const SizedBox.shrink();
                                 }
@@ -617,27 +732,37 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => ConfirmSellPage(
-                                            customer: vendor_models.VendorModel(
-                                              id: 0,
-                                              name: widget.name,
-                                              phoneNumber: widget.phone,
-                                              deleted: false,
-                                              invoices: [],
-                                            ),
-                                            materials: materials,
-                                            fridgeName: '',
-                                            sellType: 'قطاعي',
-                                            totalPrice: invoice.totalPrice,
-                                            saleDate: DateTime.now(),
-                                            invoiceNumber: widget.pendingInvoiceId,
-                                          ),
+                                          builder:
+                                              (context) => ConfirmSellPage(
+                                                customer:
+                                                    vendor_models.VendorModel(
+                                                      id: 0,
+                                                      name: widget.name,
+                                                      phoneNumber: widget.phone,
+                                                      deleted: false,
+                                                      invoices: [],
+                                                    ),
+                                                materials: materials,
+                                                fridgeName: '',
+                                                sellType: 'قطاعي',
+                                                totalPrice: invoice.totalPrice,
+                                                saleDate: DateTime.now(),
+                                                invoiceNumber:
+                                                    widget.pendingInvoiceId,
+                                              ),
                                         ),
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color.fromARGB(255, 28, 98, 32),
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      backgroundColor: const Color.fromARGB(
+                                        255,
+                                        28,
+                                        98,
+                                        32,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
@@ -654,11 +779,17 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                 );
                               } else if (state is SellLoaded) {
                                 // البحث عن الفاتورة الحالية للعميل من السيرفر
-                                List<sell_models.SellModel> customerInvoices = state.items.where((item) =>
-                                  item.customerName == widget.name &&
-                                  item.customerPhone == widget.phone
-                                ).toList();
-                                
+                                List<sell_models.SellModel> customerInvoices =
+                                    state.items
+                                        .where(
+                                          (item) =>
+                                              item.customerName ==
+                                                  widget.name &&
+                                              item.customerPhone ==
+                                                  widget.phone,
+                                        )
+                                        .toList();
+
                                 // البحث عن الفاتورة المعلقة (الحالية)
                                 sell_models.SellModel? currentInvoice;
                                 for (var invoice in customerInvoices) {
@@ -667,20 +798,24 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                     break;
                                   }
                                 }
-                                
+
                                 // إذا لم توجد فاتورة معلقة، خذ آخر فاتورة
-                                if (currentInvoice == null && customerInvoices.isNotEmpty) {
-                                  customerInvoices.sort((a, b) => b.id.compareTo(a.id));
+                                if (currentInvoice == null &&
+                                    customerInvoices.isNotEmpty) {
+                                  customerInvoices.sort(
+                                    (a, b) => b.id.compareTo(a.id),
+                                  );
                                   currentInvoice = customerInvoices.first;
                                 }
-                                
+
                                 if (currentInvoice == null) {
                                   return const SizedBox.shrink();
                                 }
 
                                 // عرض زر التالي للفاتورة الحالية
-                                List<dynamic> materials = currentInvoice.getAllMaterials();
-                                
+                                List<dynamic> materials =
+                                    currentInvoice.getAllMaterials();
+
                                 if (materials.isEmpty) {
                                   return const SizedBox.shrink();
                                 }
@@ -692,27 +827,38 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => ConfirmSellPage(
-                                            customer: vendor_models.VendorModel(
-                                              id: 0,
-                                              name: widget.name,
-                                              phoneNumber: widget.phone,
-                                              deleted: false,
-                                              invoices: [],
-                                            ),
-                                            materials: materials,
-                                            fridgeName: '',
-                                            sellType: 'قطاعي',
-                                            totalPrice: currentInvoice!.totalPrice,
-                                            saleDate: DateTime.now(),
-                                            invoiceNumber: currentInvoice!.id,
-                                          ),
+                                          builder:
+                                              (context) => ConfirmSellPage(
+                                                customer:
+                                                    vendor_models.VendorModel(
+                                                      id: 0,
+                                                      name: widget.name,
+                                                      phoneNumber: widget.phone,
+                                                      deleted: false,
+                                                      invoices: [],
+                                                    ),
+                                                materials: materials,
+                                                fridgeName: '',
+                                                sellType: 'قطاعي',
+                                                totalPrice:
+                                                    currentInvoice!.totalPrice,
+                                                saleDate: DateTime.now(),
+                                                invoiceNumber:
+                                                    currentInvoice!.id,
+                                              ),
                                         ),
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color.fromARGB(255, 28, 98, 32),
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      backgroundColor: const Color.fromARGB(
+                                        255,
+                                        28,
+                                        98,
+                                        32,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
@@ -750,10 +896,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Text(
-            '$label: ',
-            style: const TextStyle(color: Colors.grey),
-          ),
+          Text('$label: ', style: const TextStyle(color: Colors.grey)),
           Text(value),
         ],
       ),
@@ -767,7 +910,8 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: isActive ? Color.fromARGB(255, 28, 98, 32): Colors.grey[300],
+            color:
+                isActive ? Color.fromARGB(255, 28, 98, 32) : Colors.grey[300],
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -876,20 +1020,25 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: materialType.contains('spoiled') 
-                          ? const Color(0xFFFFEBEE) 
-                          : const Color(0xFFE8F5E9),
+                      color:
+                          materialType.contains('spoiled')
+                              ? const Color(0xFFFFEBEE)
+                              : const Color(0xFFE8F5E9),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       isRate ? 'بيع بالكوترة' : 'بيع عادي',
                       style: TextStyle(
                         fontSize: 12,
-                        color: materialType.contains('spoiled') 
-                            ? Colors.red 
-                            : const Color.fromARGB(255, 28, 98, 32),
+                        color:
+                            materialType.contains('spoiled')
+                                ? Colors.red
+                                : const Color.fromARGB(255, 28, 98, 32),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -898,7 +1047,11 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                   // Delete Button
                   GestureDetector(
                     onTap: () {
-                      _showDeleteConfirmation(materialId, materialType, materialName);
+                      _showDeleteConfirmation(
+                        materialId,
+                        materialType,
+                        materialName,
+                      );
                     },
                     child: Container(
                       padding: const EdgeInsets.all(8),
@@ -919,11 +1072,11 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
             ],
           ),
           const SizedBox(height: 12),
-          Row( 
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [ 
+            children: [
               Expanded(
-                child: Column( 
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (weight != null && weight > 0)
@@ -933,7 +1086,10 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                     if (price != null && price > 0)
                       _buildDetailRow('سعر الوحدة', '${price.toInt()} دينار'),
                     _buildDetailRow('البراد', truckName),
-                    _buildDetailRow('نوع المادة', _getMaterialTypeDisplay(materialType, isQuantity)),
+                    _buildDetailRow(
+                      'نوع المادة',
+                      _getMaterialTypeDisplay(materialType, isQuantity),
+                    ),
                   ],
                 ),
               ),
@@ -963,10 +1119,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                   const SizedBox(height: 4),
                   const Text(
                     'دينار',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ],
               ),
@@ -977,11 +1130,16 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
     );
   }
 
-  void _showDeleteConfirmation(int materialId, String materialType, String materialName) {
+  void _showDeleteConfirmation(
+    int materialId,
+    String materialType,
+    String materialName,
+  ) {
     // Generate unique ID based on material type
-    String uniqueId = materialType.startsWith('spoiled') 
-        ? 's${materialType.startsWith('spoiledConsignment') ? 'c' : 'm'}$materialId'
-        : '${materialType.startsWith('consignment') ? 'c' : 'm'}$materialId';
+    String uniqueId =
+        materialType.startsWith('spoiled')
+            ? 's${materialType.startsWith('spoiledConsignment') ? 'c' : 'm'}$materialId'
+            : '${materialType.startsWith('consignment') ? 'c' : 'm'}$materialId';
 
     showDialog(
       context: context,
@@ -1027,10 +1185,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                 Text(
                   'هل أنت متأكد من حذف المادة "$materialName"؟',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.black87,
-                  ),
+                  style: const TextStyle(fontSize: 16, color: Colors.black87),
                 ),
                 const SizedBox(height: 24),
                 // Buttons
@@ -1066,11 +1221,13 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.of(context).pop();
-                          context.read<SellBloc>().add(DeleteSellMaterial(
-                            materialId: materialId,
-                            materialType: materialType,
-                            uniqueId: uniqueId,
-                          ));
+                          context.read<SellBloc>().add(
+                            DeleteSellMaterial(
+                              materialId: materialId,
+                              materialType: materialType,
+                              uniqueId: uniqueId,
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
@@ -1106,7 +1263,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
   String _getMaterialTypeDisplay(String materialType, bool isQuantity) {
     String baseType = '';
     String measurementType = isQuantity ? 'عدد' : 'وزن';
-    
+
     // تحديد النوع الأساسي
     if (materialType.contains('consignment')) {
       baseType = 'صافي';
@@ -1125,13 +1282,13 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
           baseType = materialType;
       }
     }
-    
+
     // إضافة كلمة "فاسد" إذا كان النوع يحتوي على spoiled
     if (materialType.contains('spoiled')) {
       return '$baseType فاسد $measurementType';
     }
-    
+
     // إرجاع النوع مع طريقة القياس
     return '$baseType $measurementType';
   }
-} 
+}
