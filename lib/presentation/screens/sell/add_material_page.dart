@@ -26,7 +26,7 @@ class AddMaterialPage extends StatefulWidget {
 
 class _AddMaterialPageState extends State<AddMaterialPage> {
   String sellType = 'عادي';
-  TextEditingController commissionController = TextEditingController();
+  TextEditingController totalCommissionController = TextEditingController();
   TextEditingController traderCommissionController = TextEditingController();
   TextEditingController officeCommissionController = TextEditingController();
   TextEditingController brokerageController = TextEditingController();
@@ -35,9 +35,14 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
   TextEditingController quantityController = TextEditingController();
   TextEditingController priceController = TextEditingController();
   TextEditingController searchController = TextEditingController();
+  TextEditingController workerPieceRateController = TextEditingController();
+  TextEditingController traderPieceRateController = TextEditingController();
+  double traderCommissionSlider = 0.0;
+  double officeCommissionSlider = 0.0;
   double traderPieceRate = 30.0;
   double officePieceRate = 40.0;
   double workerPieceRate = 30.0;
+  String officeCommissionType = 'دينار';
   String selectedTruck = '';
   int selectedTruckIndex = -1;
   MaterialsModel? selectedMaterial;
@@ -72,11 +77,20 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
     super.initState();
     context.read<MaterialsBloc>().add(LoadMaterials());
     searchController.addListener(_filterMaterials);
+    
+    traderCommissionController.addListener(_validateCommissionSum);
+    officeCommissionController.addListener(_validateCommissionSum);
+    brokerageController.addListener(_validateCommissionSum);
+    totalCommissionController.addListener(_updateCommissionFields);
+    totalCommissionController.addListener(_validateWeightMarkupCommissions);
+    totalCommissionController.addListener(_updateCommissionSliders);
+    pieceRateController.addListener(_validateWeightMarkupWorkerBroker);
+    workerPieceRateController.addListener(_validateWeightMarkupWorkerBroker);
   }
 
   @override
   void dispose() {
-    commissionController.dispose();
+    totalCommissionController.dispose();
     traderCommissionController.dispose();
     officeCommissionController.dispose();
     brokerageController.dispose();
@@ -85,6 +99,8 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
     quantityController.dispose();
     priceController.dispose();
     searchController.dispose();
+    workerPieceRateController.dispose();
+    traderPieceRateController.dispose();
     super.dispose();
   }
 
@@ -170,7 +186,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
     // البيع العادي
     if (materialType == "markup" && selectedMaterial!.isQuantity) {
       // خابط عدد: أرسل الوزن والعدد معًا
-      commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
+      commissionPercentage = double.tryParse(totalCommissionController.text) ?? 0;
       traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
       officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
       brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
@@ -180,7 +196,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
       officePiecePercentage = officePieceRate;
     } else if (materialType == "markup" && !selectedMaterial!.isQuantity) {
       // خابط وزن: أرسل الوزن فقط
-      commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
+      commissionPercentage = double.tryParse(totalCommissionController.text) ?? 0;
       traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
       officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
       pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
@@ -189,7 +205,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
     } else if (materialType == "consignment") {
       // الصافي: أرسل العدد أو الوزن أو الاثنين معًا
       isRate = false; // أو اجعلها اختيار من الواجهة لاحقًا
-      commissionPercentage = commissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(commissionController.text) ?? '') : null;
+      commissionPercentage = double.tryParse(totalCommissionController.text) ?? 0;
       pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
       workerPiecePercentage = workerPieceRate;
       brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
@@ -665,44 +681,358 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
   }
 
   Widget _buildWholesaleOptions() {
+    final String? type = selectedMaterial?.materialType;
+    final bool? isQty = selectedMaterial?.isQuantity;
+    final double totalCommission = double.tryParse(totalCommissionController.text) ?? 0;
+
+    // التأكد من أن قيم السلايدر لا تتجاوز نسبة العمولة
+    if (traderCommissionSlider > totalCommission) {
+      traderCommissionSlider = totalCommission;
+    }
+    if (officeCommissionSlider > totalCommission) {
+      officeCommissionSlider = totalCommission;
+    }
+
+    // التحقق من مجموع نسب العمولة للخابط عدد
+    void _validateMarkupQtyCommissions() {
+      if (selectedMaterial?.materialType == 'markup' && selectedMaterial?.isQuantity == true) {
+        double totalCommission = double.tryParse(totalCommissionController.text) ?? 0;
+        double trader = double.tryParse(traderCommissionController.text) ?? 0;
+        double office = double.tryParse(officeCommissionController.text) ?? 0;
+        double broker = double.tryParse(brokerageController.text) ?? 0;
+        double sum = trader + office + broker;
+        if (sum != totalCommission) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('مجموع نسب التاجر والمكتب والدلالية يجب أن يساوي نسبة العمولة ($totalCommission%)'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+
+    // التحقق من مجموع نسب أجور القطعة
+    void _validateMarkupQtyPieceRates() {
+      if (selectedMaterial?.materialType == 'markup' && selectedMaterial?.isQuantity == true) {
+        double sum = traderPieceRate + officePieceRate + workerPieceRate;
+        if (sum != 100) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('مجموع نسب أجور القطعة يجب أن يساوي 100%'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+
+    // خابط عدد
+    if (type == 'markup' && isQty == true) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // نسبة العمولة
+          _buildCommissionCard(
+            title: "نسبة العمولة (%)",
+            controller: totalCommissionController,
+          ),
+          const SizedBox(height: 16),
+          // توزيع نسبة العمولة
+          const Text(
+            "توزيع نسبة العمولة (يجب أن يساوي نسبة العمولة)",
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _buildCommissionCard(
+            title: "نسبة التاجر من العمولة (%)",
+            controller: traderCommissionController,
+            onChanged: (_) => _validateMarkupQtyCommissions(),
+          ),
+          const SizedBox(height: 8),
+          _buildCommissionCard(
+            title: "نسبة المكتب من العمولة (%)",
+            controller: officeCommissionController,
+            onChanged: (_) => _validateMarkupQtyCommissions(),
+          ),
+          const SizedBox(height: 8),
+          _buildCommissionCard(
+            title: "نسبة الدلالية (%)",
+            controller: brokerageController,
+            onChanged: (_) => _validateMarkupQtyCommissions(),
+          ),
+          const SizedBox(height: 16),
+          // أجور القطعة
+          _buildCommissionCard(
+            title: "أجور القطعة (دينار)",
+            controller: pieceRateController,
+          ),
+          const SizedBox(height: 16),
+          // توزيع نسب أجور القطعة
+          const Text(
+            "توزيع نسب أجور القطعة (يجب أن يساوي 100%)",
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _buildRateCardWithSlider(
+            title: "نسبة التاجر من أجور القطعة",
+            value: traderPieceRate,
+            onChanged: (val) {
+              setState(() => traderPieceRate = val);
+              _validateMarkupQtyPieceRates();
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildRateCardWithSlider(
+            title: "نسبة المكتب من أجور القطعة",
+            value: officePieceRate,
+            onChanged: (val) {
+              setState(() => officePieceRate = val);
+              _validateMarkupQtyPieceRates();
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildRateCardWithSlider(
+            title: "نسبة العامل من أجور القطعة",
+            value: workerPieceRate,
+            onChanged: (val) {
+              setState(() => workerPieceRate = val);
+              _validateMarkupQtyPieceRates();
+            },
+          ),
+        ],
+      );
+    }
+    
+    // خابط وزن
+    if (type == 'markup' && isQty == false) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // نسبة العمولة
+          _buildCommissionCard(
+            title: "نسبة العمولة",
+            controller: totalCommissionController,
+          ),
+          const SizedBox(height: 16),
+          
+          // توزيع نسبة العمولة (شرائط سحب)
+          const Text(
+            "توزيع نسبة العمولة",
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          
+          // نسبة التاجر (سلايدر)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "نسبة التاجر من العمولة (${traderCommissionSlider.toInt()}%)",
+                style: const TextStyle(
+                  color: Color.fromARGB(255, 28, 98, 32),
+                  fontSize: 14,
+                ),
+              ),
+              Slider(
+                value: traderCommissionSlider,
+                onChanged: (val) {
+                  setState(() {
+                    traderCommissionSlider = val;
+                    officeCommissionSlider = totalCommission - val;
+                  });
+                  _validateWeightMarkupCommissions();
+                },
+                min: 0,
+                max: totalCommission,
+                divisions: 100,
+                activeColor: Color.fromARGB(255, 28, 98, 32),
+                inactiveColor: const Color(0xFFCFE8D7),
+              ),
+            ],
+          ),
+          
+          // نسبة المكتب (سلايدر)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "نسبة المكتب من العمولة (${officeCommissionSlider.toInt()}%)",
+                style: const TextStyle(
+                  color: Color.fromARGB(255, 28, 98, 32),
+                  fontSize: 14,
+                ),
+              ),
+              Slider(
+                value: officeCommissionSlider,
+                onChanged: (val) {
+                  setState(() {
+                    officeCommissionSlider = val;
+                    traderCommissionSlider = totalCommission - val;
+                  });
+                  _validateWeightMarkupCommissions();
+                },
+                min: 0,
+                max: totalCommission,
+                divisions: 100,
+                activeColor: Color.fromARGB(255, 28, 98, 32),
+                inactiveColor: const Color(0xFFCFE8D7),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // أجور العمل لكل كيلو
+          _buildCommissionCard(
+            title: "أجور العمل لكل كيلو",
+            controller: pieceRateController,
+          ),
+          const SizedBox(height: 16),
+          
+          // نسبة العامل
+          _buildCommissionCard(
+            title: "نسبة العامل",
+            controller: workerPieceRateController,
+          ),
+          const SizedBox(height: 8),
+          
+          // نسبة الدلالية
+          _buildCommissionCard(
+            title: "نسبة الدلالية",
+            controller: brokerageController,
+          ),
+        ],
+      );
+    }
+
+    // صافي عدد أو صافي وزن
+    if (type == 'consignment' && sellType == "بالكوترة") {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Radio Buttons لاختيار نوع العمولة
+          const Text(
+            "نوع عمولة المكتب",
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 14,
+            ),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: RadioListTile<String>(
+                  title: const Text("بالدينار"),
+                  value: 'دينار',
+                  groupValue: officeCommissionType,
+                  onChanged: (val) {
+                    setState(() {
+                      officeCommissionType = val!;
+                      officeCommissionController.clear();
+                    });
+                  },
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  activeColor: Color(0xFF1C6220),
+                ),
+              ),
+              Expanded(
+                child: RadioListTile<String>(
+                  title: const Text("بالمئوية"),
+                  value: 'مئوية',
+                  groupValue: officeCommissionType,
+                  onChanged: (val) {
+                    setState(() {
+                      officeCommissionType = val!;
+                      officeCommissionController.clear();
+                    });
+                  },
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  activeColor: Color(0xFF1C6220),
+                ),
+              ),
+            ],
+          ),
+          // الحقل المناسب حسب الاختيار
+          if (officeCommissionType == 'دينار')
+            _buildCommissionCard(
+              title: "عمولة المكتب بالدينار",
+              controller: officeCommissionController,
+            ),
+          if (officeCommissionType == 'مئوية')
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "عمولة المكتب بالمئة",
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 28, 98, 32),
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "${officePieceRate.toInt()}%",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Color.fromARGB(255, 28, 98, 32),
+                  ),
+                ),
+                Slider(
+                  value: officePieceRate,
+                  onChanged: (val) => setState(() => officePieceRate = val),
+                  min: 0,
+                  max: 100,
+                  divisions: 100,
+                  activeColor: Color.fromARGB(255, 28, 98, 32),
+                  inactiveColor: const Color(0xFFCFE8D7),
+                ),
+              ],
+            ),
+          const SizedBox(height: 8),
+          // حقل أجور نقل القطعة الواحدة
+          _buildCommissionCard(
+            title: "أجور نقل القطعة الواحدة",
+            controller: pieceRateController,
+          ),
+          const SizedBox(height: 8),
+          // نسبة العامل
+          _buildCommissionCard(
+            title: "نسبة العامل",
+            controller: workerPieceRateController,
+          ),
+          const SizedBox(height: 8),
+          // نسبة الدلالية
+          _buildCommissionCard(
+            title: "نسبة الدلالية",
+            controller: brokerageController,
+          ),
+        ],
+      );
+    }
+
+    // الحالة الافتراضية (البيع العادي)
     return Column(
       children: [
         _buildCommissionCard(
-          title: "نسبة التاجر من العمولة",
-          controller: traderCommissionController,
-        ),
-        const SizedBox(height: 8),
-        _buildCommissionCard(
-          title: "نسبة المكتب من العمولة",
-          controller: officeCommissionController,
-        ),
-        const SizedBox(height: 8),
-        _buildCommissionCard(
-          title: "نسبة الدلالية",
-          controller: brokerageController,
+          title: "نسبة العمولة",
+          controller: totalCommissionController,
         ),
         const SizedBox(height: 8),
         _buildCommissionCard(
           title: "أجور القطعة",
           controller: pieceRateController,
-        ),
-        const SizedBox(height: 8),
-        _buildRateCardWithSlider(
-          title: "نسبة التاجر من أجور القطعة",
-          value: traderPieceRate,
-          onChanged: (val) => setState(() => traderPieceRate = val),
-        ),
-        const SizedBox(height: 8),
-        _buildRateCardWithSlider(
-          title: "نسبة العامل من أجور القطعة",
-          value: workerPieceRate,
-          onChanged: (val) => setState(() => workerPieceRate = val),
-        ),
-        const SizedBox(height: 8),
-        _buildRateCardWithSlider(
-          title: "نسبة المكتب من أجور القطعة",
-          value: officePieceRate,
-          onChanged: (val) => setState(() => officePieceRate = val),
         ),
       ],
     );
@@ -711,6 +1041,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
   Widget _buildCommissionCard({
     required String title,
     required TextEditingController controller,
+    Function(String)? onChanged,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -744,6 +1075,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
             child: TextField(
               controller: controller,
               keyboardType: TextInputType.number,
+              onChanged: onChanged,
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                 border: OutlineInputBorder(
@@ -822,5 +1154,108 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
   bool _isMaterialSelected(MaterialsModel material) {
     if (selectedMaterialUniqueId == null) return false;
     return selectedMaterialUniqueId == _generateUniqueId(material);
+  }
+
+  // التحقق من مجموع نسب العمولة
+  void _validateCommissionSum() {
+    if (selectedMaterial?.materialType == 'markup' && selectedMaterial?.isQuantity == true) {
+      double totalCommission = double.tryParse(totalCommissionController.text) ?? 0;
+      double traderCommission = double.tryParse(traderCommissionController.text) ?? 0;
+      double officeCommission = double.tryParse(officeCommissionController.text) ?? 0;
+      double brokerageCommission = double.tryParse(brokerageController.text) ?? 0;
+      
+      double sum = traderCommission + officeCommission + brokerageCommission;
+      
+      if (sum != totalCommission) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('مجموع النسب يجب أن يساوي $totalCommission%'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // تحديث حقول النسب عند تغيير النسبة الإجمالية
+  void _updateCommissionFields() {
+    if (selectedMaterial?.materialType == 'markup' && selectedMaterial?.isQuantity == true) {
+      double totalCommission = double.tryParse(totalCommissionController.text) ?? 0;
+      // توزيع النسبة بالتساوي
+      double individualShare = totalCommission / 3;
+      
+      traderCommissionController.text = individualShare.toString();
+      officeCommissionController.text = individualShare.toString();
+      brokerageController.text = individualShare.toString();
+    }
+  }
+
+  // التحقق من مجموع نسب العمولة للخابط وزن
+  void _validateWeightMarkupCommissions() {
+    if (selectedMaterial?.materialType == 'markup' && selectedMaterial?.isQuantity == false) {
+      double totalCommission = double.tryParse(totalCommissionController.text) ?? 0;
+      double sum = traderCommissionSlider + officeCommissionSlider;
+      
+      if (sum != totalCommission) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('مجموع نسب التاجر والمكتب يجب أن يساوي $totalCommission%'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // التحقق من مجموع نسب العامل والدلالية للخابط وزن
+  void _validateWeightMarkupWorkerBroker() {
+    if (selectedMaterial?.materialType == 'markup' && selectedMaterial?.isQuantity == false) {
+      double pieceRate = double.tryParse(pieceRateController.text) ?? 0;
+      double workerRate = double.tryParse(workerPieceRateController.text) ?? 0;
+      double brokerRate = double.tryParse(brokerageController.text) ?? 0;
+      double sum = workerRate + brokerRate;
+      
+      if (sum != pieceRate) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('مجموع نسب العامل والدلالية يجب أن يساوي $pieceRate'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // تحديث قيم السلايدر عند تغيير نسبة العمولة
+  void _updateCommissionSliders() {
+    if (selectedMaterial?.materialType == 'markup' && selectedMaterial?.isQuantity == false) {
+      double totalCommission = double.tryParse(totalCommissionController.text) ?? 0;
+      setState(() {
+        // توزيع النسبة بالتساوي بين التاجر والمكتب
+        traderCommissionSlider = totalCommission / 2;
+        officeCommissionSlider = totalCommission / 2;
+      });
+    }
+  }
+
+  // التحقق من مجموع نسب أجور القطعة
+  void _validatePieceRateSum() {
+    if (selectedMaterial?.materialType == 'markup' && selectedMaterial?.isQuantity == true) {
+      double pieceRate = double.tryParse(pieceRateController.text) ?? 0;
+      double traderRate = double.tryParse(traderPieceRateController.text) ?? 0;
+      double workerRate = double.tryParse(workerPieceRateController.text) ?? 0;
+      double brokerRate = double.tryParse(brokerageController.text) ?? 0;
+      
+      double sum = traderRate + workerRate + brokerRate;
+      
+      if (sum != pieceRate) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('مجموع نسب أجور القطعة يجب أن يساوي $pieceRate'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
