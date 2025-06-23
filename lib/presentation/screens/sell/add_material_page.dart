@@ -137,9 +137,16 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
   void _handleAddMaterial() {
     if (selectedMaterial == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرجاء اختيار مادة'),
+        SnackBar(
+          content: const Text('الرجاء اختيار مادة'),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(milliseconds: 400),
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height - 100,
+            right: 10,
+            left: 10,
+          ),
         ),
       );
       return;
@@ -147,9 +154,16 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
 
     if (weightController.text.isEmpty && quantityController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرجاء إدخال الوزن أو الكمية'),
+        SnackBar(
+          content: const Text('الرجاء إدخال الوزن أو الكمية'),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(milliseconds: 400),
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height - 100,
+            right: 10,
+            left: 10,
+          ),
         ),
       );
       return;
@@ -157,9 +171,16 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
 
     if (priceController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرجاء إدخال السعر'),
+        SnackBar(
+          content: const Text('الرجاء إدخال السعر'),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(milliseconds: 400),
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height - 100,
+            right: 10,
+            left: 10,
+          ),
         ),
       );
       return;
@@ -173,6 +194,8 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         ? double.tryParse(_validateAndConvertNumber(weightController.text) ?? '')
         : null;
     double price = double.parse(_validateAndConvertNumber(priceController.text) ?? '0');
+
+    // متغيرات العمولة وأجور النقل
     double? commissionPercentage;
     double? traderCommissionPercentage;
     double? officeCommissionPercentage;
@@ -181,34 +204,129 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
     double? traderPiecePercentage;
     double? workerPiecePercentage;
     double? officePiecePercentage;
+    double? brokerPiecePercentage;
     bool? isRate;
 
-    // البيع العادي
+    // منطق البيع بالكوترة
+    if (sellType == "بالكوترة") {
+      if (materialType == "consignment") {
+        // صافي وزن أو عدد - إرسال كـ spoiledConsignment
+        isRate = officeCommissionType == 'مئوية';
+        commissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
+        pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+        workerPiecePercentage = workerPieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(workerPieceRateController.text) ?? '') : null;
+        brokerPiecePercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+        // إرسال فقط الحقول المطلوبة للصافي كوترة
+        context.read<SellBloc>().add(
+          AddMaterialToSaleProcess(
+            saleProcessId: widget.saleProcessId ?? 1,
+            materialId: selectedMaterial!.id,
+            materialType: "spoiledConsignment", // تغيير نوع المادة للكوترة
+            quantity: quantity,
+            weight: weight,
+            price: price,
+            isRate: isRate,
+            commissionPercentage: commissionPercentage,
+            pieceFees: pieceFees,
+            workerPiecePercentage: workerPiecePercentage,
+            brokerPiecePercentage: brokerPiecePercentage,
+            materialUniqueId: selectedMaterialUniqueId,
+          ),
+        );
+        return;
+      } else if (materialType == "markup" && selectedMaterial!.isQuantity) {
+        // خابط عدد - إرسال كـ spoiledMarkup
+        commissionPercentage = totalCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(totalCommissionController.text) ?? '') : null;
+        traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
+        officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
+        brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+        pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+        traderPiecePercentage = traderPieceRate;
+        workerPiecePercentage = workerPieceRate;
+        officePiecePercentage = officePieceRate;
+        context.read<SellBloc>().add(
+          AddMaterialToSaleProcess(
+            saleProcessId: widget.saleProcessId ?? 1,
+            materialId: selectedMaterial!.id,
+            materialType: "spoiledMarkup", // تغيير نوع المادة للكوترة
+            quantity: quantity,
+            weight: weight,
+            price: price,
+            commissionPercentage: commissionPercentage,
+            traderCommissionPercentage: traderCommissionPercentage,
+            officeCommissionPercentage: officeCommissionPercentage,
+            brokerCommissionPercentage: brokerCommissionPercentage,
+            pieceFees: pieceFees,
+            traderPiecePercentage: traderPiecePercentage,
+            workerPiecePercentage: workerPiecePercentage,
+            officePiecePercentage: officePiecePercentage,
+            materialUniqueId: selectedMaterialUniqueId,
+          ),
+        );
+        return;
+      } else if (materialType == "markup" && !selectedMaterial!.isQuantity) {
+        // خابط وزن - إرسال كـ spoiledMarkup
+        commissionPercentage = totalCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(totalCommissionController.text) ?? '') : null;
+        traderCommissionPercentage = traderCommissionSlider;
+        officeCommissionPercentage = officeCommissionSlider;
+        pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+        workerPiecePercentage = workerPieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(workerPieceRateController.text) ?? '') : null;
+        brokerPiecePercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+        context.read<SellBloc>().add(
+          AddMaterialToSaleProcess(
+            saleProcessId: widget.saleProcessId ?? 1,
+            materialId: selectedMaterial!.id,
+            materialType: "spoiledMarkup", // تغيير نوع المادة للكوترة
+            quantity: quantity,
+            weight: weight,
+            price: price,
+            commissionPercentage: commissionPercentage,
+            traderCommissionPercentage: traderCommissionPercentage,
+            officeCommissionPercentage: officeCommissionPercentage,
+            pieceFees: pieceFees,
+            workerPiecePercentage: workerPiecePercentage,
+            brokerPiecePercentage: brokerPiecePercentage,
+            materialUniqueId: selectedMaterialUniqueId,
+          ),
+        );
+        return;
+      }
+    }
+
+    // البيع العادي (الكود القديم)
+    // ... الكود السابق كما هو ...
+    double? commissionPercentageOld;
+    double? traderCommissionPercentageOld;
+    double? officeCommissionPercentageOld;
+    double? brokerCommissionPercentageOld;
+    double? pieceFeesOld;
+    double? traderPiecePercentageOld;
+    double? workerPiecePercentageOld;
+    double? officePiecePercentageOld;
+    bool? isRateOld;
+
     if (materialType == "markup" && selectedMaterial!.isQuantity) {
-      // خابط عدد: أرسل الوزن والعدد معًا
-      commissionPercentage = double.tryParse(totalCommissionController.text) ?? 0;
-      traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
-      officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
-      brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
-      pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
-      traderPiecePercentage = traderPieceRate;
-      workerPiecePercentage = workerPieceRate;
-      officePiecePercentage = officePieceRate;
+      commissionPercentageOld = double.tryParse(totalCommissionController.text) ?? 0;
+      traderCommissionPercentageOld = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
+      officeCommissionPercentageOld = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
+      brokerCommissionPercentageOld = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+      pieceFeesOld = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+      traderPiecePercentageOld = traderPieceRate;
+      workerPiecePercentageOld = workerPieceRate;
+      officePiecePercentageOld = officePieceRate;
     } else if (materialType == "markup" && !selectedMaterial!.isQuantity) {
-      // خابط وزن: أرسل الوزن فقط
-      commissionPercentage = double.tryParse(totalCommissionController.text) ?? 0;
-      traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
-      officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
-      pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
-      workerPiecePercentage = workerPieceRate;
-      brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+      commissionPercentageOld = double.tryParse(totalCommissionController.text) ?? 0;
+      traderCommissionPercentageOld = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
+      officeCommissionPercentageOld = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
+      pieceFeesOld = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+      workerPiecePercentageOld = workerPieceRate;
+      brokerCommissionPercentageOld = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
     } else if (materialType == "consignment") {
-      // الصافي: أرسل العدد أو الوزن أو الاثنين معًا
-      isRate = false; // أو اجعلها اختيار من الواجهة لاحقًا
-      commissionPercentage = double.tryParse(totalCommissionController.text) ?? 0;
-      pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
-      workerPiecePercentage = workerPieceRate;
-      brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+      isRateOld = false;
+      commissionPercentageOld = double.tryParse(totalCommissionController.text) ?? 0;
+      pieceFeesOld = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
+      workerPiecePercentageOld = workerPieceRate;
+      brokerCommissionPercentageOld = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
     }
 
     context.read<SellBloc>().add(
@@ -219,15 +337,15 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         quantity: quantity,
         weight: weight,
         price: price,
-        commissionPercentage: commissionPercentage,
-        traderCommissionPercentage: traderCommissionPercentage,
-        officeCommissionPercentage: officeCommissionPercentage,
-        brokerCommissionPercentage: brokerCommissionPercentage,
-        pieceFees: pieceFees,
-        traderPiecePercentage: traderPiecePercentage,
-        workerPiecePercentage: workerPiecePercentage,
-        officePiecePercentage: officePiecePercentage,
-        isRate: sellType == "بالكوترة",
+        commissionPercentage: commissionPercentageOld,
+        traderCommissionPercentage: traderCommissionPercentageOld,
+        officeCommissionPercentage: officeCommissionPercentageOld,
+        brokerCommissionPercentage: brokerCommissionPercentageOld,
+        pieceFees: pieceFeesOld,
+        traderPiecePercentage: traderPiecePercentageOld,
+        workerPiecePercentage: workerPiecePercentageOld,
+        officePiecePercentage: officePiecePercentageOld,
+        isRate: isRateOld,
         materialUniqueId: selectedMaterialUniqueId,
       ),
     );
@@ -246,6 +364,13 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                 SnackBar(
                   content: Text(state.message),
                   backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(milliseconds: 400),
+                  margin: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).size.height - 100,
+                    right: 10,
+                    left: 10,
+                  ),
                 ),
               );
             }
@@ -259,9 +384,16 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
               listener: (context, sellState) {
                 if (sellState is SellConfirmed) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('تم إضافة المادة بنجاح'),
+                    SnackBar(
+                      content: const Text('تم إضافة المادة بنجاح'),
                       backgroundColor: Colors.green,
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(milliseconds: 400),
+                      margin: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).size.height - 100,
+                        right: 10,
+                        left: 10,
+                      ),
                     ),
                   );
                   // تحديث بيانات البيع بعد إضافة المادة
@@ -272,6 +404,13 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                     SnackBar(
                       content: Text(sellState.message),
                       backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(milliseconds: 400),
+                      margin: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).size.height - 100,
+                        right: 10,
+                        left: 10,
+                      ),
                     ),
                   );
                 }
@@ -706,6 +845,13 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
             SnackBar(
               content: Text('مجموع نسب التاجر والمكتب والدلالية يجب أن يساوي نسبة العمولة ($totalCommission%)'),
               backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(milliseconds: 400),
+              margin: EdgeInsets.only(
+                bottom: MediaQuery.of(context).size.height - 100,
+                right: 10,
+                left: 10,
+              ),
             ),
           );
         }
@@ -718,9 +864,16 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         double sum = traderPieceRate + officePieceRate + workerPieceRate;
         if (sum != 100) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('مجموع نسب أجور القطعة يجب أن يساوي 100%'),
+            SnackBar(
+              content: const Text('مجموع نسب أجور القطعة يجب أن يساوي 100%'),
               backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(milliseconds: 400),
+              margin: EdgeInsets.only(
+                bottom: MediaQuery.of(context).size.height - 100,
+                right: 10,
+                left: 10,
+              ),
             ),
           );
         }
@@ -1171,6 +1324,13 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
           SnackBar(
             content: Text('مجموع النسب يجب أن يساوي $totalCommission%'),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(milliseconds: 400),
+            margin: EdgeInsets.only(
+              bottom: MediaQuery.of(context).size.height - 100,
+              right: 10,
+              left: 10,
+            ),
           ),
         );
       }
@@ -1201,6 +1361,13 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
           SnackBar(
             content: Text('مجموع نسب التاجر والمكتب يجب أن يساوي $totalCommission%'),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(milliseconds: 400),
+            margin: EdgeInsets.only(
+              bottom: MediaQuery.of(context).size.height - 100,
+              right: 10,
+              left: 10,
+            ),
           ),
         );
       }
@@ -1220,6 +1387,13 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
           SnackBar(
             content: Text('مجموع نسب العامل والدلالية يجب أن يساوي $pieceRate'),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(milliseconds: 400),
+            margin: EdgeInsets.only(
+              bottom: MediaQuery.of(context).size.height - 100,
+              right: 10,
+              left: 10,
+            ),
           ),
         );
       }
@@ -1253,6 +1427,13 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
           SnackBar(
             content: Text('مجموع نسب أجور القطعة يجب أن يساوي $pieceRate'),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(milliseconds: 400),
+            margin: EdgeInsets.only(
+              bottom: MediaQuery.of(context).size.height - 100,
+              right: 10,
+              left: 10,
+            ),
           ),
         );
       }
