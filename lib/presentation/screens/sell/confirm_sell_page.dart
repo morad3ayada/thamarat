@@ -8,6 +8,7 @@ import '../../../data/models/vendor_model.dart' as vendor_models;
 import '../../screens/home_page.dart';
 import '../../../logic/blocs/profile/profile_bloc.dart';
 import '../../../logic/blocs/profile/profile_state.dart';
+import 'sell_details_page.dart';
 
 class ConfirmSellPage extends StatelessWidget {
   final vendor_models.VendorModel customer;
@@ -381,7 +382,20 @@ class ConfirmSellPage extends StatelessWidget {
                         children: [
                           Expanded(
                             child: OutlinedButton(
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () {
+                                // العودة إلى صفحة تفاصيل البيع مع تحديث البيانات
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SellDetailsPage(
+                                      name: customer.name,
+                                      phone: customer.phoneNumber,
+                                      customerId: customer.id,
+                                      pendingInvoiceId: invoiceNumber,
+                                    ),
+                                  ),
+                                );
+                              },
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 16,
@@ -499,136 +513,167 @@ class ConfirmSellPage extends StatelessWidget {
   }
 
   Widget _buildMaterialItem(dynamic material) {
+    String materialName = '';
+    String truckName = '';
+    double? quantity;
+    double? weight;
+    double? price;
+    String materialType = '';
+    int materialId = 0;
+    bool isQuantity = false;
+    double totalPrice = 0;
+    bool isRate = false;
+
+    // تحديد نوع المادة واستخراج البيانات
     if (material is sell_models.MaterialModel) {
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF9F9F9),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE0E0E0)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    material.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Color.fromARGB(255, 28, 98, 32),
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE8F5E9),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '${(material.price ?? 0).toInt()} دينار',
-                    style: const TextStyle(
-                      color: Color.fromARGB(255, 28, 98, 32),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (material.weight != null && material.weight! > 0)
-              _buildDetailRow('الوزن', '${material.weight} كجم'),
-            if (material.quantity != null && material.quantity! > 0)
-              _buildDetailRow('العدد', '${material.quantity}'),
-            _buildDetailRow('البراد', material.truckName.isNotEmpty ? material.truckName : 'غير محدد'),
-            if (material.sellerName.isNotEmpty)
-              _buildDetailRow('البائع', material.sellerName),
-          ],
-        ),
-      );
+      materialName = material.name;
+      truckName = material.truckName;
+      quantity = material.quantity;
+      weight = material.weight;
+      price = material.price;
+      materialType = material.materialType;
+      materialId = material.id;
+      isQuantity = material.isQuantity;
+      totalPrice = material.totalPrice;
+      isRate = false; // Normal materials are not rate-based
     } else if (material is sell_models.SpoiledMaterialModel) {
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF9F9F9),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE0E0E0)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    material.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Color.fromARGB(255, 28, 98, 32),
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFEBEE),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '${(material.price ?? 0).toInt()} دينار',
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (material.weight != null && material.weight! > 0)
-              _buildDetailRow('الوزن', '${material.weight} كجم'),
-            if (material.quantity != null && material.quantity! > 0)
-              _buildDetailRow('العدد', '${material.quantity}'),
-            _buildDetailRow('البراد', material.truckName.isNotEmpty ? material.truckName : 'غير محدد'),
-            if (material.sellerName.isNotEmpty)
-              _buildDetailRow('البائع', material.sellerName),
-            Container(
-              margin: const EdgeInsets.only(top: 8),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF3E0),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange),
-              ),
-              child: const Text(
-                'مادة تالفة',
-                style: TextStyle(
-                  color: Colors.orange,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    } else {
-      throw Exception("Unknown material type");
+      materialName = material.name;
+      truckName = material.truckName;
+      quantity = material.quantity;
+      weight = material.weight;
+      price = material.price;
+      materialType = material.materialType;
+      materialId = material.id;
+      isQuantity = material.isQuantity;
+      totalPrice = material.totalPrice;
+      isRate = material.isRate;
     }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9F9F9),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromARGB(255, 28, 98, 32),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  materialName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Color.fromARGB(255, 28, 98, 32),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row( 
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [ 
+              Expanded(
+                child: Column( 
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (weight != null && weight > 0)
+                      _buildDetailRow('الوزن', '${weight.toInt()} كيلو'),
+                    if (quantity != null && quantity > 0)
+                      _buildDetailRow('العدد', '${quantity.toInt()} قطعة'),
+                    if (price != null && price > 0)
+                      _buildDetailRow('سعر الوحدة', '${price.toInt()} دينار'),
+                    _buildDetailRow('البراد', truckName),
+                    _buildDetailRow('نوع المادة', _getMaterialTypeDisplay(materialType, isQuantity)),
+                    _buildDetailRow('نوع البيع', isRate ? 'بيع بالكوترة' : 'بيع عادي'),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color.fromARGB(255, 28, 98, 32),
+                      ),
+                    ),
+                    child: Text(
+                      '${totalPrice.toInt()}',
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 28, 98, 32),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'دينار',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // دالة لعرض نوع المادة باللغة العربية
+  // consignment = صافي (بيع عادي)
+  // markup = خابط (بيع بالعمولة)
+  // isQuantity = true = عدد، false = وزن
+  String _getMaterialTypeDisplay(String materialType, bool isQuantity) {
+    String baseType = '';
+    String measurementType = isQuantity ? 'عدد' : 'وزن';
+    
+    // تحديد النوع الأساسي
+    if (materialType.contains('consignment')) {
+      baseType = 'صافي';
+    } else if (materialType.contains('markup')) {
+      baseType = 'خابط';
+    } else {
+      // للأنواع الأخرى
+      switch (materialType) {
+        case 'consignment':
+          baseType = 'صافي';
+          break;
+        case 'markup':
+          baseType = 'خابط';
+          break;
+        default:
+          baseType = materialType;
+      }
+    }
+    
+    // إضافة كلمة "فاسد" إذا كان النوع يحتوي على spoiled
+    if (materialType.contains('spoiled')) {
+      return '$baseType فاسد $measurementType';
+    }
+    
+    // إرجاع النوع مع طريقة القياس
+    return '$baseType $measurementType';
   }
 
   Widget _buildDetailRow(String label, String value) {

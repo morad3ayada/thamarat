@@ -9,7 +9,12 @@ import '../../../data/models/vendor_model.dart' as vendor_models;
 import 'confirm_sell_page.dart';
 import 'add_material_page.dart';
 import 'package:thamarat/presentation/app_loader.dart';
+import 'sell_page.dart';
 
+// صفحة تفاصيل البيع - تعرض بيانات الفاتورة الحالية للعميل من السيرفر
+// إذا كان هناك pendingInvoiceId: تعرض تفاصيل الفاتورة المحددة من السيرفر
+// إذا لم يكن هناك pendingInvoiceId: تعرض الفاتورة الحالية (المعلقة) للعميل من السيرفر
+// جميع البيانات تأتي من السيرفر وتركز على الفاتورة الحالية للعميل
 class SellDetailsPage extends StatefulWidget {
   final String name;
   final String phone;
@@ -32,7 +37,14 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
   @override
   void initState() {
     super.initState();
-    context.read<SellBloc>().add(LoadSellProcesses());
+    // تحميل بيانات الفاتورة الحالية للعميل من السيرفر
+    if (widget.pendingInvoiceId != null) {
+      // تحميل تفاصيل الفاتورة المحددة
+      context.read<SellBloc>().add(LoadSellDetails(widget.pendingInvoiceId!));
+    } else {
+      // تحميل الفاتورة الحالية للعميل من السيرفر
+      context.read<SellBloc>().add(LoadSellProcesses());
+    }
   }
 
   @override
@@ -48,6 +60,12 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                 backgroundColor: Colors.green,
               ),
             );
+            // تحديث البيانات من السيرفر بعد الحذف
+            if (widget.pendingInvoiceId != null) {
+              context.read<SellBloc>().add(LoadSellDetails(widget.pendingInvoiceId!));
+            } else {
+              context.read<SellBloc>().add(LoadSellProcesses());
+            }
           } else if (state is SellError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -61,7 +79,12 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
           backgroundColor: const Color(0xFFF9F9F9),
           body: RefreshIndicator(
             onRefresh: () async {
-              context.read<SellBloc>().add(LoadSellProcesses());
+              // تحديث البيانات من السيرفر
+              if (widget.pendingInvoiceId != null) {
+                context.read<SellBloc>().add(LoadSellDetails(widget.pendingInvoiceId!));
+              } else {
+                context.read<SellBloc>().add(LoadSellProcesses());
+              }
             },
             color: const Color.fromARGB(255, 28, 98, 32),
             child: Column(
@@ -81,7 +104,15 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                   child: Row(
                     children: [
                       GestureDetector(
-                        onTap: () => Navigator.pop(context),
+                        onTap: () {
+                          // العودة إلى صفحة البيع مع تحديث البيانات
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SellPage(),
+                            ),
+                          );
+                        },
                         child: const Icon(
                           Icons.arrow_back_ios_new,
                           color: Color.fromARGB(255, 28, 98, 32) ,
@@ -294,51 +325,189 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                           BlocBuilder<SellBloc, SellState>(
                             builder: (context, state) {
                               if (state is SellLoading) {
-                                return const Center(child: AppLoader(message: 'جاري تحميل الفواتير...'));
-                              } else if (state is SellLoaded) {
-                                List<sell_models.SellModel> customerItems;
+                                return const Center(child: AppLoader(message: 'جاري تحميل بيانات الفاتورة الحالية...'));
+                              } else if (state is SellDetailsLoaded) {
+                                // عرض تفاصيل الفاتورة المحددة من السيرفر
+                                sell_models.SellModel invoice = state.sell;
+                                List<dynamic> materials = invoice.getAllMaterials();
                                 
-                                if (widget.pendingInvoiceId != null) {
-                                  customerItems = state.items.where((item) =>
-                                    item.id == widget.pendingInvoiceId
-                                  ).toList();
-                                } else {
-                                  customerItems = state.items.where((item) =>
-                                    item.customerName == widget.name &&
-                                    item.customerPhone == widget.phone
-                                  ).toList();
-                                }
-                                
-                                if (customerItems.isEmpty) {
-                                  return const Center(child: Text('لا توجد فواتير لهذا الزبون'));
+                                if (materials.isEmpty) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(32),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.inventory_2_outlined,
+                                          color: Colors.grey,
+                                          size: 64,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        const Text(
+                                          'لا توجد مواد في الفاتورة الحالية',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        const Text(
+                                          'قم بإضافة مواد للفاتورة',
+                                          style: TextStyle(color: Colors.grey),
+                                        ),
+                                      ],
+                                    ),
+                                  );
                                 }
 
                                 return Column(
-                                  children: customerItems.map((invoice) {
-                                    // جمع جميع المواد من الفاتورة
-                                    List<dynamic> materials = invoice.getAllMaterials();
-                                    
-                                    if (materials.isEmpty) {
-                                      return const SizedBox.shrink();
-                                    }
-
-                                    return Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // قائمة المواد
+                                    ...materials.map((material) => Padding(
+                                      padding: const EdgeInsets.only(bottom: 12),
+                                      child: _buildMaterialItem(material),
+                                    )).toList(),
+                                    const SizedBox(height: 16),
+                                  ],
+                                );
+                              } else if (state is SellLoaded) {
+                                // البحث عن الفاتورة الحالية للعميل من السيرفر
+                                List<sell_models.SellModel> customerInvoices = state.items.where((item) =>
+                                  item.customerName == widget.name &&
+                                  item.customerPhone == widget.phone
+                                ).toList();
+                                
+                                // البحث عن الفاتورة المعلقة (الحالية)
+                                sell_models.SellModel? currentInvoice;
+                                for (var invoice in customerInvoices) {
+                                  // البحث عن الفاتورة التي لم يتم إرسالها للمكتب (معلقة)
+                                  if (!invoice.sentToOffice) {
+                                    currentInvoice = invoice;
+                                    break;
+                                  }
+                                }
+                                
+                                // إذا لم توجد فاتورة معلقة، خذ آخر فاتورة
+                                if (currentInvoice == null && customerInvoices.isNotEmpty) {
+                                  customerInvoices.sort((a, b) => b.id.compareTo(a.id));
+                                  currentInvoice = customerInvoices.first;
+                                }
+                                
+                                if (currentInvoice == null) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(32),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        // قائمة المواد
-                                        ...materials.map((material) => Padding(
-                                          padding: const EdgeInsets.only(bottom: 12),
-                                          child: _buildMaterialItem(material),
-                                        )).toList(),
+                                        const Icon(
+                                          Icons.receipt_long_outlined,
+                                          color: Colors.grey,
+                                          size: 64,
+                                        ),
                                         const SizedBox(height: 16),
+                                        const Text(
+                                          'لا توجد فاتورة حالية لهذا العميل',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        const Text(
+                                          'قم بإنشاء فاتورة جديدة',
+                                          style: TextStyle(color: Colors.grey),
+                                        ),
                                       ],
-                                    );
-                                  }).toList(),
+                                    ),
+                                  );
+                                }
+                                
+                                // عرض الفاتورة الحالية
+                                List<dynamic> materials = currentInvoice!.getAllMaterials();
+                                
+                                if (materials.isEmpty) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(32),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.inventory_2_outlined,
+                                          color: Colors.grey,
+                                          size: 64,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        const Text(
+                                          'لا توجد مواد في الفاتورة الحالية',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        const Text(
+                                          'قم بإضافة مواد للفاتورة',
+                                          style: TextStyle(color: Colors.grey),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+
+                                return Column(
+                                  children: [
+                                    // قائمة المواد
+                                    ...materials.map((material) => Padding(
+                                      padding: const EdgeInsets.only(bottom: 12),
+                                      child: _buildMaterialItem(material),
+                                    )).toList(),
+                                    const SizedBox(height: 16),
+                                  ],
                                 );
                               } else if (state is SellError) {
-                                return Center(child: Text(state.message));
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.error_outline,
+                                        color: Colors.red,
+                                        size: 64,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      const Text(
+                                        'خطأ في تحميل بيانات الفاتورة',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        state.message,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(color: Colors.grey),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          if (widget.pendingInvoiceId != null) {
+                                            context.read<SellBloc>().add(LoadSellDetails(widget.pendingInvoiceId!));
+                                          } else {
+                                            context.read<SellBloc>().add(LoadSellProcesses());
+                                          }
+                                        },
+                                        child: const Text('إعادة المحاولة'),
+                                      ),
+                                    ],
+                                  ),
+                                );
                               }
-                              return const SizedBox();
+                              return const Center(child: Text('جاري تحميل بيانات الفاتورة...'));
                             },
                           ),
 
@@ -346,69 +515,85 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                           BlocBuilder<SellBloc, SellState>(
                             builder: (context, state) {
                               double total = 0;
-                              if (state is SellLoaded) {
-                                List<sell_models.SellModel> customerItems;
+                              if (state is SellDetailsLoaded) {
+                                // حساب المجموع من الفاتورة المحددة من السيرفر
+                                total = state.sell.totalPrice;
+                              } else if (state is SellLoaded) {
+                                // البحث عن الفاتورة الحالية للعميل من السيرفر
+                                List<sell_models.SellModel> customerInvoices = state.items.where((item) =>
+                                  item.customerName == widget.name &&
+                                  item.customerPhone == widget.phone
+                                ).toList();
                                 
-                                if (widget.pendingInvoiceId != null) {
-                                  customerItems = state.items.where((item) =>
-                                    item.id == widget.pendingInvoiceId
-                                  ).toList();
-                                } else {
-                                  customerItems = state.items.where((item) =>
-                                    item.customerName == widget.name &&
-                                    item.customerPhone == widget.phone
-                                  ).toList();
+                                // البحث عن الفاتورة المعلقة (الحالية)
+                                sell_models.SellModel? currentInvoice;
+                                for (var invoice in customerInvoices) {
+                                  if (!invoice.sentToOffice) {
+                                    currentInvoice = invoice;
+                                    break;
+                                  }
                                 }
                                 
-                                // حساب المجموع من جميع الفواتير
-                                for (var invoice in customerItems) {
-                                  total += invoice.totalPrice;
+                                // إذا لم توجد فاتورة معلقة، خذ آخر فاتورة
+                                if (currentInvoice == null && customerInvoices.isNotEmpty) {
+                                  customerInvoices.sort((a, b) => b.id.compareTo(a.id));
+                                  currentInvoice = customerInvoices.first;
+                                }
+                                
+                                // حساب المجموع من الفاتورة الحالية
+                                if (currentInvoice != null) {
+                                  total = currentInvoice.totalPrice;
                                 }
                               }
-                              return Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color.fromARGB(255, 28, 98, 32),
-                                      blurRadius: 4,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text(
-                                      'المجموع الكلي',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color: Color.fromARGB(255, 28, 98, 32)
+                              
+                              // عرض المجموع فقط إذا كان هناك بيانات
+                              if (total > 0) {
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Color.fromARGB(255, 28, 98, 32),
+                                        blurRadius: 4,
+                                        offset: Offset(0, 2),
                                       ),
-                                    ),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          NumberFormat.decimalPattern().format(total.toInt()),
-                                          style: const TextStyle(
-                                            color:Color.fromARGB(255, 28, 98, 32),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        'مجموع الفاتورة الحالية',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Color.fromARGB(255, 28, 98, 32)
+                                        ),
+                                      ),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            NumberFormat.decimalPattern().format(total.toInt()),
+                                            style: const TextStyle(
+                                              color:Color.fromARGB(255, 28, 98, 32),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                            ),
                                           ),
-                                        ),
-                                        const Text(
-                                          'دينار',
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              );
+                                          const Text(
+                                            'دينار',
+                                            style: TextStyle(color: Colors.grey),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                              return const SizedBox.shrink();
                             },
                           ),
                           const SizedBox(height: 16),
@@ -416,38 +601,13 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                           // Next Button
                           BlocBuilder<SellBloc, SellState>(
                             builder: (context, state) {
-                              if (state is SellLoaded) {
-                                List<sell_models.SellModel> customerItems;
+                              if (state is SellDetailsLoaded) {
+                                // عرض زر التالي للفاتورة المحددة من السيرفر
+                                sell_models.SellModel invoice = state.sell;
+                                List<dynamic> materials = invoice.getAllMaterials();
                                 
-                                if (widget.pendingInvoiceId != null) {
-                                  customerItems = state.items.where((item) =>
-                                    item.id == widget.pendingInvoiceId
-                                  ).toList();
-                                } else {
-                                  customerItems = state.items.where((item) =>
-                                    item.customerName == widget.name &&
-                                    item.customerPhone == widget.phone
-                                  ).toList();
-                                }
-                                
-                                if (customerItems.isEmpty) {
+                                if (materials.isEmpty) {
                                   return const SizedBox.shrink();
-                                }
-
-                                // جمع جميع المواد من جميع الفواتير
-                                List<dynamic> allMaterials = [];
-                                for (var item in customerItems) {
-                                  allMaterials.addAll(item.getAllMaterials());
-                                }
-
-                                if (allMaterials.isEmpty) {
-                                  return const SizedBox.shrink();
-                                }
-
-                                // حساب المجموع
-                                double total = 0;
-                                for (var item in customerItems) {
-                                  total += item.totalPrice;
                                 }
 
                                 return SizedBox(
@@ -465,12 +625,87 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                               deleted: false,
                                               invoices: [],
                                             ),
-                                            materials: allMaterials,
+                                            materials: materials,
                                             fridgeName: '',
                                             sellType: 'قطاعي',
-                                            totalPrice: total,
+                                            totalPrice: invoice.totalPrice,
                                             saleDate: DateTime.now(),
                                             invoiceNumber: widget.pendingInvoiceId,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color.fromARGB(255, 28, 98, 32),
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'التالي',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              } else if (state is SellLoaded) {
+                                // البحث عن الفاتورة الحالية للعميل من السيرفر
+                                List<sell_models.SellModel> customerInvoices = state.items.where((item) =>
+                                  item.customerName == widget.name &&
+                                  item.customerPhone == widget.phone
+                                ).toList();
+                                
+                                // البحث عن الفاتورة المعلقة (الحالية)
+                                sell_models.SellModel? currentInvoice;
+                                for (var invoice in customerInvoices) {
+                                  if (!invoice.sentToOffice) {
+                                    currentInvoice = invoice;
+                                    break;
+                                  }
+                                }
+                                
+                                // إذا لم توجد فاتورة معلقة، خذ آخر فاتورة
+                                if (currentInvoice == null && customerInvoices.isNotEmpty) {
+                                  customerInvoices.sort((a, b) => b.id.compareTo(a.id));
+                                  currentInvoice = customerInvoices.first;
+                                }
+                                
+                                if (currentInvoice == null) {
+                                  return const SizedBox.shrink();
+                                }
+
+                                // عرض زر التالي للفاتورة الحالية
+                                List<dynamic> materials = currentInvoice.getAllMaterials();
+                                
+                                if (materials.isEmpty) {
+                                  return const SizedBox.shrink();
+                                }
+
+                                return SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ConfirmSellPage(
+                                            customer: vendor_models.VendorModel(
+                                              id: 0,
+                                              name: widget.name,
+                                              phoneNumber: widget.phone,
+                                              deleted: false,
+                                              invoices: [],
+                                            ),
+                                            materials: materials,
+                                            fridgeName: '',
+                                            sellType: 'قطاعي',
+                                            totalPrice: currentInvoice!.totalPrice,
+                                            saleDate: DateTime.now(),
+                                            invoiceNumber: currentInvoice!.id,
                                           ),
                                         ),
                                       );
@@ -649,7 +884,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      isRate ? 'بيع بالكوترة' : (isCounter ? 'بالكوترة' : 'عادي'),
+                      isRate ? 'بيع بالكوترة' : 'بيع عادي',
                       style: TextStyle(
                         fontSize: 12,
                         color: materialType.contains('spoiled') 
@@ -698,7 +933,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                     if (price != null && price > 0)
                       _buildDetailRow('سعر الوحدة', '${price.toInt()} دينار'),
                     _buildDetailRow('البراد', truckName),
-                    _buildDetailRow('نوع المادة', _getMaterialTypeDisplay(materialType)),
+                    _buildDetailRow('نوع المادة', _getMaterialTypeDisplay(materialType, isQuantity)),
                   ],
                 ),
               ),
@@ -864,18 +1099,39 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
     );
   }
 
-  String _getMaterialTypeDisplay(String materialType) {
-    switch (materialType) {
-      case 'consignment':
-        return 'صافي وزن';
-      case 'markup':
-        return 'صافي عدد';
-      case 'spoiledConsignment':
-        return 'خابط وزن';
-      case 'spoiledMarkup':
-        return 'خابط عدد';
-      default:
-        return materialType;
+  // دالة لعرض نوع المادة باللغة العربية
+  // consignment = صافي (بيع عادي)
+  // markup = خابط (بيع بالعمولة)
+  // isQuantity = true = عدد، false = وزن
+  String _getMaterialTypeDisplay(String materialType, bool isQuantity) {
+    String baseType = '';
+    String measurementType = isQuantity ? 'عدد' : 'وزن';
+    
+    // تحديد النوع الأساسي
+    if (materialType.contains('consignment')) {
+      baseType = 'صافي';
+    } else if (materialType.contains('markup')) {
+      baseType = 'خابط';
+    } else {
+      // للأنواع الأخرى
+      switch (materialType) {
+        case 'consignment':
+          baseType = 'صافي';
+          break;
+        case 'markup':
+          baseType = 'خابط';
+          break;
+        default:
+          baseType = materialType;
+      }
     }
+    
+    // إضافة كلمة "فاسد" إذا كان النوع يحتوي على spoiled
+    if (materialType.contains('spoiled')) {
+      return '$baseType فاسد $measurementType';
+    }
+    
+    // إرجاع النوع مع طريقة القياس
+    return '$baseType $measurementType';
   }
 } 
