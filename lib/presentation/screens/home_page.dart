@@ -294,6 +294,7 @@ class _HeaderSectionState extends State<HeaderSection> {
             const SnackBar(
               content: Text('تم إرسال الرسالة بنجاح'),
               backgroundColor: Colors.green,
+              duration: Duration(milliseconds: 500),
             ),
           );
         } else if (state is MessageSendingError) {
@@ -301,6 +302,7 @@ class _HeaderSectionState extends State<HeaderSection> {
             SnackBar(
               content: Text(state.message),
               backgroundColor: Colors.red,
+              duration: const Duration(milliseconds: 500),
             ),
           );
         }

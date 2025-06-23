@@ -190,6 +190,7 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
             SnackBar(
               content: Text(state.message),
               backgroundColor: Colors.red,
+              duration: const Duration(milliseconds: 500),
               action: SnackBarAction(
                 label: 'إعادة المحاولة',
                 textColor: Colors.white,

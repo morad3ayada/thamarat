@@ -148,6 +148,7 @@ class _MyAppState extends State<MyApp> {
                   SnackBar(
                     content: Text(state.message),
                     backgroundColor: Colors.red,
+                    duration: const Duration(milliseconds: 500),
                   ),
                 );
               } else if (state is AuthInitial) {
@@ -162,7 +163,7 @@ class _MyAppState extends State<MyApp> {
                     const SnackBar(
                       content: Text('تم تسجيل الخروج بنجاح'),
                       backgroundColor: Colors.green,
-                      duration: Duration(seconds: 2),
+                      duration: Duration(milliseconds: 500),
                     ),
                   );
                 }

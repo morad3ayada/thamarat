@@ -140,13 +140,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         SnackBar(
           content: const Text('الرجاء اختيار مادة'),
           backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(milliseconds: 400),
-          margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height - 100,
-            right: 10,
-            left: 10,
-          ),
+          duration: const Duration(milliseconds: 500),
         ),
       );
       return;
@@ -157,13 +151,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         SnackBar(
           content: const Text('الرجاء إدخال الوزن أو الكمية'),
           backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(milliseconds: 400),
-          margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height - 100,
-            right: 10,
-            left: 10,
-          ),
+          duration: const Duration(milliseconds: 500),
         ),
       );
       return;
@@ -174,13 +162,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         SnackBar(
           content: const Text('الرجاء إدخال السعر'),
           backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(milliseconds: 400),
-          margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height - 100,
-            right: 10,
-            left: 10,
-          ),
+          duration: const Duration(milliseconds: 500),
         ),
       );
       return;
@@ -364,13 +346,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                 SnackBar(
                   content: Text(state.message),
                   backgroundColor: Colors.red,
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(milliseconds: 400),
-                  margin: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).size.height - 100,
-                    right: 10,
-                    left: 10,
-                  ),
+                  duration: const Duration(milliseconds: 500),
                 ),
               );
             }
@@ -382,18 +358,12 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
             
             return BlocListener<SellBloc, SellState>(
               listener: (context, sellState) {
-                if (sellState is SellConfirmed) {
+                if (sellState is MaterialAdded) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: const Text('تم إضافة المادة بنجاح'),
                       backgroundColor: Colors.green,
-                      behavior: SnackBarBehavior.floating,
-                      duration: const Duration(milliseconds: 400),
-                      margin: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).size.height - 100,
-                        right: 10,
-                        left: 10,
-                      ),
+                      duration: const Duration(milliseconds: 500),
                     ),
                   );
                   // تحديث بيانات البيع بعد إضافة المادة
@@ -404,13 +374,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                     SnackBar(
                       content: Text(sellState.message),
                       backgroundColor: Colors.red,
-                      behavior: SnackBarBehavior.floating,
-                      duration: const Duration(milliseconds: 400),
-                      margin: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).size.height - 100,
-                        right: 10,
-                        left: 10,
-                      ),
+                      duration: const Duration(milliseconds: 500),
                     ),
                   );
                 }
@@ -845,13 +809,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
             SnackBar(
               content: Text('مجموع نسب التاجر والمكتب والدلالية يجب أن يساوي نسبة العمولة ($totalCommission%)'),
               backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(milliseconds: 400),
-              margin: EdgeInsets.only(
-                bottom: MediaQuery.of(context).size.height - 100,
-                right: 10,
-                left: 10,
-              ),
+              duration: const Duration(milliseconds: 500),
             ),
           );
         }
@@ -867,13 +825,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
             SnackBar(
               content: const Text('مجموع نسب أجور القطعة يجب أن يساوي 100%'),
               backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(milliseconds: 400),
-              margin: EdgeInsets.only(
-                bottom: MediaQuery.of(context).size.height - 100,
-                right: 10,
-                left: 10,
-              ),
+              duration: const Duration(milliseconds: 500),
             ),
           );
         }
@@ -1324,13 +1276,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
           SnackBar(
             content: Text('مجموع النسب يجب أن يساوي $totalCommission%'),
             backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(milliseconds: 400),
-            margin: EdgeInsets.only(
-              bottom: MediaQuery.of(context).size.height - 100,
-              right: 10,
-              left: 10,
-            ),
+            duration: const Duration(milliseconds: 500),
           ),
         );
       }
@@ -1361,13 +1307,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
           SnackBar(
             content: Text('مجموع نسب التاجر والمكتب يجب أن يساوي $totalCommission%'),
             backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(milliseconds: 400),
-            margin: EdgeInsets.only(
-              bottom: MediaQuery.of(context).size.height - 100,
-              right: 10,
-              left: 10,
-            ),
+            duration: const Duration(milliseconds: 500),
           ),
         );
       }
@@ -1387,13 +1327,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
           SnackBar(
             content: Text('مجموع نسب العامل والدلالية يجب أن يساوي $pieceRate'),
             backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(milliseconds: 400),
-            margin: EdgeInsets.only(
-              bottom: MediaQuery.of(context).size.height - 100,
-              right: 10,
-              left: 10,
-            ),
+            duration: const Duration(milliseconds: 500),
           ),
         );
       }
@@ -1427,13 +1361,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
           SnackBar(
             content: Text('مجموع نسب أجور القطعة يجب أن يساوي $pieceRate'),
             backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(milliseconds: 400),
-            margin: EdgeInsets.only(
-              bottom: MediaQuery.of(context).size.height - 100,
-              right: 10,
-              left: 10,
-            ),
+            duration: const Duration(milliseconds: 500),
           ),
         );
       }

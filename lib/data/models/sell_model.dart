@@ -7,6 +7,7 @@ class SellModel {
   final String sellerName;
   final bool sentToOffice;
   final DateTime createdAt;
+  final DateTime? updatedAt;
   final List<MaterialModel> materials;
   final List<SpoiledMaterialModel> spoiledMaterials;
 
@@ -19,6 +20,7 @@ class SellModel {
     required this.sellerName,
     required this.sentToOffice,
     required this.createdAt,
+    this.updatedAt,
     required this.materials,
     required this.spoiledMaterials,
   });
@@ -33,6 +35,9 @@ class SellModel {
       sellerName: json['sellerName'] as String? ?? '',
       sentToOffice: json['sentToOffice'] as bool? ?? false,
       createdAt: DateTime.parse(json['createdAt'] as String? ?? DateTime.now().toIso8601String()),
+      updatedAt: json['updatedAt'] != null 
+          ? DateTime.parse(json['updatedAt'] as String)
+          : null,
       materials: (json['materials'] as List<dynamic>?)
           ?.map((e) => MaterialModel.fromJson(e))
           .toList() ?? [],
@@ -52,6 +57,7 @@ class SellModel {
       'sellerName': sellerName,
       'sentToOffice': sentToOffice,
       'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
       'materials': materials.map((e) => e.toJson()).toList(),
       'spoiledMaterials': spoiledMaterials.map((e) => e.toJson()).toList(),
     };
@@ -77,6 +83,11 @@ class SellModel {
   // Helper method to get materials count
   int get materialsCount {
     return materials.length + spoiledMaterials.length;
+  }
+
+  // Helper method to get the most recent update time
+  DateTime get lastUpdateTime {
+    return updatedAt ?? createdAt;
   }
 }
 

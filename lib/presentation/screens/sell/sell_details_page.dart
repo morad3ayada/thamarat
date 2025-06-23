@@ -53,11 +53,12 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
       textDirection: TextDirection.rtl,
       child: BlocListener<SellBloc, SellState>(
         listener: (context, state) {
-          if (state is SellConfirmed) {
+          if (state is MaterialDeleted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('تم حذف المادة بنجاح'),
                 backgroundColor: Colors.green,
+                duration: Duration(milliseconds: 500),
               ),
             );
             // تحديث البيانات من السيرفر بعد الحذف
@@ -73,6 +74,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: Colors.red,
+                duration: const Duration(milliseconds: 500),
               ),
             );
           }
@@ -279,6 +281,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                         98,
                                         32,
                                       ),
+                                      duration: Duration(milliseconds: 500),
                                     ),
                                   );
                                   // Navigate to the same page with the new invoice ID
@@ -300,6 +303,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                     SnackBar(
                                       content: Text(state.message),
                                       backgroundColor: Colors.red,
+                                      duration: const Duration(milliseconds: 500),
                                     ),
                                   );
                                 }

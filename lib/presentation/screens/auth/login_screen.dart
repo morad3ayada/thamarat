@@ -47,6 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 SnackBar(
                   content: Text(state.message),
                   backgroundColor: Colors.red,
+                  duration: const Duration(milliseconds: 500),
                 ),
               );
             } else if (state is AuthSuccess) {

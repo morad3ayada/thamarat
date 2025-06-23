@@ -90,7 +90,7 @@ class SellBloc extends Bloc<SellEvent, SellState> {
         brokerPiecePercentage: event.brokerPiecePercentage,
         materialUniqueId: event.materialUniqueId,
       );
-      emit(SellConfirmed());
+      emit(MaterialAdded());
       add(LoadSellProcesses());
     } catch (e) {
       emit(SellError(e.toString()));
@@ -104,7 +104,7 @@ class SellBloc extends Bloc<SellEvent, SellState> {
         materialId: event.materialId,
         materialType: event.materialType,
       );
-      emit(SellConfirmed());
+      emit(MaterialDeleted());
       add(LoadSellProcesses());
     } catch (e) {
       emit(SellError(e.toString()));

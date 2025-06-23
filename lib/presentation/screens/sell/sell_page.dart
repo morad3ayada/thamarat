@@ -18,7 +18,7 @@ class SellPage extends StatefulWidget {
   State<SellPage> createState() => _SellPageState();
 }
 
-class _SellPageState extends State<SellPage> {
+class _SellPageState extends State<SellPage> with WidgetsBindingObserver {
   int selectedTab = 0;
   TextEditingController searchController = TextEditingController();
   List<VendorModel> filteredCustomers = [];
@@ -32,6 +32,7 @@ class _SellPageState extends State<SellPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     context.read<VendorBloc>().add(LoadVendors());
     context.read<SellBloc>().add(LoadSellProcesses());
     searchController.addListener(_filterCustomers);
@@ -39,8 +40,17 @@ class _SellPageState extends State<SellPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // تحديث البيانات عند العودة للتطبيق
+      context.read<SellBloc>().add(LoadSellProcesses());
+    }
   }
 
   void _filterCustomers() {
@@ -320,6 +330,18 @@ class _SellPageState extends State<SellPage> {
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
                             color: Color.fromARGB(255, 28, 98, 32)
+                          ),
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () {
+                            // تحديث البيانات
+                            context.read<SellBloc>().add(LoadSellProcesses());
+                            context.read<VendorBloc>().add(LoadVendors());
+                          },
+                          child: const Icon(
+                            Icons.refresh,
+                            color: Color.fromARGB(255, 28, 98, 32),
                           ),
                         ),
                       ],
@@ -606,7 +628,7 @@ class _SellPageState extends State<SellPage> {
                                                       ),
                                                       const SizedBox(width: 4),
                                                       Text(
-                                                        'آخر تحديث: ${_formatTime(invoice.createdAt)}',
+                                                        'آخر تحديث: ${_formatTime(invoice.lastUpdateTime)}',
                                                         style: const TextStyle(
                                                           fontSize: 12,
                                                           color: Colors.grey,

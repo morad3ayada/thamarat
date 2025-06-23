@@ -44,6 +44,10 @@ class SaleProcessCreated extends SellState {
 
 class SellConfirmed extends SellState {}
 
+class MaterialAdded extends SellState {}
+
+class MaterialDeleted extends SellState {}
+
 class SellError extends SellState {
   final String message;
   const SellError(this.message);

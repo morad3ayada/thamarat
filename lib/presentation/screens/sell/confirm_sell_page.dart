@@ -578,106 +578,200 @@ class ConfirmSellPage extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9F9F9),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color.fromARGB(255, 28, 98, 32),
-            blurRadius: 4,
-            offset: Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header with material name and type
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.eco,
+                  color: Color.fromARGB(255, 28, 98, 32),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   materialName,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 18,
                     color: Color.fromARGB(255, 28, 98, 32),
-                  ),
-                ),
-              ),
-              // نوع البيع بجانب اسم المادة
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: material is sell_models.SpoiledMaterialModel ? Colors.orange[50] : Colors.green[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  material is sell_models.SpoiledMaterialModel ? 'بيع بالكوترة' : 'بيع عادي',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: material is sell_models.SpoiledMaterialModel ? Colors.orange[800] : Color.fromARGB(255, 28, 98, 32),
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Row( 
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [ 
-              Expanded(
-                child: Column( 
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 20),
+          
+          // Material details in a structured layout
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8F9FA),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFFE9ECEF),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                // First row: Weight/Quantity and Price
+                Row(
                   children: [
-                    if (weight != null && weight > 0)
-                      _buildDetailRow('الوزن', '${weight.toInt()} كيلو'),
-                    if (quantity != null && quantity > 0)
-                      _buildDetailRow('العدد', '${quantity.toInt()} قطعة'),
-                    if (price != null && price > 0)
-                      _buildDetailRow('سعر الوحدة', '${price.toInt()} دينار'),
-                    _buildDetailRow('البراد', truckName),
-                    _buildDetailRow('نوع المادة', _getMaterialTypeDisplay(materialType, isQuantity)),
-                    _buildDetailRow('نوع البيع', isRate ? 'بيع بالكوترة' : 'بيع عادي'),
+                    Expanded(
+                      child: _buildDetailCard(
+                        icon: weight != null && weight > 0 
+                            ? Icons.scale 
+                            : Icons.numbers,
+                        label: weight != null && weight > 0 
+                            ? 'الوزن' 
+                            : 'العدد',
+                        value: weight != null && weight > 0 
+                            ? '${weight.toInt()} كيلو'
+                            : quantity != null && quantity > 0 
+                                ? '${quantity.toInt()} قطعة'
+                                : 'غير محدد',
+                        color: const Color(0xFFE3F2FD),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildDetailCard(
+                        icon: Icons.attach_money,
+                        label: 'سعر الوحدة',
+                        value: price != null && price > 0 
+                            ? '${price.toInt()} دينار'
+                            : 'غير محدد',
+                        color: const Color(0xFFF3E5F5),
+                      ),
+                    ),
                   ],
                 ),
+                const SizedBox(height: 12),
+                
+                // Second row: Truck and Material Type
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDetailCard(
+                        icon: Icons.local_shipping,
+                        label: 'البراد',
+                        value: truckName.isNotEmpty ? truckName : 'غير محدد',
+                        color: const Color(0xFFE8F5E9),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildDetailCard(
+                        icon: Icons.category,
+                        label: 'نوع المادة',
+                        value: _getMaterialTypeDisplay(materialType, isQuantity),
+                        color: const Color(0xFFFFF3E0),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                
+                // Third row: Sale Type and Total Price
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDetailCard(
+                        icon: material is sell_models.SpoiledMaterialModel 
+                            ? Icons.warning_amber_rounded 
+                            : Icons.shopping_cart,
+                        label: 'نوع البيع',
+                        value: material is sell_models.SpoiledMaterialModel 
+                            ? 'بيع بالكوترة' 
+                            : 'بيع عادي',
+                        color: material is sell_models.SpoiledMaterialModel 
+                            ? const Color(0xFFFFF3E0)
+                            : const Color(0xFFE8F5E9),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildDetailCard(
+                        icon: Icons.payments,
+                        label: 'السعر الإجمالي',
+                        value: '${totalPrice.toInt()} دينار',
+                        color: const Color(0xFFE1F5FE),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: const Color.fromARGB(255, 28, 98, 32),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5E9),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color.fromARGB(255, 28, 98, 32),
-                      ),
-                    ),
-                    child: Text(
-                      '${totalPrice.toInt()}',
-                      style: const TextStyle(
-                        color: Color.fromARGB(255, 28, 98, 32),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'دينار',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color.fromARGB(255, 28, 98, 32),
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -718,24 +812,6 @@ class ConfirmSellPage extends StatelessWidget {
     
     // إرجاع النوع مع طريقة القياس
     return '$baseType $measurementType';
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          Text(
-            '$label: ',
-            style: const TextStyle(color: Colors.grey, fontSize: 14),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 14, color: Color.fromARGB(255, 28, 98, 32)),
-          ),
-        ],
-      ),
-    );
   }
 
   void _showSaveConfirmationDialog(BuildContext context) {
