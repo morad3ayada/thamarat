@@ -269,8 +269,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                   },
                                             child: state is AuthLoading
                                                 ? const SizedBox(
-                                                    height: 20,
-                                                    width: 20,
+                                                   
                                                     child: AppLoader(),
                                                   )
                                                 : const Text(
