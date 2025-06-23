@@ -41,11 +41,16 @@ class ConfirmSellPage extends StatelessWidget {
     // استخدام رقم الفاتورة كما يأتي من السيرفر
     final String displayInvoiceNumber = invoiceNumber?.toString() ?? '---';
     
-    String getSellTypeText() {
-      if (sellType.toLowerCase().contains('كوتره') || sellType.toLowerCase().contains('quota')) {
+    // تحديد نوع البيع حسب نوع المواد
+    String getAutoSellTypeText() {
+      if (materials.isNotEmpty && materials.every((m) => m is sell_models.SpoiledMaterialModel)) {
         return 'بيع بالكوترة';
-      } else {
+      } else if (materials.isNotEmpty && materials.every((m) => m is sell_models.MaterialModel)) {
         return 'بيع عادي';
+      } else if (materials.isEmpty) {
+        return '-';
+      } else {
+        return 'متنوع';
       }
     }
     
@@ -315,7 +320,30 @@ class ConfirmSellPage extends StatelessWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                _buildInfoColumn('نوع البيع', getSellTypeText()),
+                                // نوع البيع مع لون مميز
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: getAutoSellTypeText() == 'بيع بالكوترة'
+                                        ? Colors.orange[50]
+                                        : getAutoSellTypeText() == 'بيع عادي'
+                                            ? Colors.green[50]
+                                            : Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    getAutoSellTypeText(),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: getAutoSellTypeText() == 'بيع بالكوترة'
+                                          ? Colors.orange[800]
+                                          : getAutoSellTypeText() == 'بيع عادي'
+                                              ? Color.fromARGB(255, 28, 98, 32)
+                                              : Colors.grey[700],
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
                                 _buildInfoColumn('عدد المواد', '${materials.length}'),
                               ],
                             ),
@@ -575,6 +603,22 @@ class ConfirmSellPage extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                     color: Color.fromARGB(255, 28, 98, 32),
+                  ),
+                ),
+              ),
+              // نوع البيع بجانب اسم المادة
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: material is sell_models.SpoiledMaterialModel ? Colors.orange[50] : Colors.green[50],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  material is sell_models.SpoiledMaterialModel ? 'بيع بالكوترة' : 'بيع عادي',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: material is sell_models.SpoiledMaterialModel ? Colors.orange[800] : Color.fromARGB(255, 28, 98, 32),
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),

@@ -1043,14 +1043,14 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isRate ? Colors.orange[50] : Colors.green[50],
+                  color: saleType == 'بيع بالكوترة' ? Colors.orange[50] : Colors.green[50],
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   saleType,
                   style: TextStyle(
                     fontSize: 12,
-                    color: isRate ? Colors.orange[800] : Color.fromARGB(255, 28, 98, 32),
+                    color: saleType == 'بيع بالكوترة' ? Colors.orange[800] : Color.fromARGB(255, 28, 98, 32),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
