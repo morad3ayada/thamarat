@@ -1105,6 +1105,17 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                     'دينار',
                     style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    tooltip: 'حذف',
+                    onPressed: () {
+                      _showDeleteConfirmation(
+                        materialId,
+                        materialType,
+                        materialName,
+                      );
+                    },
+                  ),
                 ],
               ),
             ],
