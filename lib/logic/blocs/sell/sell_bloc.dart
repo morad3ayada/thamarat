@@ -5,6 +5,7 @@ import 'package:thamarat/data/repositories/sell_repository.dart';
 
 class SellBloc extends Bloc<SellEvent, SellState> {
   final SellRepository sellRepository;
+  int? _lastPendingInvoiceId;
 
   SellBloc({required this.sellRepository}) : super(SellInitial()) {
     on<LoadSellProcesses>(_onLoadProcesses);
@@ -26,6 +27,7 @@ class SellBloc extends Bloc<SellEvent, SellState> {
   }
 
   Future<void> _onLoadDetails(LoadSellDetails event, Emitter<SellState> emit) async {
+    _lastPendingInvoiceId = event.id;
     emit(SellLoading());
     try {
       final details = await sellRepository.getSellDetails(event.id);
@@ -91,7 +93,11 @@ class SellBloc extends Bloc<SellEvent, SellState> {
         materialUniqueId: event.materialUniqueId,
       );
       emit(MaterialAdded());
-      add(LoadSellProcesses());
+      if (_lastPendingInvoiceId != null) {
+        add(LoadSellDetails(_lastPendingInvoiceId!));
+      } else {
+        add(LoadSellProcesses());
+      }
     } catch (e) {
       emit(SellError(e.toString()));
     }
@@ -105,7 +111,11 @@ class SellBloc extends Bloc<SellEvent, SellState> {
         materialType: event.materialType,
       );
       emit(MaterialDeleted());
-      add(LoadSellProcesses());
+      if (_lastPendingInvoiceId != null) {
+        add(LoadSellDetails(_lastPendingInvoiceId!));
+      } else {
+        add(LoadSellProcesses());
+      }
     } catch (e) {
       emit(SellError(e.toString()));
     }

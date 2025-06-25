@@ -233,7 +233,16 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                                 widget.pendingInvoiceId,
                                           ),
                                     ),
-                                  );
+                                  ).then((value) {
+                                    // بعد العودة من إضافة مادة، أعد تحميل البيانات تلقائيًا
+                                    if (widget.pendingInvoiceId != null) {
+                                      context.read<SellBloc>().add(
+                                        LoadSellDetails(widget.pendingInvoiceId!),
+                                      );
+                                    } else {
+                                      context.read<SellBloc>().add(LoadSellProcesses());
+                                    }
+                                  });
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Color.fromARGB(
@@ -1216,13 +1225,15 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.of(context).pop();
-                          context.read<SellBloc>().add(
-                            DeleteSellMaterial(
-                              materialId: materialId,
-                              materialType: materialType,
-                              uniqueId: uniqueId,
-                            ),
-                          );
+                          Future.delayed(const Duration(milliseconds: 100), () {
+                            context.read<SellBloc>().add(
+                              DeleteSellMaterial(
+                                materialId: materialId,
+                                materialType: materialType,
+                                uniqueId: uniqueId,
+                              ),
+                            );
+                          });
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,

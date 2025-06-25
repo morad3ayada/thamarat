@@ -367,7 +367,11 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                     ),
                   );
                   // تحديث بيانات البيع بعد إضافة المادة
-                  context.read<SellBloc>().add(LoadSellProcesses());
+                  if (widget.saleProcessId != null) {
+                    context.read<SellBloc>().add(LoadSellDetails(widget.saleProcessId!));
+                  } else {
+                    context.read<SellBloc>().add(LoadSellProcesses());
+                  }
                   Navigator.pop(context);
                 } else if (sellState is SellError) {
                   ScaffoldMessenger.of(context).showSnackBar(
