@@ -148,6 +148,25 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
       return;
     }
 
+    // تسجيل البيانات المدخلة
+    print('=== ADDING MATERIAL DEBUG ===');
+    print('Material Name: ${selectedMaterial!.name}');
+    print('Material ID: ${selectedMaterial!.id}');
+    print('Material Type: ${selectedMaterial!.materialType}');
+    print('Is Quantity: ${selectedMaterial!.isQuantity}');
+    print('Sell Type: $sellType');
+    print('Price: ${priceController.text}');
+    print('Quantity: ${quantityController.text}');
+    print('Weight: ${weightController.text}');
+    print('Office Commission Type: $officeCommissionType');
+    print('Office Commission: ${officeCommissionController.text}');
+    print('Total Commission: ${totalCommissionController.text}');
+    print('Trader Commission: ${traderCommissionController.text}');
+    print('Brokerage: ${brokerageController.text}');
+    print('Piece Rate: ${pieceRateController.text}');
+    print('Worker Piece Rate: ${workerPieceRateController.text}');
+    print('Selected Material Unique ID: $selectedMaterialUniqueId');
+
     // تحقق من شروط خابط عدد (markup + isQuantity == true) ونوع البيع بالكوترة
     if (selectedMaterial?.materialType == 'markup' && selectedMaterial?.isQuantity == true && sellType == 'بالكوترة') {
       int totalCommission = int.tryParse(totalCommissionController.text) ?? 0;
@@ -231,6 +250,209 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
       }
     }
 
+    // تحقق من شروط خابط وزن (markup + isQuantity == false)
+    if (selectedMaterial?.materialType == 'markup' && selectedMaterial?.isQuantity == false) {
+      double workerPercentage = workerPieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(workerPieceRateController.text) ?? '') ?? 0 : 0;
+      double brokerPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') ?? 0 : 0;
+      double pieceFeesPerKilo = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') ?? 0 : 0;
+      
+      double sumPercentages = workerPercentage + brokerPercentage;
+      
+      print('خابط وزن - التحقق من الأجور:');
+      print('نسبة العامل: $workerPercentage');
+      print('نسبة الدلالية: $brokerPercentage');
+      print('المجموع: $sumPercentages');
+      print('أجور العمل لكل كيلو: $pieceFeesPerKilo');
+      print('التحقق: ${sumPercentages == pieceFeesPerKilo ? 'صحيح' : 'خطأ'}');
+      
+      List<String> errors = [];
+      if (sumPercentages != pieceFeesPerKilo) {
+        errors.add('يجب أن يكون مجموع نسبة العامل ونسبة الدلالية مساويًا لأجور العمل لكل كيلو');
+        errors.add('نسبة العامل: $workerPercentage');
+        errors.add('نسبة الدلالية: $brokerPercentage');
+        errors.add('المجموع: $sumPercentages');
+        errors.add('أجور العمل لكل كيلو: $pieceFeesPerKilo');
+      }
+      
+      if (errors.isNotEmpty) {
+        showDialog(
+          context: context,
+          builder: (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.red,
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'خطأ في حساب الأجور',
+                    style: TextStyle(
+                      color: Color.fromARGB(255, 28, 98, 32),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ...errors.map((e) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Text(
+                      e,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 28, 98, 32),
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                  )),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromARGB(255, 28, 98, 32),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'موافق',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+    }
+
+    // تحقق من شروط صافي (consignment) - عدد ووزن
+    if (selectedMaterial?.materialType == 'consignment') {
+      double workerPercentage = workerPieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(workerPieceRateController.text) ?? '') ?? 0 : 0;
+      double brokerPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') ?? 0 : 0;
+      double pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') ?? 0 : 0;
+      
+      double sumPercentages = workerPercentage + brokerPercentage;
+      String unitType = selectedMaterial!.isQuantity ? 'قطعة' : 'كيلو';
+      
+      print('صافي ${selectedMaterial!.isQuantity ? 'عدد' : 'وزن'} - التحقق من الأجور:');
+      print('نسبة العامل: $workerPercentage');
+      print('نسبة الدلالية: $brokerPercentage');
+      print('المجموع: $sumPercentages');
+      print('أجور العمل لكل $unitType: $pieceFees');
+      print('التحقق: ${sumPercentages == pieceFees ? 'صحيح' : 'خطأ'}');
+      
+      List<String> errors = [];
+      if (sumPercentages != pieceFees) {
+        errors.add('يجب أن يكون مجموع نسبة العامل ونسبة الدلالية مساويًا لأجور العمل لكل $unitType');
+        errors.add('نسبة العامل: $workerPercentage');
+        errors.add('نسبة الدلالية: $brokerPercentage');
+        errors.add('المجموع: $sumPercentages');
+        errors.add('أجور العمل لكل $unitType: $pieceFees');
+      }
+      
+      if (errors.isNotEmpty) {
+        showDialog(
+          context: context,
+          builder: (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.red,
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'خطأ في حساب الأجور - صافي ${selectedMaterial!.isQuantity ? 'عدد' : 'وزن'}',
+                    style: const TextStyle(
+                      color: Color.fromARGB(255, 28, 98, 32),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ...errors.map((e) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Text(
+                      e,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 28, 98, 32),
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                  )),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromARGB(255, 28, 98, 32),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'موافق',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+    }
+
     String materialType = selectedMaterial!.materialType;
     double? quantity = quantityController.text.isNotEmpty
         ? double.tryParse(_validateAndConvertNumber(quantityController.text) ?? '')
@@ -257,10 +479,25 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
       if (materialType == "consignment") {
         // صافي وزن أو عدد - إرسال كـ spoiledConsignment
         isRate = officeCommissionType == 'مئوية';
-        commissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
+        
+        // حساب العمولة المئوية للصافي
+        if (officeCommissionType == 'مئوية') {
+          // إذا كانت العمولة مئوية، نحسبها من السعر
+          commissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
+          if (commissionPercentage != null && price > 0) {
+            // حساب قيمة العمولة من النسبة المئوية
+            double commissionValue = (price * commissionPercentage!) / 100;
+            print('صافي - عمولة مئوية: $commissionPercentage% = $commissionValue من السعر $price');
+          }
+        } else {
+          // إذا كانت العمولة ثابتة
+          commissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
+        }
+        
         pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
         workerPiecePercentage = workerPieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(workerPieceRateController.text) ?? '') : null;
         brokerPiecePercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+        
         // إرسال فقط الحقول المطلوبة للصافي كوترة
         context.read<SellBloc>().add(
           AddMaterialToSaleProcess(
@@ -285,6 +522,13 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         traderCommissionPercentage = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
         officeCommissionPercentage = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
         brokerCommissionPercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+        
+        // حساب العمولة المئوية للخابط عدد
+        if (commissionPercentage != null && price > 0) {
+          double commissionValue = (price * commissionPercentage!) / 100;
+          print('خابط عدد - عمولة مئوية: $commissionPercentage% = $commissionValue من السعر $price');
+        }
+        
         pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
         traderPiecePercentage = traderPieceRate;
         workerPiecePercentage = workerPieceRate;
@@ -314,6 +558,13 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         commissionPercentage = totalCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(totalCommissionController.text) ?? '') : null;
         traderCommissionPercentage = traderCommissionSlider;
         officeCommissionPercentage = officeCommissionSlider;
+        
+        // حساب العمولة المئوية للخابط وزن
+        if (commissionPercentage != null && price > 0) {
+          double commissionValue = (price * commissionPercentage!) / 100;
+          print('خابط وزن - عمولة مئوية: $commissionPercentage% = $commissionValue من السعر $price');
+        }
+        
         pieceFees = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
         workerPiecePercentage = workerPieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(workerPieceRateController.text) ?? '') : null;
         brokerPiecePercentage = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
@@ -355,6 +606,13 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
       traderCommissionPercentageOld = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
       officeCommissionPercentageOld = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
       brokerCommissionPercentageOld = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
+      
+      // حساب العمولة المئوية للبيع العادي - خابط عدد
+      if (commissionPercentageOld != null && commissionPercentageOld! > 0 && price > 0) {
+        double commissionValue = (price * commissionPercentageOld!) / 100;
+        print('بيع عادي - خابط عدد - عمولة مئوية: $commissionPercentageOld% = $commissionValue من السعر $price');
+      }
+      
       pieceFeesOld = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
       traderPiecePercentageOld = traderPieceRate;
       workerPiecePercentageOld = workerPieceRate;
@@ -363,16 +621,33 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
       commissionPercentageOld = double.tryParse(totalCommissionController.text) ?? 0;
       traderCommissionPercentageOld = traderCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(traderCommissionController.text) ?? '') : null;
       officeCommissionPercentageOld = officeCommissionController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(officeCommissionController.text) ?? '') : null;
+      
+      // حساب العمولة المئوية للبيع العادي - خابط وزن
+      if (commissionPercentageOld != null && commissionPercentageOld! > 0 && price > 0) {
+        double commissionValue = (price * commissionPercentageOld!) / 100;
+        print('بيع عادي - خابط وزن - عمولة مئوية: $commissionPercentageOld% = $commissionValue من السعر $price');
+      }
+      
       pieceFeesOld = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
       workerPiecePercentageOld = workerPieceRate;
       brokerCommissionPercentageOld = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
     } else if (materialType == "consignment") {
       isRateOld = false;
       commissionPercentageOld = double.tryParse(totalCommissionController.text) ?? 0;
+      
+      // حساب العمولة المئوية للبيع العادي - صافي
+      if (commissionPercentageOld != null && commissionPercentageOld! > 0 && price > 0) {
+        double commissionValue = (price * commissionPercentageOld!) / 100;
+        print('بيع عادي - صافي - عمولة مئوية: $commissionPercentageOld% = $commissionValue من السعر $price');
+      }
+      
       pieceFeesOld = pieceRateController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(pieceRateController.text) ?? '') : null;
       workerPiecePercentageOld = workerPieceRate;
       brokerCommissionPercentageOld = brokerageController.text.isNotEmpty ? double.tryParse(_validateAndConvertNumber(brokerageController.text) ?? '') : null;
     }
+
+    print('Sending normal material - ID: ${selectedMaterial!.id}, Type: $materialType');
+    print('=== END ADDING MATERIAL DEBUG ===');
 
     context.read<SellBloc>().add(
       AddMaterialToSaleProcess(
