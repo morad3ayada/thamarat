@@ -111,10 +111,12 @@ class SellRepository {
     required int materialId,
     required String materialType,
   }) async {
+    print('Repository: Deleting material - id: $materialId, type: $materialType');
     final response = await _apiService.delete(
       '${ApiConstants.deleteMaterial}?materialId=$materialId&materialType=$materialType',
     );
     final data = response.data;
+    print('Repository: Delete response - $data');
     if (data['success'] != true) {
       throw Exception(data['message'] ?? 'Failed to delete sell material');
     }

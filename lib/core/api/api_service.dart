@@ -112,9 +112,9 @@ class ApiService {
     }
   }
 
-  Future<Response> delete(String path) async {
+  Future<Response> delete(String path, {dynamic data}) async {
     try {
-      return await _dio.delete(path);
+      return await _dio.delete(path, data: data);
     } on DioException catch (e) {
       print('[DELETE ERROR] ${e.type} - ${e.message}');
       if (e.type == DioExceptionType.connectionTimeout || 

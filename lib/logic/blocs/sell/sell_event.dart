@@ -103,14 +103,12 @@ class AddMaterialToSaleProcess extends SellEvent {
 class DeleteSellMaterial extends SellEvent {
   final int materialId;
   final String materialType;
-  final String uniqueId;
 
   const DeleteSellMaterial({
     required this.materialId,
     required this.materialType,
-    required this.uniqueId,
   });
 
   @override
-  List<Object?> get props => [materialId, materialType, uniqueId];
+  List<Object?> get props => [materialId, materialType];
 }

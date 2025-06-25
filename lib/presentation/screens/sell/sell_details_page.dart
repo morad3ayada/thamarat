@@ -10,6 +10,7 @@ import 'confirm_sell_page.dart';
 import 'add_material_page.dart';
 import 'package:thamarat/presentation/app_loader.dart';
 import 'sell_page.dart';
+import 'package:thamarat/core/constants/api_constants.dart';
 
 // صفحة تفاصيل البيع - تعرض بيانات الفاتورة الحالية للعميل من السيرفر
 // إذا كان هناك pendingInvoiceId: تعرض تفاصيل الفاتورة المحددة من السيرفر
@@ -233,16 +234,7 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                                                 widget.pendingInvoiceId,
                                           ),
                                     ),
-                                  ).then((value) {
-                                    // بعد العودة من إضافة مادة، أعد تحميل البيانات تلقائيًا
-                                    if (widget.pendingInvoiceId != null) {
-                                      context.read<SellBloc>().add(
-                                        LoadSellDetails(widget.pendingInvoiceId!),
-                                      );
-                                    } else {
-                                      context.read<SellBloc>().add(LoadSellProcesses());
-                                    }
-                                  });
+                                  );
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Color.fromARGB(
@@ -1006,6 +998,28 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
       }
     }
 
+    // تصحيح الـ ID للمواد من نوع "بيع بالكوترة"
+    // نستخدم الـ ID الأصلي للمادة (من قاعدة المواد الأساسية)
+    if (materialType.contains('spoiled')) {
+      // للمواد من نوع "بيع بالكوترة"، نحتاج الـ ID الأصلي للمادة
+      // يمكن أن يكون هناك حقل مثل originalMaterialId أو نحتاج البحث عنه
+      print('Spoiled material detected: $materialName, Current ID: $materialId');
+      
+      // محاولة الحصول على الـ ID الأصلي من حقل منفصل
+      if (material is Map && material.containsKey('originalMaterialId')) {
+        materialId = material['originalMaterialId'] ?? materialId;
+        print('Using originalMaterialId: $materialId');
+      } else if (material is sell_models.SpoiledMaterialModel) {
+        // إذا كان هناك حقل في النموذج للحصول على الـ ID الأصلي
+        // يمكن إضافة منطق هنا
+        print('SpoiledMaterialModel - need to get original ID');
+      }
+      
+      // إذا لم نجد الـ ID الأصلي، نحاول البحث عنه من خلال اسم المادة
+      // هذا يتطلب الوصول إلى قائمة المواد الأساسية
+      // يمكن إضافة هذا المنطق لاحقاً إذا لزم الأمر
+    }
+
     // ترجمة نوع المادة
     String typeText = '';
     if (materialType.contains('markup')) {
@@ -1023,6 +1037,21 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
     } else {
       saleType = 'بيع عادي';
     }
+
+    // تصحيح نوع المادة للحذف
+    String correctedMaterialType = materialType;
+    if (saleType == 'بيع بالكوترة') {
+      // إذا كان نوع البيع "بيع بالكوترة"، نصحح نوع المادة
+      if (materialType == 'consignment') {
+        correctedMaterialType = 'spoiledConsignment';
+      } else if (materialType == 'markup') {
+        correctedMaterialType = 'spoiledMarkup';
+      }
+      print('Corrected material type for deletion: $materialType -> $correctedMaterialType');
+    }
+
+    // طباعة debug لمعرفة نوع المادة والـ ID
+    print('Material: $materialName, Type: $materialType, CorrectedType: $correctedMaterialType, ID: $materialId, SaleType: $saleType');
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1118,9 +1147,10 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
                     tooltip: 'حذف',
                     onPressed: () {
+                      print('Deleting material: id=$materialId, type=$correctedMaterialType, saleType=$saleType');
                       _showDeleteConfirmation(
                         materialId,
-                        materialType,
+                        correctedMaterialType,
                         materialName,
                       );
                     },
@@ -1139,12 +1169,6 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
     String materialType,
     String materialName,
   ) {
-    // Generate unique ID based on material type
-    String uniqueId =
-        materialType.startsWith('spoiled')
-            ? 's${materialType.startsWith('spoiledConsignment') ? 'c' : 'm'}$materialId'
-            : '${materialType.startsWith('consignment') ? 'c' : 'm'}$materialId';
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1225,15 +1249,12 @@ class _SellDetailsPageState extends State<SellDetailsPage> {
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.of(context).pop();
-                          Future.delayed(const Duration(milliseconds: 100), () {
-                            context.read<SellBloc>().add(
-                              DeleteSellMaterial(
-                                materialId: materialId,
-                                materialType: materialType,
-                                uniqueId: uniqueId,
-                              ),
-                            );
-                          });
+                          context.read<SellBloc>().add(
+                            DeleteSellMaterial(
+                              materialId: materialId,
+                              materialType: materialType,
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,

@@ -7,6 +7,7 @@ import '../../../logic/blocs/sell/sell_bloc.dart';
 import '../../../logic/blocs/sell/sell_event.dart';
 import '../../../logic/blocs/sell/sell_state.dart';
 import '../../../data/models/materials_model.dart';
+import 'package:flutter/services.dart';
 
 class AddMaterialPage extends StatefulWidget {
   final String? customerName;
@@ -136,36 +137,98 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
 
   void _handleAddMaterial() {
     if (selectedMaterial == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('الرجاء اختيار مادة'),
-          backgroundColor: Colors.red,
-          duration: const Duration(milliseconds: 500),
-        ),
-      );
       return;
     }
 
     if (weightController.text.isEmpty && quantityController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('الرجاء إدخال الوزن أو الكمية'),
-          backgroundColor: Colors.red,
-          duration: const Duration(milliseconds: 500),
-        ),
-      );
       return;
     }
 
     if (priceController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('الرجاء إدخال السعر'),
-          backgroundColor: Colors.red,
-          duration: const Duration(milliseconds: 500),
-        ),
-      );
       return;
+    }
+
+    // تحقق من شروط خابط عدد (markup + isQuantity == true) ونوع البيع بالكوترة
+    if (selectedMaterial?.materialType == 'markup' && selectedMaterial?.isQuantity == true && sellType == 'بالكوترة') {
+      int totalCommission = int.tryParse(totalCommissionController.text) ?? 0;
+      int traderCommission = int.tryParse(traderCommissionController.text) ?? 0;
+      int officeCommission = int.tryParse(officeCommissionController.text) ?? 0;
+      int brokerageCommission = int.tryParse(brokerageController.text) ?? 0;
+      int sumCommission = traderCommission + officeCommission + brokerageCommission;
+      int sumPiece = traderPieceRate.toInt() + officePieceRate.toInt() + workerPieceRate.toInt();
+      List<String> errors = [];
+      if (sumCommission != totalCommission) {
+        errors.add('يجب أن يكون مجموع نسب التاجر والمكتب والدلالية مساويًا لنسبة العمولة');
+      }
+      if (sumPiece != 100) {
+        errors.add('يجب أن يكون مجموع نسب أجور القطعة (تاجر، مكتب، عامل) يساوي 100');
+      }
+      if (errors.isNotEmpty) {
+        showDialog(
+          context: context,
+          builder: (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.red,
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ...errors.map((e) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Text(
+                      e,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 28, 98, 32),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  )),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromARGB(255, 28, 98, 32),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'موافق',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        return;
+      }
     }
 
     String materialType = selectedMaterial!.materialType;
@@ -342,13 +405,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         body: BlocConsumer<MaterialsBloc, MaterialsState>(
           listener: (context, state) {
             if (state is MaterialsError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.red,
-                  duration: const Duration(milliseconds: 500),
-                ),
-              );
+              // No need to show snackbar here
             }
           },
           builder: (context, state) {
@@ -359,13 +416,6 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
             return BlocListener<SellBloc, SellState>(
               listener: (context, sellState) {
                 if (sellState is MaterialAdded) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('تم إضافة المادة بنجاح'),
-                      backgroundColor: Colors.green,
-                      duration: const Duration(milliseconds: 500),
-                    ),
-                  );
                   // تحديث بيانات البيع بعد إضافة المادة
                   if (widget.saleProcessId != null) {
                     context.read<SellBloc>().add(LoadSellDetails(widget.saleProcessId!));
@@ -374,13 +424,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                   }
                   Navigator.pop(context);
                 } else if (sellState is SellError) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(sellState.message),
-                      backgroundColor: Colors.red,
-                      duration: const Duration(milliseconds: 500),
-                    ),
-                  );
+                  // No need to show snackbar here
                 }
               },
               child: Column(
@@ -809,13 +853,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         double broker = double.tryParse(brokerageController.text) ?? 0;
         double sum = trader + office + broker;
         if (sum != totalCommission) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('مجموع نسب التاجر والمكتب والدلالية يجب أن يساوي نسبة العمولة ($totalCommission%)'),
-              backgroundColor: Colors.red,
-              duration: const Duration(milliseconds: 500),
-            ),
-          );
+          // No need to show snackbar here
         }
       }
     }
@@ -823,15 +861,9 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
     // التحقق من مجموع نسب أجور القطعة
     void _validateMarkupQtyPieceRates() {
       if (selectedMaterial?.materialType == 'markup' && selectedMaterial?.isQuantity == true) {
-        double sum = traderPieceRate + officePieceRate + workerPieceRate;
+        int sum = traderPieceRate.toInt() + officePieceRate.toInt() + workerPieceRate.toInt();
         if (sum != 100) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('مجموع نسب أجور القطعة يجب أن يساوي 100%'),
-              backgroundColor: Colors.red,
-              duration: const Duration(milliseconds: 500),
-            ),
-          );
+          // No need to show snackbar here
         }
       }
     }
@@ -843,7 +875,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
         children: [
           // نسبة العمولة
           _buildCommissionCard(
-            title: "نسبة العمولة (%)",
+            title: "نسبة العمولة",
             controller: totalCommissionController,
           ),
           const SizedBox(height: 16),
@@ -857,26 +889,29 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
           ),
           const SizedBox(height: 8),
           _buildCommissionCard(
-            title: "نسبة التاجر من العمولة (%)",
+            title: "نسبة التاجر من العمولة",
             controller: traderCommissionController,
+            isIntOnly: true,
             onChanged: (_) => _validateMarkupQtyCommissions(),
           ),
           const SizedBox(height: 8),
           _buildCommissionCard(
-            title: "نسبة المكتب من العمولة (%)",
+            title: "نسبة المكتب من العمولة",
             controller: officeCommissionController,
+            isIntOnly: true,
             onChanged: (_) => _validateMarkupQtyCommissions(),
           ),
           const SizedBox(height: 8),
           _buildCommissionCard(
-            title: "نسبة الدلالية (%)",
+            title: "نسبة الدلالية",
             controller: brokerageController,
+            isIntOnly: true,
             onChanged: (_) => _validateMarkupQtyCommissions(),
           ),
           const SizedBox(height: 16),
           // أجور القطعة
           _buildCommissionCard(
-            title: "أجور القطعة (دينار)",
+            title: "أجور القطعة",
             controller: pieceRateController,
           ),
           const SizedBox(height: 16),
@@ -891,27 +926,27 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
           const SizedBox(height: 8),
           _buildRateCardWithSlider(
             title: "نسبة التاجر من أجور القطعة",
-            value: traderPieceRate,
+            value: traderPieceRate.toInt().toDouble(),
             onChanged: (val) {
-              setState(() => traderPieceRate = val);
+              setState(() => traderPieceRate = val.toInt().toDouble());
               _validateMarkupQtyPieceRates();
             },
           ),
           const SizedBox(height: 8),
           _buildRateCardWithSlider(
             title: "نسبة المكتب من أجور القطعة",
-            value: officePieceRate,
+            value: officePieceRate.toInt().toDouble(),
             onChanged: (val) {
-              setState(() => officePieceRate = val);
+              setState(() => officePieceRate = val.toInt().toDouble());
               _validateMarkupQtyPieceRates();
             },
           ),
           const SizedBox(height: 8),
           _buildRateCardWithSlider(
             title: "نسبة العامل من أجور القطعة",
-            value: workerPieceRate,
+            value: workerPieceRate.toInt().toDouble(),
             onChanged: (val) {
-              setState(() => workerPieceRate = val);
+              setState(() => workerPieceRate = val.toInt().toDouble());
               _validateMarkupQtyPieceRates();
             },
           ),
@@ -953,11 +988,11 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                 ),
               ),
               Slider(
-                value: traderCommissionSlider,
+                value: traderCommissionSlider.toInt().toDouble(),
                 onChanged: (val) {
                   setState(() {
-                    traderCommissionSlider = val;
-                    officeCommissionSlider = totalCommission - val;
+                    traderCommissionSlider = val.toInt().toDouble();
+                    officeCommissionSlider = totalCommission - val.toInt().toDouble();
                   });
                   _validateWeightMarkupCommissions();
                 },
@@ -982,11 +1017,11 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                 ),
               ),
               Slider(
-                value: officeCommissionSlider,
+                value: officeCommissionSlider.toInt().toDouble(),
                 onChanged: (val) {
                   setState(() {
-                    officeCommissionSlider = val;
-                    traderCommissionSlider = totalCommission - val;
+                    officeCommissionSlider = val.toInt().toDouble();
+                    traderCommissionSlider = totalCommission - val.toInt().toDouble();
                   });
                   _validateWeightMarkupCommissions();
                 },
@@ -1025,6 +1060,9 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
 
     // صافي عدد أو صافي وزن
     if (type == 'consignment' && sellType == "بالكوترة") {
+      double pieceRate = double.tryParse(pieceRateController.text) ?? 0;
+      double workerRate = double.tryParse(workerPieceRateController.text) ?? 0;
+      double brokerRate = double.tryParse(brokerageController.text) ?? 0;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1099,8 +1137,8 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
                   ),
                 ),
                 Slider(
-                  value: officePieceRate,
-                  onChanged: (val) => setState(() => officePieceRate = val),
+                  value: officePieceRate.toInt().toDouble(),
+                  onChanged: (val) => setState(() => officePieceRate = val.toInt().toDouble()),
                   min: 0,
                   max: 100,
                   divisions: 100,
@@ -1151,6 +1189,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
     required String title,
     required TextEditingController controller,
     Function(String)? onChanged,
+    bool isIntOnly = false,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1184,6 +1223,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
             child: TextField(
               controller: controller,
               keyboardType: TextInputType.number,
+              inputFormatters: isIntOnly ? [FilteringTextInputFormatter.digitsOnly] : null,
               onChanged: onChanged,
               decoration: InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
@@ -1237,7 +1277,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
             ),
           ),
           Slider(
-            value: value,
+            value: value.toInt().toDouble(),
             onChanged: onChanged,
             min: 0,
             max: 100,
@@ -1276,13 +1316,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
       double sum = traderCommission + officeCommission + brokerageCommission;
       
       if (sum != totalCommission) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('مجموع النسب يجب أن يساوي $totalCommission%'),
-            backgroundColor: Colors.red,
-            duration: const Duration(milliseconds: 500),
-          ),
-        );
+        // No need to show snackbar here
       }
     }
   }
@@ -1307,13 +1341,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
       double sum = traderCommissionSlider + officeCommissionSlider;
       
       if (sum != totalCommission) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('مجموع نسب التاجر والمكتب يجب أن يساوي $totalCommission%'),
-            backgroundColor: Colors.red,
-            duration: const Duration(milliseconds: 500),
-          ),
-        );
+        // No need to show snackbar here
       }
     }
   }
@@ -1327,13 +1355,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
       double sum = workerRate + brokerRate;
       
       if (sum != pieceRate) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('مجموع نسب العامل والدلالية يجب أن يساوي $pieceRate'),
-            backgroundColor: Colors.red,
-            duration: const Duration(milliseconds: 500),
-          ),
-        );
+        // No need to show snackbar here
       }
     }
   }
@@ -1361,13 +1383,7 @@ class _AddMaterialPageState extends State<AddMaterialPage> {
       double sum = traderRate + workerRate + brokerRate;
       
       if (sum != pieceRate) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('مجموع نسب أجور القطعة يجب أن يساوي $pieceRate'),
-            backgroundColor: Colors.red,
-            duration: const Duration(milliseconds: 500),
-          ),
-        );
+        // No need to show snackbar here
       }
     }
   }
